@@ -78,7 +78,7 @@ enum TattooSize {
   LARGE      // Grande (10cm a 15cm)
   EXTRA_LARGE // Extra grande (15cm a 20cm)
   XLARGE      // XL (20cm a 40cm)
-  FULL_BODY  // Full body / grande área(mais de 40 cm)
+  FULL_BODY  // Full body / grande área(mais de 20 cm)
 }
 
 // Complexidade da tatuagem (parâmetro de sugestão)
