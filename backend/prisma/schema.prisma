@@ -26,17 +26,16 @@ enum TenantType {
 
 // Roles dentro de um tenant
 enum UserRole {
-  OWNER          // Dono do estúdio ou o próprio autônomo
-  ADMIN          // Administrador/funcionário que faz orçamentos
-  EMPLOYEE       // Tatuador funcionário do estúdio
-  RECEPTIONIST   // Recepcionista
-}
-
-// Status do usuário
-enum UserRole {
   OWNER      // Dono do estúdio ou o próprio autônomo
   STAFF      // Funcionário geral (faz orçamentos, atendimento, agenda)
   EMPLOYEE   // Tatuador funcionário do estúdio
+}
+
+// Status do usuário
+enum UserStatus {
+  PENDING_VERIFICATION // Aguardando verificação de email
+  ACTIVE               // Ativo
+  INACTIVE             // Inativo
 }
 
 // Tipo de autônomo
@@ -355,7 +354,7 @@ model Transaction {
   amount      Int                                  // Valor em centavos
   paymentMethod PaymentMethod?
   clientId    String?                              // Cliente associado (se for tattoo)
-  sessionId   String?                              // Sessão associada (se for tattoo)
+  sessionId   String?  @unique                      // Sessão associada (se for tattoo)
   description String?
   date        DateTime
   createdAt   DateTime            @default(now())
@@ -439,7 +438,8 @@ model MLModel {
   isActive      Boolean  @default(true)         // Se é o modelo atual ou um histórico
   createdAt     DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+  predictions MLPrediction[]
 }
 
 // Histórico de predições feitas pelo modelo

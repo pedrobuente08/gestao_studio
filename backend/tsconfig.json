@@ -3,7 +3,6 @@
     "module": "commonjs",
     "target": "es2020",
     "lib": ["es2020"],
-    "framework": "nestjs",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

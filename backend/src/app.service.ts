@@ -1,1 +1,8 @@
-// module: app
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AppService {
+  getStatus() {
+    return { status: 'ok', name: 'InkStudio API' };
+  }
+}

@@ -1,1 +1,23 @@
-// module: auth
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+
+export class RequestPasswordResetDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
+
+export class ValidateResetTokenDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+}
+
+export class ResetPasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+
+  @IsString()
+  @MinLength(6)
+  newPassword: string;
+}
