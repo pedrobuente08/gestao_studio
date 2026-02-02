@@ -4,21 +4,21 @@ import { TenantType } from '@prisma/client';
 export class RegisterDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(6)
-  password: string;
+  password!: string;
 
   @IsEnum(TenantType)
   @IsNotEmpty()
-  tenantType: TenantType;
+  tenantType!: TenantType;
 
   @IsString()
   @IsNotEmpty()
-  tenantName: string;
+  tenantName!: string;
 }

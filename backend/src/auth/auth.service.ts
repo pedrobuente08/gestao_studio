@@ -13,6 +13,13 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponse } from './dto/auth-response.dto';
 
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET não está definido no .env');
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '7d';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -315,12 +322,11 @@ export class AuthService {
     userId: string,
     tenantId: string,
   ): Promise<AuthResponse> {
-    const secret = this.configService.get<string>('JWT_SECRET');
-    const expiresIn = this.configService.get<string>('JWT_EXPIRATION');
-
-    const token = jwt.sign({ userId, tenantId }, secret!, {
-      expiresIn,
-    });
+    const token = jwt.sign(
+      { userId, tenantId },
+      JWT_SECRET as jwt.Secret,
+      { expiresIn: JWT_EXPIRATION } as jwt.SignOptions,
+    );
 
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
