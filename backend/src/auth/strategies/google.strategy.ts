@@ -6,12 +6,21 @@ import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private readonly configService: ConfigService) {
+    const clientID = configService.get<string>('GOOGLE_CLIENT_ID');
+    const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
+
+    // Se não houver credenciais, usar valores placeholder que não serão usados
+    // As rotas do Google OAuth retornarão erro se não estiverem configuradas
     super({
-      clientID: configService.get<string>('GOOGLE_CLIENT_ID') ?? '',
-      clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET') ?? '',
-      callbackURL: '/auth/google/callback',
+      clientID: clientID || 'not-configured',
+      clientSecret: clientSecret || 'not-configured',
+      callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL') || '/auth/google/callback',
       scope: ['email', 'profile'],
     });
+
+    if (!clientID || !clientSecret) {
+      console.warn('[GoogleStrategy] Google OAuth não configurado. Defina GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET no .env para habilitar.');
+    }
   }
 
   async validate(
