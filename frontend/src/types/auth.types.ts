@@ -1,1 +1,31 @@
-// module: types
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: 'OWNER' | 'STAFF' | 'EMPLOYEE';
+  tenantId: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  tenantType: 'AUTONOMO' | 'STUDIO';
+  tenantName: string;
+}
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface ResetPasswordData {
+  email?: string;
+  token?: string;
+  newPassword?: string;
+}

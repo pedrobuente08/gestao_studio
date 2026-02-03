@@ -27,7 +27,7 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto): Promise<AuthResponse> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -37,10 +37,6 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const verificationToken = randomBytes(32).toString('hex');
-    const verificationTokenExpiresAt = new Date(
-      Date.now() + 24 * 60 * 60 * 1000,
-    );
 
     const tenant = await this.prisma.tenant.create({
       data: {
@@ -55,7 +51,7 @@ export class AuthService {
         email: dto.email,
         name: dto.name,
         role: 'OWNER',
-        status: 'PENDING_VERIFICATION',
+        status: 'ACTIVE',
       },
     });
 
@@ -64,20 +60,10 @@ export class AuthService {
         userId: user.id,
         type: 'password',
         hashedPassword,
-        verificationToken,
-        verificationTokenExpiresAt,
       },
     });
 
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        tenantId: user.tenantId,
-      },
-    };
+    return this.generateAuthResponse(user.id, user.tenantId);
   }
 
   async login(dto: LoginDto): Promise<AuthResponse> {
