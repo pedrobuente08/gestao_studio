@@ -106,8 +106,8 @@ export default function RegisterPage() {
           <label className="mb-2 block text-sm font-medium text-zinc-300">
             Tipo de conta
           </label>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+            <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors">
               <input
                 type="radio"
                 value="AUTONOMO"
@@ -116,7 +116,7 @@ export default function RegisterPage() {
               />
               <span className="text-zinc-300">Autônomo</span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors">
               <input
                 type="radio"
                 value="STUDIO"

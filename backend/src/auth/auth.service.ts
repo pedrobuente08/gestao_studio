@@ -4,16 +4,25 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
+import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponse } from './dto/auth-response.dto';
+import {
+  RequestPasswordResetDto,
+  ResetPasswordDto,
+} from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
-  async register(dto: RegisterDto): Promise<AuthResponse> {
+  async register(dto: RegisterDto): Promise<{ message: string }> {
     // Verifica se o email já existe
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
@@ -34,7 +43,7 @@ export class AuthService {
       },
     });
 
-    // Cria o usuário no nosso sistema
+    // Cria o usuário
     const user = await this.prisma.user.create({
       data: {
         tenantId: tenant.id,
@@ -45,29 +54,33 @@ export class AuthService {
       },
     });
 
-    // Cria a conta com senha no modelo Account (compatível com Better-Auth)
+    // Cria a conta com senha — emailVerified null até verificar
     await this.prisma.account.create({
       data: {
         userId: user.id,
         type: 'email',
         provider: 'credentials',
         password: hashedPassword,
+        emailVerified: null,
       },
     });
 
-    // Cria sessão
-    const session = await this.createSession(user.id);
+    // Gera token de verificação (24 horas)
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    return {
-      token: session.token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        tenantId: user.tenantId,
+    await this.prisma.verificationToken.create({
+      data: {
+        identifier: `email-verify:${user.email}`,
+        token,
+        expires,
       },
-    };
+    });
+
+    // Envia email de verificação
+    await this.emailService.sendVerificationEmail(user.email, user.name, token);
+
+    return { message: 'Verifique seu email para ativar a conta' };
   }
 
   async login(dto: LoginDto): Promise<AuthResponse> {
@@ -95,10 +108,7 @@ export class AuthService {
     }
 
     // Valida a senha
-    const isPasswordValid = await bcrypt.compare(
-      dto.password,
-      account.password,
-    );
+    const isPasswordValid = await bcrypt.compare(dto.password, account.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciais inválidas');
@@ -106,6 +116,13 @@ export class AuthService {
 
     if (user.status !== 'ACTIVE') {
       throw new UnauthorizedException('Usuário inválido ou inativo');
+    }
+
+    // Verifica se o email foi verificado
+    if (!account.emailVerified) {
+      throw new UnauthorizedException(
+        'Email não verificado. Verifique sua caixa de entrada.',
+      );
     }
 
     // Busca ou cria sessão
@@ -123,6 +140,208 @@ export class AuthService {
     };
   }
 
+  async verifyEmail(token: string): Promise<AuthResponse> {
+    // Busca o token de verificação
+    const verificationToken = await this.prisma.verificationToken.findUnique({
+      where: { token },
+    });
+
+    if (!verificationToken || verificationToken.expires < new Date()) {
+      throw new BadRequestException('Token inválido ou expirado');
+    }
+
+    // Extrai o email do identifier (formato: email-verify:{email})
+    const email = verificationToken.identifier.replace('email-verify:', '');
+
+    // Busca o usuário
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        accounts: {
+          where: { type: 'email', provider: 'credentials' },
+        },
+      },
+    });
+
+    if (!user || user.accounts.length === 0) {
+      throw new BadRequestException('Token inválido ou expirado');
+    }
+
+    const account = user.accounts[0];
+
+    // Marca o email como verificado
+    await this.prisma.account.update({
+      where: { id: account.id },
+      data: { emailVerified: new Date() },
+    });
+
+    // Deleta o token usado
+    await this.prisma.verificationToken.delete({
+      where: { token },
+    });
+
+    // Cria sessão e faz login automático
+    const session = await this.createSession(user.id);
+
+    return {
+      token: session.token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        tenantId: user.tenantId,
+      },
+    };
+  }
+
+  async resendVerificationEmail(email: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        accounts: {
+          where: { type: 'email', provider: 'credentials' },
+        },
+      },
+    });
+
+    // Retorna sucesso mesmo se não encontrar (segurança)
+    if (!user || user.accounts.length === 0) {
+      return { message: 'Se o email existir, você receberá um novo link de verificação' };
+    }
+
+    const account = user.accounts[0];
+
+    // Se já verificado, não reenvia
+    if (account.emailVerified) {
+      return { message: 'Email já verificado. Faça login normalmente.' };
+    }
+
+    // Invalida tokens anteriores
+    await this.prisma.verificationToken.deleteMany({
+      where: { identifier: `email-verify:${email}` },
+    });
+
+    // Gera novo token (24 horas)
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await this.prisma.verificationToken.create({
+      data: {
+        identifier: `email-verify:${email}`,
+        token,
+        expires,
+      },
+    });
+
+    await this.emailService.sendVerificationEmail(user.email, user.name, token);
+
+    return { message: 'Email de verificação reenviado com sucesso' };
+  }
+
+  async requestPasswordReset(email: string): Promise<{ message: string }> {
+    const genericMessage = { message: 'Se o email existir, você receberá as instruções de recuperação' };
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    // Retorna mensagem genérica mesmo se não encontrar (segurança)
+    if (!user) {
+      return genericMessage;
+    }
+
+    // Invalida tokens anteriores de reset
+    await this.prisma.verificationToken.deleteMany({
+      where: { identifier: `password-reset:${email}` },
+    });
+
+    // Gera token (1 hora)
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 60 * 60 * 1000);
+
+    await this.prisma.verificationToken.create({
+      data: {
+        identifier: `password-reset:${email}`,
+        token,
+        expires,
+      },
+    });
+
+    await this.emailService.sendPasswordResetEmail(user.email, user.name, token);
+
+    return genericMessage;
+  }
+
+  async validateResetToken(token: string): Promise<{ valid: boolean }> {
+    const verificationToken = await this.prisma.verificationToken.findUnique({
+      where: { token },
+    });
+
+    if (
+      !verificationToken ||
+      !verificationToken.identifier.startsWith('password-reset:') ||
+      verificationToken.expires < new Date()
+    ) {
+      return { valid: false };
+    }
+
+    return { valid: true };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    const verificationToken = await this.prisma.verificationToken.findUnique({
+      where: { token },
+    });
+
+    if (
+      !verificationToken ||
+      !verificationToken.identifier.startsWith('password-reset:') ||
+      verificationToken.expires < new Date()
+    ) {
+      throw new BadRequestException('Token inválido ou expirado');
+    }
+
+    // Extrai o email do identifier
+    const email = verificationToken.identifier.replace('password-reset:', '');
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        accounts: {
+          where: { type: 'email', provider: 'credentials' },
+        },
+      },
+    });
+
+    if (!user || user.accounts.length === 0) {
+      throw new BadRequestException('Token inválido ou expirado');
+    }
+
+    const account = user.accounts[0];
+
+    // Hash da nova senha
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Atualiza a senha
+    await this.prisma.account.update({
+      where: { id: account.id },
+      data: { password: hashedPassword },
+    });
+
+    // Deleta o token usado
+    await this.prisma.verificationToken.delete({
+      where: { token },
+    });
+
+    // Invalida todas as sessões ativas do usuário
+    await this.prisma.session.deleteMany({
+      where: { userId: user.id },
+    });
+
+    return { message: 'Senha redefinida com sucesso' };
+  }
+
   async loginWithGoogle(googleUser: {
     email: string;
     name: string;
@@ -134,7 +353,6 @@ export class AuthService {
     });
 
     if (!user) {
-      // Cria tenant e usuário
       const tenant = await this.prisma.tenant.create({
         data: {
           type: 'AUTONOMO',
@@ -169,11 +387,11 @@ export class AuthService {
           type: 'oauth',
           provider: 'google',
           providerAccountId: googleUser.providerAccountId,
+          emailVerified: new Date(), // OAuth já verifica o email
         },
       });
     }
 
-    // Cria sessão
     const session = await this.createSession(user.id);
 
     return {
@@ -226,7 +444,7 @@ export class AuthService {
 
   private async createSession(userId: string) {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
-    const token = this.generateToken();
+    const token = crypto.randomBytes(32).toString('hex');
 
     return await this.prisma.session.create({
       data: {
@@ -251,11 +469,5 @@ export class AuthService {
     }
 
     return await this.createSession(userId);
-  }
-
-  private generateToken(): string {
-    return Math.random().toString(36).substring(2, 15) +
-           Math.random().toString(36).substring(2, 15) +
-           Math.random().toString(36).substring(2, 15);
   }
 }

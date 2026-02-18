@@ -44,10 +44,9 @@ export function useAuth() {
   // Mutation de registro
   const registerMutation = useMutation({
     mutationFn: (data: RegisterData) => authService.register(data),
-    onSuccess: (response) => {
-      setAuth(response.token, response.user);
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      router.push('/dashboard');
+    onSuccess: (_response, variables) => {
+      // Após registro, redireciona para verificação de email
+      router.push(`/verify-email?email=${encodeURIComponent(variables.email)}`);
     },
   });
 
@@ -68,6 +67,11 @@ export function useAuth() {
   // Mutation de verificar email
   const verifyEmailMutation = useMutation({
     mutationFn: (token: string) => authService.verifyEmail(token),
+  });
+
+  // Mutation de reenviar email de verificação
+  const resendVerificationMutation = useMutation({
+    mutationFn: (email: string) => authService.resendVerificationEmail(email),
   });
 
   // Função de logout
@@ -114,6 +118,12 @@ export function useAuth() {
     verifyEmailAsync: verifyEmailMutation.mutateAsync,
     verifyEmailError: verifyEmailMutation.error,
     isVerifyEmailLoading: verifyEmailMutation.isPending,
+
+    resendVerificationEmail: resendVerificationMutation.mutate,
+    resendVerificationEmailAsync: resendVerificationMutation.mutateAsync,
+    resendVerificationError: resendVerificationMutation.error,
+    isResendVerificationLoading: resendVerificationMutation.isPending,
+    resendVerificationSuccess: resendVerificationMutation.isSuccess,
 
     logout,
     loginWithGoogle,

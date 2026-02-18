@@ -20,7 +20,7 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">
           <h3 className="text-sm font-medium text-zinc-400">Faturamento Mensal</h3>
           <p className="mt-2 text-2xl font-bold text-zinc-100">R$ 0,00</p>
