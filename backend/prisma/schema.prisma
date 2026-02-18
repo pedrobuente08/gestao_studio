@@ -33,7 +33,6 @@ enum UserRole {
 
 // Status do usuário
 enum UserStatus {
-  PENDING_VERIFICATION // Aguardando verificação de email
   ACTIVE               // Ativo
   INACTIVE             // Inativo
 }
@@ -148,14 +147,12 @@ model User {
   email     String     @unique
   name      String
   role      UserRole
-  status    UserStatus @default(PENDING_VERIFICATION)
+  status    UserStatus @default(ACTIVE)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
   // Relações
   tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  authCredentials AuthCredential[]
-  sessions        AuthSession[]
   // Sessões de tatuagem realizadas por este tatuador
   tattooSessions  TattooSession[]
   // Procedimentos cadastrados por este tatuador
@@ -168,39 +165,66 @@ model User {
   mlTrainingData  MLTrainingData[]
   // Predições feitas pelo modelo
   mlPredictions   MLPrediction[]
+  
+  // Better-Auth relations
+  sessions Session[]
+  accounts Account[]
 }
 
-// Credenciais de autenticação (senha ou OAuth)
-model AuthCredential {
-  id        String   @id @default(cuid())
-  userId   String
-  type      String   // "password" | "google" | "github"
-  // Para login com senha
-  hashedPassword String?
-  // Para OAuth
-  providerAccountId String?
-  // Para reset de senha
-  resetToken        String?  @unique
-  resetTokenExpiresAt DateTime?
-  // Para validação de email
-  verificationToken        String?  @unique
-  verificationTokenExpiresAt DateTime?
+// ============================================================
+// BETTER-AUTH MODELS
+// ============================================================
 
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
-// Sessões de autenticação (Better-Auth gerencia isso, mas mantém compatibilidade)
-model AuthSession {
-  id        String   @id @default(cuid())
-  userId   String
-  token     String   @unique
-  expiresAt DateTime
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String   // "email" | "oauth"
+  provider          String   // "google" | "credentials"
+  providerAccountId String?
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  
+  // Para email/password
+  password          String?
+  emailVerified     DateTime?
+  
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model VerificationToken {
+  id         String   @id @default(cuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+
+  @@unique([identifier, token])
 }
 
 // ============================================================

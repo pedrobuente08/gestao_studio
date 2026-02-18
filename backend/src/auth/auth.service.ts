@@ -1,43 +1,32 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
-import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponse } from './dto/auth-response.dto';
 
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET não está definido no .env');
-}
-
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '7d';
-
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
+    // Verifica se o email já existe
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
     if (existingUser) {
-      throw new ConflictException('Email já cadastrado');
+      throw new BadRequestException('Email já cadastrado');
     }
 
+    // Hash da senha
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
+    // Cria o tenant
     const tenant = await this.prisma.tenant.create({
       data: {
         type: dto.tenantType,
@@ -45,6 +34,7 @@ export class AuthService {
       },
     });
 
+    // Cria o usuário no nosso sistema
     const user = await this.prisma.user.create({
       data: {
         tenantId: tenant.id,
@@ -55,70 +45,96 @@ export class AuthService {
       },
     });
 
-    await this.prisma.authCredential.create({
+    // Cria a conta com senha no modelo Account (compatível com Better-Auth)
+    await this.prisma.account.create({
       data: {
         userId: user.id,
-        type: 'password',
-        hashedPassword,
+        type: 'email',
+        provider: 'credentials',
+        password: hashedPassword,
       },
     });
 
-    return this.generateAuthResponse(user.id, user.tenantId);
+    // Cria sessão
+    const session = await this.createSession(user.id);
+
+    return {
+      token: session.token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        tenantId: user.tenantId,
+      },
+    };
   }
 
   async login(dto: LoginDto): Promise<AuthResponse> {
+    // Busca o usuário com a conta
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
       include: {
-        authCredentials: {
-          where: { type: 'password' },
+        accounts: {
+          where: {
+            type: 'email',
+            provider: 'credentials',
+          },
         },
       },
     });
 
-    if (!user || user.authCredentials.length === 0) {
+    if (!user || user.accounts.length === 0) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const credential = user.authCredentials[0];
+    const account = user.accounts[0];
 
-    if (!credential.hashedPassword) {
+    if (!account.password) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
+    // Valida a senha
     const isPasswordValid = await bcrypt.compare(
       dto.password,
-      credential.hashedPassword,
+      account.password,
     );
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    if (user.status === 'PENDING_VERIFICATION') {
-      throw new UnauthorizedException(
-        'Email não verificado. Verifique sua caixa de entrada.',
-      );
+    if (user.status !== 'ACTIVE') {
+      throw new UnauthorizedException('Usuário inválido ou inativo');
     }
 
-    return this.generateAuthResponse(user.id, user.tenantId);
+    // Busca ou cria sessão
+    const session = await this.findOrCreateSession(user.id);
+
+    return {
+      token: session.token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        tenantId: user.tenantId,
+      },
+    };
   }
 
   async loginWithGoogle(googleUser: {
-    providerAccountId: string;
     email: string;
     name: string;
+    providerAccountId: string;
   }): Promise<AuthResponse> {
+    // Busca ou cria usuário
     let user = await this.prisma.user.findUnique({
       where: { email: googleUser.email },
-      include: {
-        authCredentials: {
-          where: { type: 'google' },
-        },
-      },
     });
 
     if (!user) {
+      // Cria tenant e usuário
       const tenant = await this.prisma.tenant.create({
         data: {
           type: 'AUTONOMO',
@@ -134,207 +150,112 @@ export class AuthService {
           role: 'OWNER',
           status: 'ACTIVE',
         },
-        include: {
-          authCredentials: {
-            where: { type: 'google' },
-          },
-        },
       });
+    }
 
-      await this.prisma.authCredential.create({
+    // Cria ou busca conta OAuth
+    let account = await this.prisma.account.findFirst({
+      where: {
+        userId: user.id,
+        provider: 'google',
+        providerAccountId: googleUser.providerAccountId,
+      },
+    });
+
+    if (!account) {
+      account = await this.prisma.account.create({
         data: {
           userId: user.id,
-          type: 'google',
+          type: 'oauth',
+          provider: 'google',
           providerAccountId: googleUser.providerAccountId,
         },
       });
-    } else {
-      if (user.name !== googleUser.name) {
-        await this.prisma.user.update({
-          where: { id: user.id },
-          data: { name: googleUser.name },
-        });
-      }
-
-      if (user.authCredentials.length === 0) {
-        await this.prisma.authCredential.create({
-          data: {
-            userId: user.id,
-            type: 'google',
-            providerAccountId: googleUser.providerAccountId,
-          },
-        });
-      }
-
-      if (user.status !== 'ACTIVE') {
-        await this.prisma.user.update({
-          where: { id: user.id },
-          data: { status: 'ACTIVE' },
-        });
-      }
     }
 
-    return this.generateAuthResponse(user.id, user.tenantId);
-  }
+    // Cria sessão
+    const session = await this.createSession(user.id);
 
-  async requestPasswordReset(email: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      include: {
-        authCredentials: {
-          where: { type: 'password' },
-        },
+    return {
+      token: session.token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        tenantId: user.tenantId,
       },
-    });
-
-    if (user && user.authCredentials.length > 0) {
-      const resetToken = randomBytes(32).toString('hex');
-      const resetTokenExpiresAt = new Date(
-        Date.now() + 24 * 60 * 60 * 1000,
-      );
-
-      await this.prisma.authCredential.update({
-        where: { id: user.authCredentials[0].id },
-        data: { resetToken, resetTokenExpiresAt },
-      });
-    }
-
-    return { message: 'Se o email existir, um link de reset será enviado.' };
-  }
-
-  async validateResetToken(token: string) {
-    const credential = await this.prisma.authCredential.findUnique({
-      where: { resetToken: token },
-    });
-
-    if (!credential || !credential.resetTokenExpiresAt) {
-      return { valid: false };
-    }
-
-    if (credential.resetTokenExpiresAt < new Date()) {
-      return { valid: false };
-    }
-
-    return { valid: true };
-  }
-
-  async resetPassword(token: string, newPassword: string) {
-    const credential = await this.prisma.authCredential.findUnique({
-      where: { resetToken: token },
-    });
-
-    if (!credential || !credential.resetTokenExpiresAt) {
-      throw new BadRequestException('Token inválido');
-    }
-
-    if (credential.resetTokenExpiresAt < new Date()) {
-      throw new BadRequestException('Token expirado');
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    await this.prisma.authCredential.update({
-      where: { id: credential.id },
-      data: {
-        hashedPassword,
-        resetToken: null,
-        resetTokenExpiresAt: null,
-      },
-    });
-
-    return { message: 'Senha alterada com sucesso' };
-  }
-
-  async verifyEmail(token: string) {
-    const credential = await this.prisma.authCredential.findUnique({
-      where: { verificationToken: token },
-    });
-
-    if (!credential || !credential.verificationTokenExpiresAt) {
-      throw new BadRequestException('Token de verificação inválido');
-    }
-
-    if (credential.verificationTokenExpiresAt < new Date()) {
-      throw new BadRequestException('Token de verificação expirado');
-    }
-
-    await this.prisma.user.update({
-      where: { id: credential.userId },
-      data: { status: 'ACTIVE' },
-    });
-
-    await this.prisma.authCredential.update({
-      where: { id: credential.id },
-      data: {
-        verificationToken: null,
-        verificationTokenExpiresAt: null,
-      },
-    });
-
-    return { message: 'Email verificado com sucesso' };
+    };
   }
 
   async validateToken(token: string) {
-    try {
-      const secret = this.configService.get<string>('JWT_SECRET');
-      const payload = jwt.verify(token, secret!) as {
-        userId: string;
-        tenantId: string;
-      };
-
-      const user = await this.prisma.user.findUnique({
-        where: { id: payload.userId },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          tenantId: true,
-          status: true,
-        },
-      });
-
-      if (!user || user.status !== 'ACTIVE') {
-        return null;
-      }
-
-      return user;
-    } catch {
-      return null;
-    }
-  }
-
-  private async generateAuthResponse(
-    userId: string,
-    tenantId: string,
-  ): Promise<AuthResponse> {
-    const token = jwt.sign(
-      { userId, tenantId },
-      JWT_SECRET as jwt.Secret,
-      { expiresIn: JWT_EXPIRATION } as jwt.SignOptions,
-    );
-
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-    await this.prisma.authSession.create({
-      data: {
-        userId,
-        token,
-        expiresAt,
-      },
+    const session = await this.prisma.session.findUnique({
+      where: { token },
+      include: { user: true },
     });
 
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
+    if (!session || session.expiresAt < new Date()) {
+      return null;
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: session.userId },
       select: {
         id: true,
         email: true,
         name: true,
         role: true,
         tenantId: true,
+        status: true,
       },
     });
 
-    return { token, user };
+    if (!user || user.status !== 'ACTIVE') {
+      return null;
+    }
+
+    return user;
+  }
+
+  async logout(token: string) {
+    await this.prisma.session.deleteMany({
+      where: { token },
+    });
+    return { message: 'Logout realizado com sucesso' };
+  }
+
+  private async createSession(userId: string) {
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
+    const token = this.generateToken();
+
+    return await this.prisma.session.create({
+      data: {
+        userId,
+        token,
+        expiresAt,
+      },
+    });
+  }
+
+  private async findOrCreateSession(userId: string) {
+    const existingSession = await this.prisma.session.findFirst({
+      where: {
+        userId,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (existingSession) {
+      return existingSession;
+    }
+
+    return await this.createSession(userId);
+  }
+
+  private generateToken(): string {
+    return Math.random().toString(36).substring(2, 15) +
+           Math.random().toString(36).substring(2, 15) +
+           Math.random().toString(36).substring(2, 15);
   }
 }
