@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useProcedures } from '@/hooks/use-procedures';
+import { useSessions } from '@/hooks/use-sessions';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -14,28 +14,30 @@ import {
   TableSkeleton,
   TableEmpty,
 } from '@/components/ui/table';
-import { ProcedureModal } from '@/components/modals/procedure-modal';
+import { SessionModal } from '@/components/modals/session-modal';
 import { formatCurrency } from '@/utils/format-currency';
-import { Plus, Search, Scissors, MoreVertical } from 'lucide-react';
-import { Procedure } from '@/types/procedure.types';
+import { formatDate } from '@/utils/format-date';
+import { Plus, Search, Calendar, MoreVertical, User, Scissors } from 'lucide-react';
+import { TattooSession } from '@/types/session.types';
 
-export default function ProceduresPage() {
-  const { procedures, isLoading } = useProcedures();
+export default function SessionsPage() {
+  const { sessions, isLoading } = useSessions();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProcedure, setSelectedProcedure] = useState<Procedure | undefined>();
+  const [selectedSession, setSelectedSession] = useState<TattooSession | undefined>();
 
-  const filteredProcedures = procedures.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSessions = sessions.filter((s) =>
+    s.client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.procedure?.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleEdit = (procedure: Procedure) => {
-    setSelectedProcedure(procedure);
+  const handleEdit = (session: TattooSession) => {
+    setSelectedSession(session);
     setIsModalOpen(true);
   };
 
   const handleAdd = () => {
-    setSelectedProcedure(undefined);
+    setSelectedSession(undefined);
     setIsModalOpen(true);
   };
 
@@ -43,14 +45,14 @@ export default function ProceduresPage() {
     <div className="space-y-8 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100 italic:not-italic">Procedimentos</h1>
+          <h1 className="text-2xl font-bold text-zinc-100 italic:not-italic">Sessões</h1>
           <p className="text-zinc-400">
-            Catálogo de serviços e base de preços
+            Acompanhe o histórico de trabalhos realizados
           </p>
         </div>
         <Button onClick={handleAdd} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
-          Novo Procedimento
+          Nova Sessão
         </Button>
       </div>
 
@@ -59,7 +61,7 @@ export default function ProceduresPage() {
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             type="text"
-            placeholder="Buscar procedimento..."
+            placeholder="Buscar por cliente ou procedimento..."
             className="flex-1 bg-transparent text-sm text-zinc-100 outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -69,41 +71,43 @@ export default function ProceduresPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Data</TableHead>
+              <TableHead>Cliente</TableHead>
               <TableHead>Serviço</TableHead>
-              <TableHead className="text-center">Preço Sugerido</TableHead>
-              <TableHead className="text-center">Duração</TableHead>
+              <TableHead className="text-right">Valor Final</TableHead>
               <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableSkeleton colSpan={4} />
-            ) : filteredProcedures.length > 0 ? (
-              filteredProcedures.map((procedure) => (
-                <TableRow key={procedure.id}>
+              <TableSkeleton colSpan={5} />
+            ) : filteredSessions.length > 0 ? (
+              filteredSessions.map((session) => (
+                <TableRow key={session.id}>
+                  <TableCell className="font-medium">
+                    {formatDate(session.date)}
+                  </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
-                        <Scissors className="h-5 w-5" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium text-zinc-200">{procedure.name}</span>
-                        <span className="text-xs text-zinc-500">{procedure.size} • {procedure.complexity}</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-zinc-500" />
+                      <span className="text-zinc-200">{session.client?.name || 'Cliente'}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center font-medium text-amber-400">
-                    {formatCurrency(procedure.finalPrice)}
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Scissors className="h-4 w-4 text-zinc-500" />
+                      <span className="text-zinc-400">{session.procedure?.name || 'Tatuagem'}</span>
+                    </div>
                   </TableCell>
-                  <TableCell className="text-center text-zinc-400">
-                    {procedure.duration} min
+                  <TableCell className="text-right font-medium text-amber-400">
+                    {formatCurrency(session.finalPrice)}
                   </TableCell>
                   <TableCell>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       className="h-8 w-8 p-0"
-                      onClick={() => handleEdit(procedure)}
+                      onClick={() => handleEdit(session)}
                     >
                       <MoreVertical className="h-4 w-4 text-zinc-500" />
                     </Button>
@@ -111,16 +115,16 @@ export default function ProceduresPage() {
                 </TableRow>
               ))
             ) : (
-              <TableEmpty colSpan={4} />
+              <TableEmpty colSpan={5} />
             )}
           </TableBody>
         </Table>
       </Card>
 
-      <ProcedureModal
+      <SessionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        procedure={selectedProcedure}
+        session={selectedSession}
       />
     </div>
   );

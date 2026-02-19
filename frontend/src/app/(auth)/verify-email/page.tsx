@@ -53,9 +53,20 @@ function VerifyEmailContent() {
     verify();
   }, [token, router, setAuth]);
 
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
   const handleResend = () => {
     if (email) {
       resendVerificationEmail(email);
+      setCountdown(60);
     }
   };
 
@@ -175,9 +186,9 @@ function VerifyEmailContent() {
           className="w-full"
           onClick={handleResend}
           isLoading={isResendVerificationLoading}
-          disabled={!email}
+          disabled={!email || countdown > 0}
         >
-          Reenviar email de verificação
+          {countdown > 0 ? `Aguarde ${countdown}s para reenviar` : 'Reenviar email de verificação'}
         </Button>
       )}
 

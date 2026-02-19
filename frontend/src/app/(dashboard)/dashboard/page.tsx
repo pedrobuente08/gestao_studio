@@ -1,41 +1,129 @@
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
+import { useClients } from '@/hooks/use-clients';
+import { useSessions } from '@/hooks/use-sessions';
+import { useFinancial } from '@/hooks/use-financial';
+import { StatCard } from '@/components/ui/card';
+import { LineChart } from '@/components/charts/line-chart';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableSkeleton, TableEmpty } from '@/components/ui/table';
+import { formatCurrency } from '@/utils/format-currency';
+import { formatDate } from '@/utils/format-date';
+import { Users, Calendar, DollarSign, TrendingUp } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const { clients, isLoading: isLoadingClients } = useClients();
+  const { sessions, isLoading: isLoadingSessions } = useSessions();
+  const { summary, isLoading: isLoadingFinancial } = useFinancial();
+
+  // Pegar as últimas 5 sessões
+  const latestSessions = sessions.slice(0, 5);
+
+  // Calcular ticket médio
+  const totalRevenue = summary?.totalIncome || 0;
+  const sessionCount = sessions.length;
+  const averageTicket = sessionCount > 0 ? Math.round(totalRevenue / sessionCount) : 0;
+
+  // Mock data para o gráfico (em produção isso deve vir da API formatado por mês)
+  const chartData = [
+    { label: 'Set', value: 450000 },
+    { label: 'Out', value: 520000 },
+    { label: 'Nov', value: 480000 },
+    { label: 'Dez', value: 610000 },
+    { label: 'Jan', value: 550000 },
+    { label: 'Fev', value: totalRevenue },
+  ];
+
+  const isLoading = isLoadingClients || isLoadingSessions || isLoadingFinancial;
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-100">Dashboard</h1>
-          <p className="text-zinc-400">
-            Bem-vindo, {user?.name || 'Usuário'}
-          </p>
-        </div>
-        <Button variant="outline" onClick={logout}>
-          Sair
-        </Button>
+    <div className="space-y-8 p-4 sm:p-6 lg:p-8">
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold text-zinc-100 italic:not-italic">Dashboard</h1>
+        <p className="text-zinc-400">
+          Bem-vindo de volta, <span className="text-rose-500 font-medium">{user?.name}</span>
+        </p>
       </div>
 
+      {/* Métricas Principais */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">
-          <h3 className="text-sm font-medium text-zinc-400">Faturamento Mensal</h3>
-          <p className="mt-2 text-2xl font-bold text-zinc-100">R$ 0,00</p>
+        <StatCard
+          title="Faturamento Mensal"
+          value={formatCurrency(totalRevenue)}
+          icon={<DollarSign className="h-6 w-6" />}
+          trend={{ value: 12, isUp: true }}
+          description="em relação ao mês passado"
+        />
+        <StatCard
+          title="Clientes Ativos"
+          value={clients.length}
+          icon={<Users className="h-6 w-6" />}
+        />
+        <StatCard
+          title="Sessões Realizadas"
+          value={sessions.length}
+          icon={<Calendar className="h-6 w-6" />}
+        />
+        <StatCard
+          title="Ticket Médio"
+          value={formatCurrency(averageTicket)}
+          icon={<TrendingUp className="h-6 w-6" />}
+        />
+      </div>
+
+      <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
+        {/* Gráfico de Faturamento */}
+        <div className="lg:col-span-2 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-zinc-100">Faturamento Mensal</h3>
+            <span className="text-xs text-zinc-500">Últimos 6 meses</span>
+          </div>
+          <LineChart data={chartData} />
         </div>
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">
-          <h3 className="text-sm font-medium text-zinc-400">Clientes Ativos</h3>
-          <p className="mt-2 text-2xl font-bold text-zinc-100">0</p>
-        </div>
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">
-          <h3 className="text-sm font-medium text-zinc-400">Procedimentos</h3>
-          <p className="mt-2 text-2xl font-bold text-zinc-100">0</p>
-        </div>
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">
-          <h3 className="text-sm font-medium text-zinc-400">Ticket Médio</h3>
-          <p className="mt-2 text-2xl font-bold text-zinc-100">R$ 0,00</p>
+
+        {/* Últimas Sessões */}
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-zinc-100">Últimas Sessões</h3>
+            <Link href="/sessions">
+              <Button variant="ghost" size="sm" className="text-rose-500 hover:text-rose-400">
+                Ver todas
+              </Button>
+            </Link>
+          </div>
+          
+          <Table className="bg-transparent border-none">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-zinc-800">
+                <TableHead className="px-0">Cliente</TableHead>
+                <TableHead className="text-right px-0">Valor</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableSkeleton colSpan={2} rows={5} />
+              ) : latestSessions.length > 0 ? (
+                latestSessions.map((session) => (
+                  <TableRow key={session.id} className="hover:bg-zinc-800/30 border-zinc-800/50">
+                    <TableCell className="px-0">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-zinc-200">{session.client?.name || 'Cliente'}</span>
+                        <span className="text-xs text-zinc-500">{formatDate(session.date)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right px-0 font-medium text-amber-400">
+                      {formatCurrency(session.finalPrice)}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableEmpty colSpan={2} />
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
     </div>
