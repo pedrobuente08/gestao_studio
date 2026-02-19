@@ -9,6 +9,7 @@ import { SessionsModule } from './sessions/sessions.module';
 import { FinancialModule } from './financial/financial.module';
 import { CalculatorModule } from './calculator/calculator.module';
 import { MlModule } from './ml/ml.module';
+import { ServiceTypesModule } from './service-types/service-types.module';
 import { envConfig } from './config/env.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -25,6 +26,7 @@ import { AppService } from './app.service';
     FinancialModule,
     CalculatorModule,
     MlModule,
+    ServiceTypesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

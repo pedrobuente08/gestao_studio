@@ -17,10 +17,10 @@ import {
 import { SessionModal } from '@/components/modals/session-modal';
 import { formatCurrency } from '@/utils/format-currency';
 import { formatDate } from '@/utils/format-date';
-import { Plus, Search, Calendar, MoreVertical, User, Scissors } from 'lucide-react';
+import { Plus, Search, MoreVertical, User, Scissors } from 'lucide-react';
 import { TattooSession } from '@/types/session.types';
 
-export default function SessionsPage() {
+export default function ProcedimentosPage() {
   const { sessions, isLoading } = useSessions();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,7 +28,8 @@ export default function SessionsPage() {
 
   const filteredSessions = sessions.filter((s) =>
     s.client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.procedure?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    s.serviceType?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleEdit = (session: TattooSession) => {
@@ -45,14 +46,14 @@ export default function SessionsPage() {
     <div className="space-y-8 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100 italic:not-italic">Sessões</h1>
+          <h1 className="text-2xl font-bold text-zinc-100">Procedimentos</h1>
           <p className="text-zinc-400">
-            Acompanhe o histórico de trabalhos realizados
+            Histórico de trabalhos realizados
           </p>
         </div>
         <Button onClick={handleAdd} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
-          Nova Sessão
+          Novo Procedimento
         </Button>
       </div>
 
@@ -61,7 +62,7 @@ export default function SessionsPage() {
           <Search className="h-4 w-4 text-zinc-500" />
           <input
             type="text"
-            placeholder="Buscar por cliente ou procedimento..."
+            placeholder="Buscar por cliente, tipo de serviço ou descrição..."
             className="flex-1 bg-transparent text-sm text-zinc-100 outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -73,8 +74,8 @@ export default function SessionsPage() {
             <TableRow>
               <TableHead>Data</TableHead>
               <TableHead>Cliente</TableHead>
-              <TableHead>Serviço</TableHead>
-              <TableHead className="text-right">Valor Final</TableHead>
+              <TableHead>Tipo de Serviço</TableHead>
+              <TableHead className="text-right">Valor</TableHead>
               <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
@@ -96,16 +97,18 @@ export default function SessionsPage() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Scissors className="h-4 w-4 text-zinc-500" />
-                      <span className="text-zinc-400">{session.procedure?.name || 'Tatuagem'}</span>
+                      <span className="text-zinc-400">
+                        {session.serviceType?.name || session.procedure?.name || 'Tatuagem'}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-right font-medium text-amber-400">
                     {formatCurrency(session.finalPrice)}
                   </TableCell>
                   <TableCell>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="h-8 w-8 p-0"
                       onClick={() => handleEdit(session)}
                     >

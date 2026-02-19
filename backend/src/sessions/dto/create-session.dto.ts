@@ -2,6 +2,7 @@ import {
   IsString,
   IsOptional,
   IsEnum,
+  IsNumber,
   IsInt,
   Min,
   IsDateString,
@@ -20,20 +21,28 @@ export class CreateSessionDto {
   @IsString()
   procedureId?: string;
 
+  @IsOptional()
+  @IsString()
+  serviceTypeId?: string;
+
+  @IsOptional()
   @IsEnum(TattooSize)
-  size!: TattooSize;
+  size?: TattooSize;
 
+  @IsOptional()
   @IsEnum(TattooComplexity)
-  complexity!: TattooComplexity;
+  complexity?: TattooComplexity;
 
+  @IsOptional()
   @IsEnum(BodyLocation)
-  bodyLocation!: BodyLocation;
+  bodyLocation?: BodyLocation;
 
   @IsOptional()
   @IsString()
   description?: string;
 
-  @IsInt()
+  // Recebe em R$ (ex: 150.00), backend converte para centavos (15000)
+  @IsNumber({}, { message: 'Preço deve ser um número' })
   @Min(0)
   finalPrice!: number;
 

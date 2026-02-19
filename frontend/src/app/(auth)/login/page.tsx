@@ -19,7 +19,16 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { login, loginWithGoogle, isLoginLoading, loginError } = useAuth();
+  const { 
+    login, 
+    loginWithGoogle, 
+    resendVerificationEmail,
+    isLoginLoading, 
+    loginError,
+    isResendVerificationLoading,
+    resendVerificationSuccess,
+    resendVerificationError,
+  } = useAuth();
   const [formEmail, setFormEmail] = useState('');
 
   const {
@@ -37,6 +46,18 @@ export default function LoginPage() {
   const onSubmit = (data: LoginFormData) => {
     setFormEmail(data.email);
     login(data as LoginData);
+  };
+
+  const handleResendEmail = () => {
+    const emailToResend = emailValue || formEmail;
+    if (emailToResend) {
+      resendVerificationEmail(emailToResend);
+    }
+  };
+
+  const getResendErrorMessage = (error: any) => {
+    if (!error) return null;
+    return error.response?.data?.message || 'Erro ao reenviar email.';
   };
 
   const isEmailNotVerifiedError = (error: Error | null): boolean => {
@@ -73,18 +94,27 @@ export default function LoginPage() {
         )}
 
         {emailNotVerified && (
-          <div className="rounded-lg bg-amber-500/10 p-4 text-sm text-amber-400 space-y-2">
-            <p className="font-medium text-center">Email não verificado</p>
-            <p className="text-center text-xs">
-              Verifique sua caixa de entrada ou{' '}
-              <Link
-                href={`/verify-email?email=${encodeURIComponent(emailValue || formEmail)}`}
-                className="underline text-amber-300 hover:text-amber-200 transition-colors"
-              >
-                clique aqui para reenviar o email de verificação
-              </Link>
-              .
+          <div className="rounded-lg bg-red-500/10 p-4 text-sm text-red-400 border border-red-500/20 space-y-2">
+            <p>
+              Seu email ainda não foi verificado. Verifique sua caixa de entrada e clique no link que enviamos.{' '}
+              {resendVerificationSuccess ? (
+                <span className="text-green-400 font-medium">Email reenviado!</span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendEmail}
+                  disabled={isResendVerificationLoading || !(emailValue || formEmail)}
+                  className="text-rose-400 hover:text-rose-300 underline underline-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isResendVerificationLoading ? 'Reenviando...' : 'Reenviar email.'}
+                </button>
+              )}
             </p>
+            {resendVerificationError && (
+              <p className="text-[11px] text-red-400/80">
+                {getResendErrorMessage(resendVerificationError)}
+              </p>
+            )}
           </div>
         )}
 

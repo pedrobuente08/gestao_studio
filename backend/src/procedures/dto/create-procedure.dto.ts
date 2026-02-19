@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsInt, Min } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsNumber, IsInt, Min } from 'class-validator';
 import { TattooSize, TattooComplexity, BodyLocation } from '@prisma/client';
 
 export class CreateProcedureDto {
@@ -18,7 +18,8 @@ export class CreateProcedureDto {
   @IsEnum(BodyLocation)
   bodyLocation!: BodyLocation;
 
-  @IsInt()
+  // Recebe em R$ (ex: 150.00), backend converte para centavos (15000)
+  @IsNumber({}, { message: 'Preço deve ser um número' })
   @Min(0)
   finalPrice!: number;
 

@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CalculatorService } from './calculator.service';
+import { CalculatorMode } from '@prisma/client';
 import { CreateCostDto } from './dto/create-cost.dto';
 import { UpdateCostDto } from './dto/update-cost.dto';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -53,12 +54,20 @@ export class CalculatorController {
   @Roles('OWNER', 'STAFF')
   setWorkSettings(
     @CurrentTenant() tenantId: string,
-    @Body() body: { hoursPerMonth: number; profitMargin: number },
+    @Body()
+    body: {
+      hoursPerMonth: number;
+      profitMargin: number;
+      mode?: CalculatorMode;
+      studioPercentage?: number;
+    },
   ) {
     return this.calculatorService.setWorkSettings(
       tenantId,
       body.hoursPerMonth,
       body.profitMargin,
+      body.mode,
+      body.studioPercentage,
     );
   }
 

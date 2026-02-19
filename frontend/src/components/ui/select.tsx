@@ -28,7 +28,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
           } ${className}`}
           {...props}
-          defaultValue={props.defaultValue || ""}
         >
           {placeholder && (
             <option value="" disabled>

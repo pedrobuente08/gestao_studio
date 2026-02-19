@@ -51,7 +51,7 @@ export function ProcedureModal({ isOpen, onClose, procedure }: ProcedureModalPro
       reset({
         name: procedure.name,
         description: procedure.description || '',
-        finalPrice: procedure.finalPrice,
+        finalPrice: procedure.finalPrice / 100, // Converte de centavos para R$ para exibição
         duration: procedure.duration,
         size: procedure.size,
         complexity: procedure.complexity,
@@ -123,9 +123,10 @@ export function ProcedureModal({ isOpen, onClose, procedure }: ProcedureModalPro
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
-            label="Preço Sugerido (centavos)"
+            label="Preço Sugerido (R$)"
             type="number"
-            placeholder="Ex: 20000"
+            step="0.01"
+            placeholder="Ex: 200,00"
             error={errors.finalPrice?.message}
             {...register('finalPrice')}
           />

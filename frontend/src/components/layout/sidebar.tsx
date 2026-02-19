@@ -6,9 +6,9 @@ import {
   LayoutDashboard,
   Users,
   ClipboardList,
-  Calendar,
   DollarSign,
   Calculator,
+  Lightbulb,
   X,
   LogOut,
 } from 'lucide-react';
@@ -17,10 +17,10 @@ import { useAuth } from '@/hooks/use-auth';
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/clients', label: 'Clientes', icon: Users },
-  { href: '/procedures', label: 'Procedimentos', icon: ClipboardList },
-  { href: '/sessions', label: 'Sessões', icon: Calendar },
+  { href: '/sessions', label: 'Procedimentos', icon: ClipboardList },
   { href: '/financial', label: 'Financeiro', icon: DollarSign },
   { href: '/calculator', label: 'Calculadora', icon: Calculator },
+  { href: '/budget-suggestion', label: 'Sugestão de Orçamento', icon: Lightbulb },
 ];
 
 interface SidebarProps {

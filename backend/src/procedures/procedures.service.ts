@@ -18,7 +18,7 @@ export class ProceduresService {
         size: dto.size,
         complexity: dto.complexity,
         bodyLocation: dto.bodyLocation,
-        finalPrice: dto.finalPrice,
+        finalPrice: Math.round(dto.finalPrice * 100), // Converte de R$ para centavos
         duration: dto.duration,
       },
     });
@@ -105,7 +105,12 @@ export class ProceduresService {
 
     return this.prisma.procedure.update({
       where: { id },
-      data: dto,
+      data: {
+        ...dto,
+        finalPrice: dto.finalPrice !== undefined
+          ? Math.round(dto.finalPrice * 100) // Converte de R$ para centavos
+          : undefined,
+      },
     });
   }
 

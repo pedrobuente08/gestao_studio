@@ -44,6 +44,12 @@ enum AutonomoType {
   GUEST      // Faz guest em estúdios
 }
 
+// Modo de cálculo da calculadora
+enum CalculatorMode {
+  AUTONOMOUS        // Tem espaço próprio (custos fixos habilitados)
+  STUDIO_PERCENTAGE // Trabalha em studio pagando percentual
+}
+
 // Categorias de lançamento financeiro
 enum TransactionCategory {
   TATTOO      // Receita de tatuagem
@@ -136,6 +142,7 @@ model Tenant {
   guestLocations GuestLocation[]            // Locais onde o autônomo faz guest
   linkedAsGuest  GuestLocation[] @relation("LinkedGuest") // Estúdios que são referenciados como guest
   studioConfig   StudioConfig?              // Configurações específicas do estúdio
+  serviceTypes   ServiceType[]              // Tipos de serviço personalizados do tenant
 }
 
 // ============================================================
@@ -328,27 +335,46 @@ model Procedure {
 }
 
 // ============================================================
-// 8. SESSÃO DE TATUAGEM
+// 8. TIPO DE SERVIÇO (generalizável: tatuagem, piercing, laser, etc.)
+// ============================================================
+
+// Tipos de serviço oferecidos pelo tenant
+// isSystem = true: tipos padrão da plataforma (não podem ser deletados)
+// tenantId = null: tipo global/sistema disponível para todos
+model ServiceType {
+  id        String          @id @default(cuid())
+  tenantId  String?                                // null = tipo global do sistema
+  name      String                                 // Ex: "Tatuagem", "Piercing", "Laser"
+  isSystem  Boolean         @default(false)
+  createdAt DateTime        @default(now())
+
+  tenant   Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions TattooSession[]
+}
+
+// ============================================================
+// 9. SESSÃO / PROCEDIMENTO REALIZADO
 // ============================================================
 
 model TattooSession {
   id               String          @id @default(cuid())
   tenantId         String
   clientId         String
-  userId          String                          // Tatuador que realizou
-  procedureId      String?                         // Procedimento de referência (opcional)
-  // Parâmetros da sessão
-  size             TattooSize
-  complexity       TattooComplexity
-  bodyLocation     BodyLocation
-  description      String?                         // Descrição livre da tatuagem
+  userId          String                          // Profissional que realizou
+  procedureId      String?                         // Procedimento de referência (opcional, legado)
+  serviceTypeId    String?                         // Tipo de serviço (Tatuagem, Piercing, etc.)
+  // Parâmetros da sessão (específicos para tatuagem — opcionais para outros serviços)
+  size             TattooSize?
+  complexity       TattooComplexity?
+  bodyLocation     BodyLocation?
+  description      String?                         // Descrição livre do serviço realizado
   // Valores (em centavos)
   finalPrice       Int                             // Valor cobrado ao cliente
   // Para autônomo guest
   guestLocationId  String?                         // Onde foi realizada (se for guest)
   studioPercentage Int?                            // Percentual cobrado pelo estúdio (em %)
   studioFee        Int?                            // Valor cobrado pelo estúdio (calculado, em centavos)
-  tatuadorRevenue  Int?                            // O que o tatuador ficou (em centavos)
+  tatuadorRevenue  Int?                            // O que o profissional ficou (em centavos)
   // Duração em minutos
   duration         Int?
   // Data da sessão
@@ -360,6 +386,7 @@ model TattooSession {
   client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   user          User          @relation(fields: [userId], references: [id])
   procedure     Procedure?    @relation(fields: [procedureId], references: [id])
+  serviceType   ServiceType?  @relation(fields: [serviceTypeId], references: [id])
   guestLocation GuestLocation? @relation(fields: [guestLocationId], references: [id])
   // Dados usados para treino do modelo ML
   mlTrainingData MLTrainingData?
@@ -368,7 +395,7 @@ model TattooSession {
 }
 
 // ============================================================
-// 9. FINANCEIRO
+// 10. FINANCEIRO
 // ============================================================
 
 model Transaction {
@@ -391,7 +418,7 @@ model Transaction {
 }
 
 // ============================================================
-// 10. CALCULADORA DE CUSTOS
+// 11. CALCULADORA DE CUSTOS
 // ============================================================
 
 // Custos fixos mensais do tenant
@@ -420,18 +447,20 @@ model VariableCost {
 
 // Configurações de trabalho (horas trabalhadas e margem de lucro)
 model WorkSettings {
-  id              String   @id @default(cuid())
-  tenantId        String   @unique
-  hoursPerMonth   Int      // Horas trabalhadas por mês
-  profitMargin    Int      // Margem de lucro desejada em % (ex: 30 = 30%)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String         @id @default(cuid())
+  tenantId         String         @unique
+  hoursPerMonth    Int            // Horas trabalhadas por mês
+  profitMargin     Int            // Margem de lucro desejada em % (ex: 30 = 30%)
+  mode             CalculatorMode @default(AUTONOMOUS) // Modo de trabalho
+  studioPercentage Int?           // Percentual pago ao studio (quando modo = STUDIO_PERCENTAGE)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 // ============================================================
-// 11. SISTEMA ML (Sugestão de valores por CatBoost)
+// 12. SISTEMA ML (Sugestão de valores por CatBoost)
 // ============================================================
 
 // Dados de treinamento extraídos de cada sessão concluída

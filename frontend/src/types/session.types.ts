@@ -6,9 +6,10 @@ export interface TattooSession {
   clientId: string;
   userId: string;
   procedureId?: string;
-  size: TattooSize;
-  complexity: TattooComplexity;
-  bodyLocation: BodyLocation;
+  serviceTypeId?: string;
+  size?: TattooSize;
+  complexity?: TattooComplexity;
+  bodyLocation?: BodyLocation;
   description?: string;
   finalPrice: number;        // em centavos
   guestLocationId?: string;
@@ -23,17 +24,19 @@ export interface TattooSession {
   client?: { id: string; name: string };
   user?: { id: string; name: string };
   procedure?: { id: string; name: string };
+  serviceType?: { id: string; name: string };
 }
 
 export interface CreateSessionData {
   clientId: string;
   userId: string;
   procedureId?: string;
-  size: TattooSize;
-  complexity: TattooComplexity;
-  bodyLocation: BodyLocation;
+  serviceTypeId?: string;
+  size?: TattooSize;
+  complexity?: TattooComplexity;
+  bodyLocation?: BodyLocation;
   description?: string;
-  finalPrice: number;
+  finalPrice: number;  // em R$ (o backend converte para centavos)
   guestLocationId?: string;
   studioPercentage?: number;
   duration?: number;

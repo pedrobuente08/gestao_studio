@@ -19,6 +19,7 @@ function VerifyEmailContent() {
     resendVerificationEmail,
     isResendVerificationLoading,
     resendVerificationSuccess,
+    resendVerificationError,
   } = useAuth();
 
   const [verifyState, setVerifyState] = useState<'loading' | 'success' | 'error' | null>(
@@ -55,6 +56,13 @@ function VerifyEmailContent() {
 
   const [countdown, setCountdown] = useState(0);
 
+  // Inicia o contador somente após o sucesso do reenvio
+  useEffect(() => {
+    if (resendVerificationSuccess) {
+      setCountdown(60);
+    }
+  }, [resendVerificationSuccess]);
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (countdown > 0) {
@@ -66,8 +74,12 @@ function VerifyEmailContent() {
   const handleResend = () => {
     if (email) {
       resendVerificationEmail(email);
-      setCountdown(60);
     }
+  };
+
+  const getResendErrorMessage = (error: any) => {
+    if (!error) return null;
+    return error.response?.data?.message || 'Erro ao reenviar email. Tente novamente.';
   };
 
   // ── Estado B: verificando com token ──────────────────────────────────────
@@ -174,6 +186,12 @@ function VerifyEmailContent() {
           Não esqueça de verificar a pasta de spam.
         </p>
       </div>
+
+      {resendVerificationError && (
+        <div className="rounded-lg bg-red-500/10 p-4 text-center text-sm text-red-500">
+          {getResendErrorMessage(resendVerificationError)}
+        </div>
+      )}
 
       {resendVerificationSuccess ? (
         <div className="rounded-lg bg-green-500/10 p-4 text-center text-sm text-green-400">

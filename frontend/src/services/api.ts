@@ -29,8 +29,13 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+        const token = localStorage.getItem('token');
+        if (token) {
+          // Havia token mas ficou inválido/expirado — limpar e redirecionar
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        }
+        // Sem token = tentativa de login que falhou, só rejeitar o erro
       }
     }
     return Promise.reject(error);

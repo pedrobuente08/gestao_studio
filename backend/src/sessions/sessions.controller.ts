@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { AuthGuard } from '../common/guards/auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentTenant } from '../common/decorators/current-tenant.decorator';
+import { TattooSize, TattooComplexity, BodyLocation } from '@prisma/client';
 
 @Controller('sessions')
 @UseGuards(AuthGuard, RolesGuard)
@@ -26,6 +28,24 @@ export class SessionsController {
   @Roles('OWNER', 'STAFF')
   create(@CurrentTenant() tenantId: string, @Body() dto: CreateSessionDto) {
     return this.sessionsService.create(tenantId, dto);
+  }
+
+  @Get('price-suggestion')
+  @Roles('OWNER', 'STAFF', 'EMPLOYEE')
+  getPriceSuggestion(
+    @CurrentTenant() tenantId: string,
+    @Query('serviceTypeId') serviceTypeId?: string,
+    @Query('size') size?: TattooSize,
+    @Query('complexity') complexity?: TattooComplexity,
+    @Query('bodyLocation') bodyLocation?: BodyLocation,
+  ) {
+    return this.sessionsService.getPriceSuggestion(
+      tenantId,
+      serviceTypeId,
+      size,
+      complexity,
+      bodyLocation,
+    );
   }
 
   @Get()
