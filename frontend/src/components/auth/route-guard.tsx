@@ -11,12 +11,8 @@ interface RouteGuardProps {
 
 export function RouteGuard({ children }: RouteGuardProps) {
   const router = useRouter();
-  const { token, isAuthenticated, isLoading, setAuth, clearAuth, setLoading, initializeFromStorage } =
+  const { token, isAuthenticated, isLoading, setAuth, clearAuth, setLoading } =
     useAuthStore();
-
-  useEffect(() => {
-    initializeFromStorage();
-  }, [initializeFromStorage]);
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -26,14 +22,17 @@ export function RouteGuard({ children }: RouteGuardProps) {
         return;
       }
 
-      if (!isAuthenticated) {
-        try {
-          const user = await authService.getMe();
-          setAuth(token, user);
-        } catch {
-          clearAuth();
-          router.push('/login');
-        }
+      if (isAuthenticated) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const user = await authService.getMe();
+        setAuth(token, user);
+      } catch {
+        clearAuth();
+        router.push('/login');
       }
     };
 

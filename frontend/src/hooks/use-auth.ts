@@ -10,13 +10,8 @@ import { useEffect } from 'react';
 export function useAuth() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { user, token, isAuthenticated, isLoading, setAuth, clearAuth, setUser, setLoading, initializeFromStorage } =
+  const { user, token, isAuthenticated, isLoading, setAuth, clearAuth, setUser, setLoading } =
     useAuthStore();
-
-  // Inicializa o estado do localStorage
-  useEffect(() => {
-    initializeFromStorage();
-  }, [initializeFromStorage]);
 
   // Query para buscar dados do usuário quando há token
   const { isLoading: isLoadingUser } = useQuery({

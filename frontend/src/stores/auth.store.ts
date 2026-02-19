@@ -58,9 +58,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   initializeFromStorage: () => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
-      if (token) {
+      const { isAuthenticated } = useAuthStore.getState();
+      
+      if (token && !isAuthenticated) {
         set({ token, isLoading: true });
+      } else if (!token) {
+        set({ isLoading: false });
       } else {
+        // Já possui token e está autenticado (ex: navegação pós-login)
         set({ isLoading: false });
       }
     }
