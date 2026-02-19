@@ -10,7 +10,9 @@ import {
   DollarSign,
   Calculator,
   X,
+  LogOut,
 } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -27,6 +29,7 @@ interface SidebarProps {
 
 export function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <div className="flex h-full flex-col bg-zinc-900 border-r border-zinc-800">
@@ -68,6 +71,17 @@ export function Sidebar({ onClose }: SidebarProps) {
           })}
         </ul>
       </nav>
+
+      {/* Logout */}
+      <div className="p-4 border-t border-zinc-800">
+        <button
+          onClick={logout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-400 hover:bg-rose-500/10 hover:text-rose-500 transition-colors group"
+        >
+          <LogOut className="h-5 w-5 shrink-0 text-zinc-400 group-hover:text-rose-500 transition-colors" />
+          Sair do Sistema
+        </button>
+      </div>
     </div>
   );
 }
