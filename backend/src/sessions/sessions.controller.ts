@@ -51,6 +51,7 @@ export class SessionsController {
   @Roles('OWNER', 'STAFF', 'EMPLOYEE')
   getPriceSuggestion(
     @CurrentTenant() tenantId: string,
+    @Req() req: any,
     @Query('serviceTypeId') serviceTypeId?: string,
     @Query('size') size?: TattooSize,
     @Query('complexity') complexity?: TattooComplexity,
@@ -58,6 +59,7 @@ export class SessionsController {
   ) {
     return this.sessionsService.getPriceSuggestion(
       tenantId,
+      req.user.id,
       serviceTypeId,
       size,
       complexity,

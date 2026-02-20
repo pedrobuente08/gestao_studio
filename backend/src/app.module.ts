@@ -12,6 +12,7 @@ import { MlModule } from './ml/ml.module';
 import { ServiceTypesModule } from './service-types/service-types.module';
 import { EmployeesModule } from './employees/employees.module';
 import { StorageModule } from './storage/storage.module';
+import { SeedTrainingModule } from './seed-training/seed-training.module';
 import { envConfig } from './config/env.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -31,6 +32,7 @@ import { AppService } from './app.service';
     ServiceTypesModule,
     EmployeesModule,
     StorageModule,
+    SeedTrainingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

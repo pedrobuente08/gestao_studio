@@ -78,12 +78,13 @@ enum PaymentMethod {
 
 // Tamanho da tatuagem (parâmetro de sugestão)
 enum TattooSize {
-  SMALL      // Pequena (até 7cm)
-  MEDIUM     // Média (7cm a 10cm)
-  LARGE      // Grande (10cm a 15cm)
-  EXTRA_LARGE // Extra grande (15cm a 20cm)
-  XLARGE      // XL (20cm a 40cm)
-  FULL_BODY  // Full body / grande área(mais de 20 cm)
+  MICRO       // Micro (até 7cm)
+  SMALL       // Pequena (7-10cm)
+  MEDIUM      // Média (10-15cm)
+  LARGE       // Grande (15-20cm)
+  EXTRA_LARGE // XL (20-30cm)
+  XLARGE      // XXL (30+ cm)
+  FULL_BODY   // Full body (legado)
 }
 
 // Complexidade da tatuagem (parâmetro de sugestão)
@@ -145,7 +146,8 @@ model Tenant {
   guestLocations GuestLocation[]            // Locais onde o autônomo faz guest
   linkedAsGuest  GuestLocation[] @relation("LinkedGuest") // Estúdios que são referenciados como guest
   studioConfig   StudioConfig?              // Configurações específicas do estúdio
-  serviceTypes   ServiceType[]              // Tipos de serviço personalizados do tenant
+  serviceTypes      ServiceType[]              // Tipos de serviço personalizados do tenant
+  seedTrainingData  SeedTrainingData[]
 }
 
 // ============================================================
@@ -186,6 +188,8 @@ model User {
   // Better-Auth relations
   sessions Session[]
   accounts Account[]
+
+  seedTrainingData SeedTrainingData[]
 }
 
 // ============================================================
@@ -527,7 +531,27 @@ model MLPrediction {
 }
 
 // ============================================================
-// 13. TABELAS DE ESCALA (níveis de dificuldade/complexidade)
+// 13. DADOS HISTÓRICOS INICIAIS (seed manual do usuário)
+// ============================================================
+
+// Tatuagens passadas inseridas manualmente pelo usuário para inicializar
+// a base de sugestão de preços. Limite: 30 por userId.
+model SeedTrainingData {
+  id           String           @id @default(cuid())
+  tenantId     String
+  userId       String
+  size         TattooSize
+  complexity   TattooComplexity
+  bodyLocation BodyLocation
+  finalPrice   Int              // em centavos
+  createdAt    DateTime         @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// 14. TABELAS DE ESCALA (níveis de dificuldade/complexidade)
 // ============================================================
 
 // Nível de dificuldade por tamanho da tatuagem (1 = menor, 5 = maior)

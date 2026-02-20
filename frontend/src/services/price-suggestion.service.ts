@@ -22,6 +22,8 @@ export interface PriceSuggestionResult {
   min: number | null;
   max: number | null;
   sessions: PriceSuggestionSession[];
+  seedCount?: number;
+  confidence?: 'high' | 'medium' | 'low';
 }
 
 export const priceSuggestionService = {

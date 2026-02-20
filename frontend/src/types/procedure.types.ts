@@ -1,4 +1,4 @@
-export type TattooSize = 'SMALL' | 'MEDIUM' | 'LARGE' | 'EXTRA_LARGE' | 'XLARGE' | 'FULL_BODY';
+export type TattooSize = 'MICRO' | 'SMALL' | 'MEDIUM' | 'LARGE' | 'EXTRA_LARGE' | 'XLARGE' | 'FULL_BODY';
 export type TattooComplexity = 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
 export type BodyLocation = 'ARM' | 'FOREARM' | 'HAND' | 'FINGER' | 'UPPER_BACK' |
   'LOWER_BACK' | 'FULL_BACK' | 'CHEST' | 'ABDOMEN' | 'SHOULDER' | 'NECK' |

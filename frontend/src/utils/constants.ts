@@ -1,4 +1,5 @@
 export const TATTOO_SIZE_LABELS: Record<string, string> = {
+  MICRO: 'Micro (até 7 cm)',
   SMALL: 'Pequena (7-10 cm)',
   MEDIUM: 'Média (10-15 cm)',
   LARGE: 'Grande (15-20 cm)',

@@ -7,12 +7,13 @@ async function main() {
 
   // ─── Escala de Tamanho ────────────────────────────────────────────────────
   const sizeScaleData: { size: TattooSize; level: number }[] = [
-    { size: TattooSize.SMALL,       level: 1 }, // Pequena (7-10 cm)
-    { size: TattooSize.MEDIUM,      level: 2 }, // Média (10-15 cm)
-    { size: TattooSize.LARGE,       level: 3 }, // Grande (15-20 cm)
-    { size: TattooSize.EXTRA_LARGE, level: 4 }, // XL (20-30 cm)
-    { size: TattooSize.XLARGE,      level: 5 }, // XXL (30+ cm)
-    { size: TattooSize.FULL_BODY,   level: 5 }, // Legado — mesmo nível que XXL
+    { size: TattooSize.MICRO,       level: 1 }, // Micro (até 7 cm)
+    { size: TattooSize.SMALL,       level: 2 }, // Pequena (7-10 cm)
+    { size: TattooSize.MEDIUM,      level: 3 }, // Média (10-15 cm)
+    { size: TattooSize.LARGE,       level: 4 }, // Grande (15-20 cm)
+    { size: TattooSize.EXTRA_LARGE, level: 5 }, // XL (20-30 cm)
+    { size: TattooSize.XLARGE,      level: 6 }, // XXL (30+ cm)
+    { size: TattooSize.FULL_BODY,   level: 6 }, // Legado — mesmo nível que XXL
   ];
 
   for (const data of sizeScaleData) {
