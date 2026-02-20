@@ -10,6 +10,8 @@ import { FinancialModule } from './financial/financial.module';
 import { CalculatorModule } from './calculator/calculator.module';
 import { MlModule } from './ml/ml.module';
 import { ServiceTypesModule } from './service-types/service-types.module';
+import { EmployeesModule } from './employees/employees.module';
+import { StorageModule } from './storage/storage.module';
 import { envConfig } from './config/env.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -27,6 +29,8 @@ import { AppService } from './app.service';
     CalculatorModule,
     MlModule,
     ServiceTypesModule,
+    EmployeesModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

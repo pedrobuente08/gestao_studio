@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { UserRole, TenantType } from '@prisma/client';
 
 export class AuthUserResponse {
   id!: string;
@@ -6,6 +6,8 @@ export class AuthUserResponse {
   name!: string;
   role!: UserRole;
   tenantId!: string;
+  tenantType!: TenantType;
+  mustChangePassword!: boolean;
 }
 
 export class AuthResponse {

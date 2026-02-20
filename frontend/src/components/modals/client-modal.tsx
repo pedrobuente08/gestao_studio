@@ -15,6 +15,7 @@ const clientSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
+  instagram: z.string().optional().or(z.literal('')),
   notes: z.string().optional().or(z.literal('')),
 });
 
@@ -44,6 +45,7 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
         name: client.name,
         email: client.email || '',
         phone: client.phone || '',
+        instagram: client.instagram || '',
         notes: client.notes || '',
       });
     } else {
@@ -51,6 +53,7 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
         name: '',
         email: '',
         phone: '',
+        instagram: '',
         notes: '',
       });
     }
@@ -104,6 +107,12 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
             placeholder="(11) 99999-9999"
             error={errors.phone?.message}
             {...register('phone')}
+          />
+          <Input
+            label="Instagram (opcional)"
+            placeholder="@usuario"
+            error={errors.instagram?.message}
+            {...register('instagram')}
           />
         </div>
 

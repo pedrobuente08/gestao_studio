@@ -3,7 +3,7 @@ export type TattooComplexity = 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
 export type BodyLocation = 'ARM' | 'FOREARM' | 'HAND' | 'FINGER' | 'UPPER_BACK' |
   'LOWER_BACK' | 'FULL_BACK' | 'CHEST' | 'ABDOMEN' | 'SHOULDER' | 'NECK' |
   'FACE' | 'HEAD' | 'THIGH' | 'CALF' | 'FOOT' | 'RIB' | 'INNER_ARM' |
-  'WRIST' | 'ANKLE' | 'OTHER';
+  'WRIST' | 'ANKLE' | 'TRAPEZIUS' | 'SHIN' | 'COLLARBONE' | 'OTHER';
 
 export interface Procedure {
   id: string;

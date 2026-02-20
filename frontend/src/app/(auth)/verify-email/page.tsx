@@ -33,16 +33,8 @@ function VerifyEmailContent() {
 
     const verify = async () => {
       try {
-        const response = await authService.verifyEmail(token);
-        if ('token' in response && 'user' in response) {
-          const authResponse = response as { token: string; user: any };
-          setAuth(authResponse.token, authResponse.user);
-          setVerifyState('success');
-          setTimeout(() => router.push('/dashboard'), 1500);
-        } else {
-          setVerifyState('error');
-          setErrorMessage('Não foi possível verificar o email. Tente novamente.');
-        }
+        await authService.verifyEmail(token);
+        setVerifyState('success');
       } catch (err: any) {
         setVerifyState('error');
         setErrorMessage(
@@ -52,7 +44,7 @@ function VerifyEmailContent() {
     };
 
     verify();
-  }, [token, router, setAuth]);
+  }, [token]);
 
   const [countdown, setCountdown] = useState(0);
 
@@ -117,14 +109,20 @@ function VerifyEmailContent() {
           <h1 className="text-3xl font-bold text-rose-500">InkStudio</h1>
           <p className="mt-2 text-zinc-400">Email verificado!</p>
         </div>
-        <div className="rounded-lg bg-green-500/10 p-6 text-center">
-          <div className="flex justify-center mb-3">
+        <div className="rounded-lg bg-green-500/10 p-6 text-center space-y-6">
+          <div className="flex justify-center">
             <svg className="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-green-400 font-medium">Email verificado com sucesso!</p>
-          <p className="text-sm text-zinc-400 mt-1">Redirecionando para o dashboard...</p>
+          <div>
+            <p className="text-green-400 font-medium">Email verificado com sucesso!</p>
+            <p className="text-sm text-zinc-400 mt-1">Agora você já pode acessar sua conta.</p>
+          </div>
+          
+          <Link href="/login" className="block">
+            <Button className="w-full">Ir para o login</Button>
+          </Link>
         </div>
       </div>
     );

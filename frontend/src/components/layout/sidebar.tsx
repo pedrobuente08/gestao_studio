@@ -13,14 +13,54 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { UserMenu } from './user-menu';
+import {
+  Settings,
+  ShieldCheck,
+  TrendingUp,
+} from 'lucide-react';
 
-const navItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: any;
+  roles?: string[];
+  tenantTypes?: string[];
+}
+
+const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/clients', label: 'Clientes', icon: Users },
-  { href: '/sessions', label: 'Procedimentos', icon: ClipboardList },
-  { href: '/financial', label: 'Financeiro', icon: DollarSign },
-  { href: '/calculator', label: 'Calculadora', icon: Calculator },
-  { href: '/budget-suggestion', label: 'Sugestão de Orçamento', icon: Lightbulb },
+  { href: '/clients', label: 'Clientes', icon: Users, roles: ['OWNER', 'STAFF'] },
+  { href: '/sessions', label: 'Procedimentos', icon: ClipboardList, roles: ['OWNER', 'STAFF'] },
+  { 
+    href: '/performance', 
+    label: 'Desempenho', 
+    icon: TrendingUp,
+    tenantTypes: ['STUDIO'],
+    roles: ['OWNER', 'STAFF']
+  },
+  { 
+    href: '/financial', 
+    label: 'Financeiro', 
+    icon: DollarSign,
+    roles: ['OWNER', 'STAFF'] 
+  },
+  { 
+    href: '/employees', 
+    label: 'Equipe', 
+    icon: ShieldCheck,
+    tenantTypes: ['STUDIO'],
+    roles: ['OWNER', 'STAFF']
+  },
+  { 
+    href: '/service-types', 
+    label: 'Tipos de Serviço', 
+    icon: Settings,
+    tenantTypes: ['STUDIO'],
+    roles: ['OWNER', 'STAFF']
+  },
+  { href: '/calculator', label: 'Calculadora', icon: Calculator, roles: ['OWNER', 'STAFF'] },
+  { href: '/budget-suggestion', label: 'Sugestão de Orçamento', icon: Lightbulb, roles: ['OWNER', 'STAFF'] },
 ];
 
 interface SidebarProps {
@@ -29,7 +69,7 @@ interface SidebarProps {
 
 export function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   return (
     <div className="flex h-full flex-col bg-zinc-900 border-r border-zinc-800">
@@ -50,37 +90,37 @@ export function Sidebar({ onClose }: SidebarProps) {
       {/* Navegação */}
       <nav className="flex-1 overflow-y-auto py-4 px-3">
         <ul className="space-y-1">
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href || pathname.startsWith(`${href}/`);
-            return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  onClick={onClose}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-rose-500/10 text-rose-500'
-                      : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
-                  }`}
-                >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  {label}
-                </Link>
-              </li>
-            );
-          })}
+          {navItems
+            .filter((item) => {
+              if (item.roles && user && !item.roles.includes(user.role)) return false;
+              if (item.tenantTypes && user && !item.tenantTypes.includes(user.tenantType)) return false;
+              return true;
+            })
+            .map(({ href, label, icon: Icon }) => {
+              const isActive = pathname === href || pathname.startsWith(`${href}/`);
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    onClick={onClose}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-rose-500/10 text-rose-500'
+                        : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    {label}
+                  </Link>
+                </li>
+              );
+            })}
         </ul>
       </nav>
 
-      {/* Logout */}
+      {/* User Menu / Logout */}
       <div className="p-4 border-t border-zinc-800">
-        <button
-          onClick={logout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-400 hover:bg-rose-500/10 hover:text-rose-500 transition-colors group"
-        >
-          <LogOut className="h-5 w-5 shrink-0 text-zinc-400 group-hover:text-rose-500 transition-colors" />
-          Sair do Sistema
-        </button>
+        <UserMenu />
       </div>
     </div>
   );

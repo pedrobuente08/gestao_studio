@@ -56,4 +56,23 @@ export const authService = {
       window.location.href = '/login';
     }
   },
+
+  async updateProfile(data: Partial<User>): Promise<User> {
+    const response = await api.patch<User>('/auth/me', data);
+    return response.data;
+  },
+
+  async changePassword(data: any): Promise<{ message: string }> {
+    const response = await api.patch<{ message: string }>('/auth/me/password', data);
+    return response.data;
+  },
+
+  async uploadPhoto(file: File): Promise<User> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post<User>('/auth/me/photo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
 };

@@ -7,8 +7,8 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceTypeDto } from './dto/create-service-type.dto';
 
-// Tipos padrão do sistema criados automaticamente para cada tenant
-const SYSTEM_SERVICE_TYPES = ['Tatuagem', 'Piercing', 'Laser'];
+// Apenas Tatuagem é criada automaticamente — Piercing, Laser e outros são adicionados pelo usuário
+const SYSTEM_SERVICE_TYPES = ['Tatuagem'];
 
 @Injectable()
 export class ServiceTypesService {

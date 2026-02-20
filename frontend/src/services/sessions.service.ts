@@ -21,4 +21,12 @@ export const sessionsService = {
   async remove(id: string): Promise<void> {
     await api.delete(`/sessions/${id}`);
   },
+  async getPriceSuggestion(params: any): Promise<any> {
+    const response = await api.get('/sessions/price-suggestion', { params });
+    return response.data;
+  },
+  async getStats(params: any): Promise<any> {
+    const response = await api.get('/sessions/stats', { params });
+    return response.data;
+  },
 };

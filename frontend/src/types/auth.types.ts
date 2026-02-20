@@ -4,6 +4,11 @@ export interface User {
   name: string;
   role: 'OWNER' | 'STAFF' | 'EMPLOYEE';
   tenantId: string;
+  tenantType: 'AUTONOMO' | 'STUDIO';
+  mustChangePassword: boolean;
+  age?: number;
+  gender?: string;
+  profilePhotoUrl?: string;
 }
 
 export interface AuthResponse {

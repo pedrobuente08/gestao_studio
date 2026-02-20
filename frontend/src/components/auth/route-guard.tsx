@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
 import { authService } from '@/services/auth.service';
 
@@ -11,7 +11,8 @@ interface RouteGuardProps {
 
 export function RouteGuard({ children }: RouteGuardProps) {
   const router = useRouter();
-  const { token, isAuthenticated, isLoading, setAuth, clearAuth, setLoading } =
+  const pathname = usePathname();
+  const { user, token, isAuthenticated, isLoading, setAuth, clearAuth, setLoading } =
     useAuthStore();
 
   useEffect(() => {
@@ -23,13 +24,23 @@ export function RouteGuard({ children }: RouteGuardProps) {
       }
 
       if (isAuthenticated) {
+        // Verifica restrições de papel (EMPLOYEE)
+        if (user?.role === 'EMPLOYEE') {
+          const restrictedPaths = ['/clients', '/sessions', '/financial', '/employees', '/service-types', '/performance'];
+          const isRestricted = restrictedPaths.some(path => pathname.startsWith(path));
+          
+          if (isRestricted) {
+            router.push('/dashboard');
+            return;
+          }
+        }
         setLoading(false);
         return;
       }
 
       try {
-        const user = await authService.getMe();
-        setAuth(token, user);
+        const userResponse = await authService.getMe();
+        setAuth(token, userResponse);
       } catch {
         clearAuth();
         router.push('/login');
@@ -39,7 +50,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
     if (!isLoading || token) {
       verifyAuth();
     }
-  }, [token, isAuthenticated, isLoading, router, setAuth, clearAuth, setLoading]);
+  }, [token, isAuthenticated, isLoading, router, pathname, user, setAuth, clearAuth, setLoading]);
 
   if (isLoading) {
     return (

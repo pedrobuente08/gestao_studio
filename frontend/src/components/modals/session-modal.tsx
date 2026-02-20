@@ -11,6 +11,7 @@ import { useSessions } from '@/hooks/use-sessions';
 import { useClients } from '@/hooks/use-clients';
 import { useServiceTypes } from '@/hooks/use-service-types';
 import { useAuthStore } from '@/stores/auth.store';
+import { useEmployees } from '@/hooks/use-employees';
 import { CreateSessionData, TattooSession } from '@/types/session.types';
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
@@ -22,7 +23,9 @@ import {
 
 const sessionSchema = z.object({
   clientId: z.string().min(1, 'Selecione um cliente'),
+  userId: z.string().min(1, 'Selecione o profissional'),
   serviceTypeId: z.string().min(1, 'Selecione o tipo de serviço'),
+  serviceTypeName: z.string().optional(), // Helper field for validation
   date: z.string().min(1, 'Selecione a data'),
   finalPrice: z.coerce.number().min(0, 'Preço deve ser maior ou igual a 0'),
   description: z.string().optional().or(z.literal('')),
@@ -30,6 +33,30 @@ const sessionSchema = z.object({
   complexity: z.string().optional(),
   bodyLocation: z.string().optional(),
   duration: z.coerce.number().optional(),
+}).superRefine((data, ctx) => {
+  if (data.serviceTypeName === 'Tatuagem') {
+    if (!data.size) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Tamanho é obrigatório para tatuagens',
+        path: ['size'],
+      });
+    }
+    if (!data.complexity) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Complexidade é obrigatória para tatuagens',
+        path: ['complexity'],
+      });
+    }
+    if (!data.bodyLocation) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Local do corpo é obrigatório para tatuagens',
+        path: ['bodyLocation'],
+      });
+    }
+  }
 });
 
 type SessionFormData = z.infer<typeof sessionSchema>;
@@ -44,6 +71,7 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
   const { createSession, updateSession, isCreating, isUpdating } = useSessions();
   const { clients } = useClients();
   const { serviceTypes, createServiceType, isCreating: isCreatingType } = useServiceTypes();
+  const { employees } = useEmployees();
   const { user } = useAuthStore();
   const [newTypeName, setNewTypeName] = useState('');
   const [showNewType, setShowNewType] = useState(false);
@@ -53,6 +81,7 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<SessionFormData>({
     resolver: zodResolver(sessionSchema) as any,
@@ -66,9 +95,14 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
   const isTattoo = selectedServiceType?.name === 'Tatuagem';
 
   useEffect(() => {
+    setValue('serviceTypeName', selectedServiceType?.name);
+  }, [selectedServiceType, setValue]);
+
+  useEffect(() => {
     if (session) {
       reset({
         clientId: session.clientId,
+        userId: session.userId,
         serviceTypeId: session.serviceTypeId || '',
         date: session.date.split('T')[0],
         size: session.size || '',
@@ -82,6 +116,7 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
     } else {
       reset({
         clientId: '',
+        userId: user?.id || '',
         serviceTypeId: '',
         date: new Date().toISOString().split('T')[0],
         size: '',
@@ -107,7 +142,7 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
   const onSubmit = (data: SessionFormData) => {
     const payload: CreateSessionData = {
       clientId: data.clientId,
-      userId: user?.id || '',
+      userId: data.userId,
       serviceTypeId: data.serviceTypeId,
       date: data.date,
       finalPrice: data.finalPrice, // em R$, backend converte para centavos
@@ -139,6 +174,19 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
   };
 
   const clientOptions = clients.map(c => ({ value: c.id, label: c.name }));
+
+  // Filtra prestadores pelo tipo de serviço selecionado (ativos apenas)
+  const filteredEmployees = selectedServiceTypeId
+    ? employees.filter(e => e.status === 'ACTIVE' && e.serviceTypeId === selectedServiceTypeId)
+    : employees.filter(e => e.status === 'ACTIVE');
+
+  const employeeOptions = filteredEmployees.map(e => ({ value: e.id, label: e.name }));
+
+  // Inclui o proprietário sempre (pode realizar qualquer serviço)
+  if (user && !employeeOptions.find(e => e.value === user.id)) {
+    employeeOptions.unshift({ value: user.id, label: `${user.name} (Proprietário)` });
+  }
+
   const serviceTypeOptions = serviceTypes.map(t => ({ value: t.id, label: t.name }));
   const sizeOptions = Object.entries(TATTOO_SIZE_LABELS).map(([value, label]) => ({ value, label }));
   const complexityOptions = Object.entries(TATTOO_COMPLEXITY_LABELS).map(([value, label]) => ({ value, label }));
@@ -159,6 +207,17 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
           error={errors.clientId?.message}
           {...register('clientId')}
         />
+
+        {/* Profissional (Só mostra se for Studio) */}
+        {user?.tenantType === 'STUDIO' && (
+          <Select
+            label="Profissional"
+            placeholder="Selecione o tatuador/profissional"
+            options={employeeOptions}
+            error={errors.userId?.message}
+            {...register('userId')}
+          />
+        )}
 
         {/* Tipo de Serviço */}
         <div className="space-y-2">

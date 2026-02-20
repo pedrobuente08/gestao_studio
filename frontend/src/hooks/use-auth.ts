@@ -69,6 +69,29 @@ export function useAuth() {
     mutationFn: (email: string) => authService.resendVerificationEmail(email),
   });
 
+  // Mutation de atualizar perfil
+  const updateProfileMutation = useMutation({
+    mutationFn: (data: Partial<any>) => authService.updateProfile(data),
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser);
+      queryClient.setQueryData(['user'], updatedUser);
+    },
+  });
+
+  // Mutation de trocar senha
+  const changePasswordMutation = useMutation({
+    mutationFn: (data: any) => authService.changePassword(data),
+  });
+
+  // Mutation de upload de foto
+  const uploadPhotoMutation = useMutation({
+    mutationFn: (file: File) => authService.uploadPhoto(file),
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser);
+      queryClient.setQueryData(['user'], updatedUser);
+    },
+  });
+
   // Função de logout
   const logout = () => {
     clearAuth();
@@ -122,5 +145,20 @@ export function useAuth() {
 
     logout,
     loginWithGoogle,
+
+    updateProfile: updateProfileMutation.mutate,
+    updateProfileAsync: updateProfileMutation.mutateAsync,
+    isUpdateProfileLoading: updateProfileMutation.isPending,
+    updateProfileError: updateProfileMutation.error,
+
+    changePassword: changePasswordMutation.mutate,
+    changePasswordAsync: changePasswordMutation.mutateAsync,
+    isChangePasswordLoading: changePasswordMutation.isPending,
+    changePasswordError: changePasswordMutation.error,
+
+    uploadPhoto: uploadPhotoMutation.mutate,
+    uploadPhotoAsync: uploadPhotoMutation.mutateAsync,
+    isUploadPhotoLoading: uploadPhotoMutation.isPending,
+    uploadPhotoError: uploadPhotoMutation.error,
   };
 }

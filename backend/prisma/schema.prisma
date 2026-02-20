@@ -96,27 +96,30 @@ enum TattooComplexity {
 
 // Local do corpo (parâmetro de sugestão)
 enum BodyLocation {
-  ARM          // Braço
+  ARM          // Braço parte externa
   FOREARM      // Antebraço
   HAND         // Mão
   FINGER       // Dedo
   UPPER_BACK   // Costas superior
   LOWER_BACK   // Costas inferior
-  FULL_BACK    // Costas inteiras
+  FULL_BACK    // Costas inteiras (legado)
   CHEST        // Peito
-  ABDOMEN      // Abdômen
+  ABDOMEN      // Abdomen
   SHOULDER     // Ombro
   NECK         // Pescoço
   FACE         // Rosto
   HEAD         // Cabeça
   THIGH        // Coxa
-  CALF         // Panturrilha
+  CALF         // Panturilha
   FOOT         // Pé
   RIB          // Costela
-  INNER_ARM    // Parte interna do braço
+  INNER_ARM    // Braço parte interna
   WRIST        // Pulso
   ANKLE        // Tornozelo
-  OTHER        // Outro
+  TRAPEZIUS    // Trapézio
+  SHIN         // Canela
+  COLLARBONE   // Clavícula
+  OTHER        // Outro (legado)
 }
 
 // ============================================================
@@ -150,17 +153,23 @@ model Tenant {
 // ============================================================
 
 model User {
-  id        String     @id @default(cuid())
-  tenantId  String
-  email     String     @unique
-  name      String
-  role      UserRole
-  status    UserStatus @default(ACTIVE)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id            String     @id @default(cuid())
+  tenantId      String
+  email         String     @unique
+  name          String
+  role          UserRole
+  status        UserStatus @default(ACTIVE)
+  serviceTypeId String?                        // Tipo de serviço do prestador (EMPLOYEE/STAFF)
+  mustChangePassword Boolean @default(false)
+  age           Int?
+  gender        String?                        // "MASCULINO" | "FEMININO" | etc.
+  profilePhotoUrl String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   // Relações
   tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  serviceType     ServiceType?    @relation(fields: [serviceTypeId], references: [id])
   // Sessões de tatuagem realizadas por este tatuador
   tattooSessions  TattooSession[]
   // Procedimentos cadastrados por este tatuador
@@ -297,6 +306,7 @@ model Client {
   name      String
   email     String?
   phone     String?
+  instagram String?                        // Handle do Instagram (@usuario)
   notes     String?                        // Notas gerais sobre o cliente
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -348,8 +358,9 @@ model ServiceType {
   isSystem  Boolean         @default(false)
   createdAt DateTime        @default(now())
 
-  tenant   Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  sessions TattooSession[]
+  tenant      Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions    TattooSession[]
+  prestadores User[]
 }
 
 // ============================================================
@@ -513,4 +524,26 @@ model MLPrediction {
 
   user  User    @relation(fields: [userId], references: [id])
   model MLModel @relation(fields: [modelId], references: [id])
+}
+
+// ============================================================
+// 13. TABELAS DE ESCALA (níveis de dificuldade/complexidade)
+// ============================================================
+
+// Nível de dificuldade por tamanho da tatuagem (1 = menor, 5 = maior)
+model TattooSizeScale {
+  size  TattooSize @id
+  level Int
+}
+
+// Nível de dificuldade por complexidade da tatuagem (1 = baixa, 4 = muito alta)
+model TattooComplexityScale {
+  complexity TattooComplexity @id
+  level      Int
+}
+
+// Nível de dificuldade por local do corpo (1 = fácil, 3 = difícil)
+model BodyLocationScale {
+  bodyLocation BodyLocation @id
+  level        Int
 }

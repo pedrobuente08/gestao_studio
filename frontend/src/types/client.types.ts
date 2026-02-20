@@ -4,6 +4,7 @@ export interface Client {
   name: string;
   email?: string;
   phone?: string;
+  instagram?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -17,6 +18,7 @@ export interface CreateClientData {
   name: string;
   email?: string;
   phone?: string;
+  instagram?: string;
   notes?: string;
 }
 

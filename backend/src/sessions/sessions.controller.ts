@@ -30,6 +30,23 @@ export class SessionsController {
     return this.sessionsService.create(tenantId, dto);
   }
 
+  @Get('stats')
+  @Roles('OWNER', 'STAFF', 'EMPLOYEE')
+  getStats(
+    @CurrentTenant() tenantId: string,
+    @Query('serviceTypeId') serviceTypeId?: string,
+    @Query('userId') userId?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.sessionsService.getStats(tenantId, {
+      serviceTypeId,
+      userId,
+      startDate,
+      endDate,
+    });
+  }
+
   @Get('price-suggestion')
   @Roles('OWNER', 'STAFF', 'EMPLOYEE')
   getPriceSuggestion(

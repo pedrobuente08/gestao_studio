@@ -14,6 +14,8 @@ import {
   RequestPasswordResetDto,
   ResetPasswordDto,
 } from './dto/reset-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -94,6 +96,11 @@ export class AuthService {
             provider: 'credentials',
           },
         },
+        tenant: {
+          select: {
+            type: true,
+          },
+        },
       },
     });
 
@@ -136,11 +143,13 @@ export class AuthService {
         name: user.name,
         role: user.role,
         tenantId: user.tenantId,
+        tenantType: user.tenant.type,
+        mustChangePassword: user.mustChangePassword,
       },
     };
   }
 
-  async verifyEmail(token: string): Promise<AuthResponse> {
+  async verifyEmail(token: string): Promise<{ message: string }> {
     // Busca o token de verificação
     const verificationToken = await this.prisma.verificationToken.findUnique({
       where: { token },
@@ -180,19 +189,7 @@ export class AuthService {
       where: { token },
     });
 
-    // Cria sessão e faz login automático
-    const session = await this.createSession(user.id);
-
-    return {
-      token: session.token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        tenantId: user.tenantId,
-      },
-    };
+    return { message: 'Email verificado com sucesso. Agora você pode fazer login.' };
   }
 
   async resendVerificationEmail(email: string): Promise<{ message: string }> {
@@ -350,6 +347,13 @@ export class AuthService {
     // Busca ou cria usuário
     let user = await this.prisma.user.findUnique({
       where: { email: googleUser.email },
+      include: {
+        tenant: {
+          select: {
+            type: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -367,6 +371,13 @@ export class AuthService {
           name: googleUser.name,
           role: 'OWNER',
           status: 'ACTIVE',
+        },
+        include: {
+          tenant: {
+            select: {
+              type: true,
+            },
+          },
         },
       });
     }
@@ -402,6 +413,8 @@ export class AuthService {
         name: user.name,
         role: user.role,
         tenantId: user.tenantId,
+        tenantType: user.tenant.type,
+        mustChangePassword: user.mustChangePassword,
       },
     };
   }
@@ -425,6 +438,12 @@ export class AuthService {
         role: true,
         tenantId: true,
         status: true,
+        mustChangePassword: true,
+        tenant: {
+          select: {
+            type: true,
+          },
+        },
       },
     });
 
@@ -432,7 +451,16 @@ export class AuthService {
       return null;
     }
 
-    return user;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      tenantId: user.tenantId,
+      tenantType: user.tenant.type,
+      status: user.status,
+      mustChangePassword: user.mustChangePassword,
+    };
   }
 
   async logout(token: string) {
@@ -440,6 +468,70 @@ export class AuthService {
       where: { token },
     });
     return { message: 'Logout realizado com sucesso' };
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...dto,
+        mustChangePassword: false, // Se o usuário está atualizando o perfil, assumimos que ele já lidou com as pendências
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        age: true,
+        gender: true,
+        profilePhotoUrl: true,
+        tenantId: true,
+        mustChangePassword: true,
+      },
+    });
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        accounts: {
+          where: { type: 'email', provider: 'credentials' },
+        },
+      },
+    });
+
+    if (!user || user.accounts.length === 0) {
+      throw new BadRequestException('Usuário não encontrado');
+    }
+
+    const account = user.accounts[0];
+
+    // Valida senha atual
+    const isPasswordValid = await bcrypt.compare(
+      dto.currentPassword,
+      account.password!,
+    );
+
+    if (!isPasswordValid) {
+      throw new BadRequestException('Senha atual incorreta');
+    }
+
+    // Hash da nova senha
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
+    // Atualiza a senha e remove a flag mustChangePassword
+    await this.prisma.account.update({
+      where: { id: account.id },
+      data: { password: hashedPassword },
+    });
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { mustChangePassword: false },
+    });
+
+    return { message: 'Senha alterada com sucesso' };
   }
 
   private async createSession(userId: string) {

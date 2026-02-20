@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -27,7 +28,25 @@ const SESSION_INCLUDES = {
 export class SessionsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async validateTattooFields(dto: CreateSessionDto | UpdateSessionDto) {
+    if (!dto.serviceTypeId) return;
+
+    const serviceType = await this.prisma.serviceType.findUnique({
+      where: { id: dto.serviceTypeId },
+    });
+
+    if (serviceType?.name === 'Tatuagem') {
+      if (!dto.size || !dto.complexity || !dto.bodyLocation) {
+        throw new BadRequestException(
+          'Campos tamanho, complexidade e local do corpo são obrigatórios para o tipo Tatuagem',
+        );
+      }
+    }
+  }
+
   async create(tenantId: string, dto: CreateSessionDto) {
+    await this.validateTattooFields(dto);
+
     // Converte de R$ para centavos
     const finalPriceCents = Math.round(dto.finalPrice * 100);
 
@@ -121,7 +140,9 @@ export class SessionsService {
       throw new NotFoundException('Procedimento não encontrado');
     }
 
-    // Converte finalPrice de R$ para centavos se fornecido
+    await this.validateTattooFields(dto);
+
+    // Converte finalPrice de R$ para centavos de fornecido
     const finalPriceCents =
       dto.finalPrice !== undefined
         ? Math.round(dto.finalPrice * 100)
@@ -230,6 +251,88 @@ export class SessionsService {
       min,
       max,
       sessions: sessions.slice(0, 10),
+    };
+  }
+
+  async getStats(
+    tenantId: string,
+    filters: {
+      serviceTypeId?: string;
+      userId?: string;
+      startDate?: string;
+      endDate?: string;
+    },
+  ) {
+    const where: any = { tenantId };
+
+    if (filters.serviceTypeId) where.serviceTypeId = filters.serviceTypeId;
+    if (filters.userId) where.userId = filters.userId;
+    if (filters.startDate || filters.endDate) {
+      where.date = {};
+      if (filters.startDate) where.date.gte = new Date(filters.startDate);
+      if (filters.endDate)
+        where.date.lte = new Date(filters.endDate + 'T23:59:59');
+    }
+
+    const [aggregate, sessions] = await Promise.all([
+      this.prisma.tattooSession.aggregate({
+        where,
+        _sum: { finalPrice: true },
+        _count: { id: true },
+        _avg: { finalPrice: true },
+      }),
+      this.prisma.tattooSession.findMany({
+        where,
+        include: {
+          serviceType: { select: { id: true, name: true } },
+          user: { select: { id: true, name: true } },
+        },
+      }),
+    ]);
+
+    // Agrupar por tipo de serviço
+    const byServiceTypeMap = new Map<
+      string,
+      { serviceTypeId: string; name: string; count: number; revenue: number }
+    >();
+    const byEmployeeMap = new Map<
+      string,
+      { userId: string; name: string; count: number; revenue: number }
+    >();
+
+    for (const s of sessions) {
+      if (s.serviceType) {
+        const key = s.serviceType.id;
+        const existing = byServiceTypeMap.get(key) ?? {
+          serviceTypeId: key,
+          name: s.serviceType.name,
+          count: 0,
+          revenue: 0,
+        };
+        existing.count++;
+        existing.revenue += s.finalPrice;
+        byServiceTypeMap.set(key, existing);
+      }
+      if (s.user) {
+        const key = s.user.id;
+        const existing = byEmployeeMap.get(key) ?? {
+          userId: key,
+          name: s.user.name,
+          count: 0,
+          revenue: 0,
+        };
+        existing.count++;
+        existing.revenue += s.finalPrice;
+        byEmployeeMap.set(key, existing);
+      }
+    }
+
+    return {
+      totalRevenue: aggregate._sum.finalPrice ?? 0,
+      sessionCount: aggregate._count.id,
+      avgTicket: Math.round(aggregate._avg.finalPrice ?? 0),
+      byServiceType: Array.from(byServiceTypeMap.values()),
+      byEmployee: Array.from(byEmployeeMap.values()),
     };
   }
 }

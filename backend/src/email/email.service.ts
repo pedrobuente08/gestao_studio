@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Resend } from 'resend';
 import { verifyEmailTemplate } from './templates/verify-email.template';
 import { resetPasswordTemplate } from './templates/reset-password.template';
+import { employeeWelcomeTemplate } from './templates/employee-welcome.template';
 
 @Injectable()
 export class EmailService {
@@ -48,6 +49,24 @@ export class EmailService {
       this.logger.log(`Email de recuperação de senha enviado para ${to}`);
     } catch (error) {
       this.logger.error(`Falha ao enviar email de recuperação para ${to}`, error);
+      throw error;
+    }
+  }
+
+  async sendEmployeeWelcomeEmail(to: string, name: string, password: string, token: string): Promise<void> {
+    const verificationUrl = `${this.appUrl}/verify-email?token=${token}`;
+    const html = employeeWelcomeTemplate(name, to, password, verificationUrl);
+
+    try {
+      await this.resend.emails.send({
+        from: `InkStudio <${this.fromEmail}>`,
+        to,
+        subject: 'Boas-vindas ao InkStudio — Ative sua conta',
+        html,
+      });
+      this.logger.log(`Email de boas-vindas enviado para ${to}`);
+    } catch (error) {
+      this.logger.error(`Falha ao enviar email de boas-vindas para ${to}`, error);
       throw error;
     }
   }
