@@ -15,6 +15,7 @@ import { RegisterDto } from './dto/register.dto';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { CompleteSocialRegistrationDto } from './dto/complete-social-registration.dto';
 import { StorageService } from '../storage/storage.service';
 
 @Controller('auth')
@@ -54,5 +55,11 @@ export class AuthController {
     const fileName = `avatars/${req.user.id}-${Date.now()}`;
     const url = await this.storageService.uploadFile(file, fileName);
     return this.authService.updateProfile(req.user.id, { profilePhotoUrl: url });
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('complete-social-registration')
+  async completeSocialRegistration(@Req() req: any, @Body() dto: CompleteSocialRegistrationDto) {
+    return this.authService.completeSocialRegistration(req.user.id, dto);
   }
 }

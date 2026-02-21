@@ -28,7 +28,7 @@ export class AuthGuard implements CanActivate {
       include: { tenant: { select: { type: true } } },
     });
 
-    if (!user || user.status !== 'ACTIVE') {
+    if (!user || (!['ACTIVE', 'PENDING_SETUP'].includes(user.status))) {
       throw new UnauthorizedException('Usuário inativo ou não encontrado');
     }
 
@@ -38,7 +38,7 @@ export class AuthGuard implements CanActivate {
       name: user.name,
       role: user.role,
       tenantId: user.tenantId,
-      tenantType: user.tenant.type,
+      tenantType: user.tenant?.type,
       status: user.status,
       mustChangePassword: user.mustChangePassword,
       profilePhotoUrl: user.profilePhotoUrl,

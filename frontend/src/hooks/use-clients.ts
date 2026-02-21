@@ -19,18 +19,59 @@ export function useClients() {
 
   const createClientMutation = useMutation({
     mutationFn: clientsService.create,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
+    onMutate: async (newClient) => {
+      await queryClient.cancelQueries({ queryKey: ['clients'] });
+      const previousClients = queryClient.getQueryData<any[]>(['clients']);
+      queryClient.setQueryData(['clients'], (old: any) => [
+        ...(old || []),
+        { ...newClient, id: 'temp-' + Date.now(), createdAt: new Date().toISOString() },
+      ]);
+      return { previousClients };
+    },
+    onError: (err, newClient, context) => {
+      queryClient.setQueryData(['clients'], context?.previousClients);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateClientData }) =>
       clientsService.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['clients'] });
+      const previousClients = queryClient.getQueryData<any[]>(['clients']);
+      queryClient.setQueryData(['clients'], (old: any) =>
+        old?.map((client: any) => client.id === id ? { ...client, ...data } : client)
+      );
+      return { previousClients };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(['clients'], context?.previousClients);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    },
   });
 
   const removeMutation = useMutation({
     mutationFn: clientsService.remove,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clients'] }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['clients'] });
+      const previousClients = queryClient.getQueryData<any[]>(['clients']);
+      queryClient.setQueryData(['clients'], (old: any) =>
+        old?.filter((client: any) => client.id !== id)
+      );
+      return { previousClients };
+    },
+    onError: (err, id, context) => {
+      queryClient.setQueryData(['clients'], context?.previousClients);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+    },
   });
 
   return {

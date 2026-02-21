@@ -9,12 +9,18 @@ const api = axios.create({
 });
 
 // Interceptor para tratar erros 401 (sessão inválida ou expirada)
+// Não redireciona se já estiver em página de auth para evitar loop infinito
+const authPaths = ['/login', '/register', '/verify-email', '/reset-password', '/oauth-callback', '/complete-registration'];
+
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        const isAuthPage = authPaths.some(path => window.location.pathname.startsWith(path));
+        if (!isAuthPage) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);

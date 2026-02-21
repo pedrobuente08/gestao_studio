@@ -3,8 +3,9 @@ export interface User {
   email: string;
   name: string;
   role: 'OWNER' | 'STAFF' | 'EMPLOYEE';
-  tenantId: string;
-  tenantType: 'AUTONOMO' | 'STUDIO';
+  tenantId?: string;
+  tenantType?: 'AUTONOMO' | 'STUDIO';
+  status: 'ACTIVE' | 'INACTIVE' | 'PENDING_SETUP';
   mustChangePassword: boolean;
   age?: number;
   gender?: string;

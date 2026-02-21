@@ -71,23 +71,17 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24,       // renova a cada 24h
   },
 
-  // Multi-tenant: cria Tenant automaticamente para usuários via Google OAuth
+  // Multi-tenant: marca como PENDING_SETUP para usuários via Google OAuth
+  // Eles deverão completar o cadastro informando o tipo e nome do Tenant
   databaseHooks: {
     user: {
       create: {
         before: async (user) => {
-          const tenant = await prisma.tenant.create({
-            data: {
-              type: 'AUTONOMO',
-              name: (user.name as string) || (user.email as string),
-            },
-          });
           return {
             data: {
               ...user,
-              tenantId: tenant.id,
               role: 'OWNER',
-              status: 'ACTIVE',
+              status: 'PENDING_SETUP',
             },
           };
         },

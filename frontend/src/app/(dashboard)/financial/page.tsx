@@ -15,14 +15,16 @@ import {
   TableEmpty,
 } from '@/components/ui/table';
 import { TransactionModal } from '@/components/modals/transaction-modal';
+import { PageHeader } from '@/components/ui/page-header';
 import { formatCurrency } from '@/utils/format-currency';
 import { formatDate } from '@/utils/format-date';
 import { Plus, Search, TrendingDown, TrendingUp, MoreVertical, Wallet } from 'lucide-react';
 import { Transaction } from '@/types/financial.types';
 import { TRANSACTION_CATEGORY_LABELS, PAYMENT_METHOD_LABELS } from '@/utils/constants';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function FinancialPage() {
-  const { transactions, summary, isLoading } = useFinancial();
+  const { transactions, summary, isLoading, isError } = useFinancial();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>();
@@ -42,27 +44,85 @@ export default function FinancialPage() {
     setIsModalOpen(true);
   };
 
+  const handleExport = () => {
+    const headers = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor', 'Método'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredTransactions.map(t => [
+        t.date,
+        `"${t.description || ''}"`,
+        t.category,
+        t.type,
+        (t.amount / 100).toFixed(2),
+        t.paymentMethod || ''
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `financeiro_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const totalIncome = summary?.totalIncome || 0;
   const totalExpense = summary?.totalExpense || 0;
   const balance = summary?.balance || 0;
 
-  return (
-    <div className="space-y-8 p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-100 italic:not-italic">Financeiro</h1>
-          <p className="text-zinc-400">
-            Fluxo de caixa e gestão de despesas
-          </p>
+  if (isLoading) {
+    return (
+      <div className="space-y-8 p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-10 w-32" />
         </div>
+
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+
+        <Skeleton className="h-[400px] w-full" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 p-8">
+        <p className="text-zinc-400 text-sm">Não foi possível carregar os dados financeiros.</p>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Tentar novamente
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8">
+      <PageHeader
+        title="Financeiro"
+        description="Fluxo de caixa e gestão de despesas"
+      >
+        <Button variant="ghost" onClick={handleExport} className="hidden sm:flex text-zinc-400 hover:text-zinc-100">
+          Exportar CSV
+        </Button>
         <Button onClick={handleAdd} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Nova Transação
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Resumo Financeiro */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 mb-8">
         <StatCard
           title="Receitas"
           value={formatCurrency(totalIncome)}
@@ -110,9 +170,7 @@ export default function FinancialPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              <TableSkeleton colSpan={6} />
-            ) : filteredTransactions.length > 0 ? (
+            {filteredTransactions.length > 0 ? (
               filteredTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
                   <TableCell className="font-medium">

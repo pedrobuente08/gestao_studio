@@ -22,10 +22,14 @@ import {
   Building2,
   Home,
 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm }
+from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CalculatorMode } from '@/types/calculator.types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PageOverlay } from '@/components/ui/page-loader';
+import { PageHeader } from '@/components/ui/page-header';
 
 const settingsSchema = z.object({
   hoursPerMonth: z.coerce.number().min(1, 'Mínimo de 1 hora'),
@@ -55,8 +59,9 @@ export default function CalculatorPage() {
   const [simHours, setSimHours] = useState(2);
   const [simComplexity, setSimComplexity] = useState(1.2);
   const [desiredNet, setDesiredNet] = useState(0);
+  const [optimisticMode, setOptimisticMode] = useState<CalculatorMode | null>(null);
 
-  const mode: CalculatorMode = data?.mode || 'AUTONOMOUS';
+  const mode: CalculatorMode = optimisticMode ?? data?.mode ?? 'AUTONOMOUS';
   const isStudioMode = mode === 'STUDIO_PERCENTAGE';
 
   const settingsForm = useForm<SettingsFormData>({
@@ -96,22 +101,56 @@ export default function CalculatorPage() {
   };
 
   const handleSwitchMode = (newMode: CalculatorMode) => {
-    setWorkSettings({
-      hoursPerMonth: data?.hoursPerMonth || 160,
-      profitMargin: data?.profitMargin || 30,
-      mode: newMode,
-      studioPercentage: data?.studioPercentage ?? undefined,
-    });
+    if (isSettingWorkSettings) return;
+    setOptimisticMode(newMode);
+    setWorkSettings(
+      {
+        hoursPerMonth: data?.hoursPerMonth || 160,
+        profitMargin: data?.profitMargin || 30,
+        mode: newMode,
+        studioPercentage: data?.studioPercentage ?? undefined,
+      },
+      {
+        onSettled: () => setOptimisticMode(null),
+      },
+    );
   };
 
-  if (isLoading) return <div className="p-8"><p className="text-zinc-400">Carregando...</p></div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-8 p-4 sm:p-6 lg:p-8">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+
+        <div className="flex gap-3">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-10 w-48" />
+        </div>
+
+        <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-8">
+            <Skeleton className="h-[400px] w-full" />
+            <Skeleton className="h-[300px] w-full" />
+          </div>
+          <div className="space-y-8">
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-[400px] w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8 p-4 sm:p-6 lg:p-8">
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-100">Calculadora de Custos</h1>
-        <p className="text-zinc-400">Entenda seus custos e defina preços lucrativos</p>
-      </div>
+    <div className="space-y-8 p-4 sm:p-6 lg:p-8 relative">
+      {isSettingWorkSettings && <PageOverlay show={isSettingWorkSettings || isAddingCost} />}
+      <PageHeader
+        title="Calculadora de Custos"
+        description="Entenda seus custos e defina preços lucrativos"
+      />
 
       {/* Toggle de Modo */}
       <div className="flex gap-3">

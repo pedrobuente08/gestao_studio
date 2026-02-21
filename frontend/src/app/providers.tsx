@@ -17,7 +17,7 @@ export function Providers({ children }: ProvidersProps) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            staleTime: 0,
             retry: 1,
             refetchOnWindowFocus: false,
           },
@@ -29,8 +29,13 @@ export function Providers({ children }: ProvidersProps) {
   useEffect(() => {
     setLoading(true);
     authService.getMe()
-      .then(user => setUser(user))
-      .catch(() => setLoading(false));
+      .then(user => {
+        setUser(user);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

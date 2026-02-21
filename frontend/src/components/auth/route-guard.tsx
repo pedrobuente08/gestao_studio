@@ -17,6 +17,10 @@ export function RouteGuard({ children }: RouteGuardProps) {
   useEffect(() => {
     const verifyAuth = async () => {
       if (isAuthenticated) {
+        if (user?.status === 'PENDING_SETUP') {
+          router.replace('/complete-registration');
+          return;
+        }
         if (user?.role === 'EMPLOYEE') {
           const restrictedPaths = ['/clients', '/sessions', '/financial', '/employees', '/service-types', '/performance'];
           const isRestricted = restrictedPaths.some(path => pathname.startsWith(path));
@@ -31,6 +35,11 @@ export function RouteGuard({ children }: RouteGuardProps) {
       try {
         const userData = await authService.getMe();
         setUser(userData);
+
+        if (userData.status === 'PENDING_SETUP' && pathname !== '/complete-registration') {
+          router.replace('/complete-registration');
+          return;
+        }
 
         if (userData.role === 'EMPLOYEE') {
           const restrictedPaths = ['/clients', '/sessions', '/financial', '/employees', '/service-types', '/performance'];

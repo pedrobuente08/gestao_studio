@@ -15,7 +15,11 @@ export default function OAuthCallbackPage() {
     authService.getMe()
       .then(user => {
         setUser(user);
-        router.replace('/dashboard');
+        if (user.status === 'PENDING_SETUP') {
+          router.replace('/complete-registration');
+        } else {
+          router.replace('/dashboard');
+        }
       })
       .catch(() => {
         router.replace('/login');

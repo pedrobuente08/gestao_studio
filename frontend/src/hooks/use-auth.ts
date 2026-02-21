@@ -108,7 +108,7 @@ export function useAuth() {
   const loginWithGoogle = () => {
     authClient.signIn.social({
       provider: 'google',
-      callbackURL: '/auth/oauth-callback',
+      callbackURL: `${appUrl}/oauth-callback`,
     });
   };
 

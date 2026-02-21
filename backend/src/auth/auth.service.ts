@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { CompleteSocialRegistrationDto } from './dto/complete-social-registration.dto';
 import { auth } from '../config/better-auth.config';
 
 @Injectable()
@@ -121,5 +122,38 @@ export class AuthService {
     });
 
     return { message: 'Senha alterada com sucesso' };
+  }
+
+  async completeSocialRegistration(userId: string, dto: CompleteSocialRegistrationDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Usuário não encontrado');
+    }
+
+    if (user.status !== 'PENDING_SETUP') {
+      throw new BadRequestException('Configuração já completada ou usuário não pendente');
+    }
+
+    // Cria o tenant
+    const tenant = await this.prisma.tenant.create({
+      data: {
+        type: dto.tenantType,
+        name: dto.tenantName,
+        city: dto.city,
+        state: dto.state,
+      },
+    });
+
+    // Atualiza o usuário
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        tenantId: tenant.id,
+        status: 'ACTIVE',
+      },
+    });
   }
 }

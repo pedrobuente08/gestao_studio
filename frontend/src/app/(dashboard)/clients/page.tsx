@@ -16,6 +16,7 @@ import {
   TableEmpty,
 } from '@/components/ui/table';
 import { ClientModal } from '@/components/modals/client-modal';
+import { PageHeader } from '@/components/ui/page-header';
 import { formatCurrency } from '@/utils/format-currency';
 import { formatRelativeDate } from '@/utils/format-date';
 import { Plus, Search, User, MoreVertical, ExternalLink } from 'lucide-react';
@@ -44,19 +45,16 @@ export default function ClientsPage() {
   };
 
   return (
-    <div className="space-y-8 p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-100">Clientes</h1>
-          <p className="text-zinc-400">
-            Gerencie sua base de clientes e histórico de sessões
-          </p>
-        </div>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <PageHeader
+        title="Clientes"
+        description="Gerencie sua base de clientes e histórico de sessões"
+      >
         <Button onClick={handleAdd} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Novo Cliente
         </Button>
-      </div>
+      </PageHeader>
 
       <Card>
         <div className="mb-6 flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 focus-within:border-rose-500 transition-colors">
@@ -73,69 +71,60 @@ export default function ClientsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Cliente</TableHead>
-              <TableHead className="hidden sm:table-cell">Contatos</TableHead>
-              <TableHead className="text-center">Sessões</TableHead>
-              <TableHead className="text-right">Total Gasto</TableHead>
-              <TableHead className="hidden lg:table-cell">Última Visita</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Contato</TableHead>
+              <TableHead>Última Sessão</TableHead>
+              <TableHead className="text-right">Total Investido</TableHead>
               <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableSkeleton colSpan={6} />
+              <TableSkeleton colSpan={5} />
             ) : filteredClients.length > 0 ? (
               filteredClients.map((client) => (
                 <TableRow key={client.id}>
-                  <TableCell>
+                  <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
-                        <User className="h-5 w-5" />
+                      <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center">
+                        <User className="h-4 w-4 text-zinc-400" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-medium text-zinc-200">{client.name}</span>
-                        <span className="text-xs text-zinc-500 sm:hidden">
-                          {client.email || 'Sem email'}
-                        </span>
+                        <span className="text-zinc-200">{client.name}</span>
+                        {client.instagram && (
+                          <span className="text-xs text-zinc-500">{client.instagram}</span>
+                        )}
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <div className="flex flex-col text-xs space-y-1">
-                      <span className="text-zinc-400">{client.email || '-'}</span>
-                      <span className="text-zinc-500">{client.phone || '-'}</span>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-zinc-400 text-sm">{client.phone || 'Sem telefone'}</span>
+                      <span className="text-zinc-500 text-xs">{client.email || 'Sem email'}</span>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-center font-medium">
-                    {client.sessionCount || 0}
-                  </TableCell>
-                  <TableCell className="text-right font-medium text-amber-400">
-                    {formatCurrency(client.totalSpent || 0)}
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell text-zinc-500">
-                    {client.lastVisit ? formatRelativeDate(client.lastVisit) : 'Nunca'}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Link href={`/clients/${client.id}`}>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <ExternalLink className="h-4 w-4 text-rose-500" />
-                        </Button>
-                      </Link>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleEdit(client)}
-                      >
-                        <MoreVertical className="h-4 w-4 text-zinc-500" />
-                      </Button>
-                    </div>
+                    <span className="text-zinc-400 text-sm">
+                      {client.lastVisit ? formatRelativeDate(client.lastVisit) : 'Nunca'}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right font-medium text-emerald-500">
+                    {formatCurrency(client.totalSpent || 0)}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => handleEdit(client)}
+                    >
+                      <MoreVertical className="h-4 w-4 text-zinc-500" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
-              <TableEmpty colSpan={6} />
+              <TableEmpty colSpan={5} />
             )}
           </TableBody>
         </Table>

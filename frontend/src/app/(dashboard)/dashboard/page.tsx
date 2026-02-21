@@ -12,6 +12,8 @@ import { formatDate } from '@/utils/format-date';
 import { Users, Calendar, DollarSign, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -19,8 +21,35 @@ export default function DashboardPage() {
   const { sessions, isLoading: isLoadingSessions } = useSessions();
   const { summary, isLoading: isLoadingFinancial } = useFinancial();
 
-  // Pegar as últimas 5 sessões
-  const latestSessions = sessions.slice(0, 5);
+  const isLoading = isLoadingClients || isLoadingSessions || isLoadingFinancial;
+
+  if (isLoading) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="space-y-2 mb-8">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+
+        <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
+          <Skeleton className="h-96 lg:col-span-2 w-full" />
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  // Pegar as últimas 5 sessões (ordenadas por data decrescente)
+  const latestSessions = [...sessions].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  ).slice(0, 5);
 
   // Calcular ticket médio
   const totalRevenue = summary?.totalIncome || 0;
@@ -32,21 +61,19 @@ export default function DashboardPage() {
     { label: 'Set', value: 450000 },
     { label: 'Out', value: 520000 },
     { label: 'Nov', value: 480000 },
-    { label: 'Dez', value: 610000 },
-    { label: 'Jan', value: 550000 },
+    { label: 'Dez', value: 650000 },
+    { label: 'Jan', value: 590000 },
     { label: 'Fev', value: totalRevenue },
   ];
 
-  const isLoading = isLoadingClients || isLoadingSessions || isLoadingFinancial;
+  const firstName = user?.name?.split(' ')[0] || 'Usuário';
 
   return (
-    <div className="space-y-8 p-4 sm:p-6 lg:p-8">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-zinc-100 italic:not-italic">Dashboard</h1>
-        <p className="text-zinc-400">
-          Bem-vindo de volta, <span className="text-rose-500 font-medium">{user?.name}</span>
-        </p>
-      </div>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <PageHeader
+        title={`Bem-vindo, ${firstName}`}
+        description="Acompanhe o desempenho do seu estúdio em tempo real"
+      />
 
       {/* Métricas Principais */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

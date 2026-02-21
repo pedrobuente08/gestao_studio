@@ -24,7 +24,7 @@ async function bootstrap() {
 
   // Monta Better Auth em /api/auth (Google OAuth, verificação de email, reset de senha)
   const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.all('/api/auth/*', toNodeHandler(auth));
+  expressApp.all('/api/auth/{*path}', toNodeHandler(auth));
 
   const port = process.env.PORT || 3001;
   await app.listen(port);

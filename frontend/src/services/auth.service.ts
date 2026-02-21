@@ -41,4 +41,9 @@ export const authService = {
     );
     return response.data;
   },
+  
+  async completeSocialRegistration(data: { tenantType: 'AUTONOMO' | 'STUDIO'; tenantName: string; city?: string; state?: string }): Promise<User> {
+    const response = await api.post<User>('/auth/complete-social-registration', data);
+    return response.data;
+  },
 };
