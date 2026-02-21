@@ -1,47 +1,12 @@
 import api from './api';
-import { AuthResponse, LoginData, RegisterData, User } from '@/types/auth.types';
+import axios from 'axios';
+import { RegisterData, User } from '@/types/auth.types';
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export const authService = {
-  async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/register', data);
-    return response.data;
-  },
-
-  async login(data: LoginData): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/login', data);
-    return response.data;
-  },
-
-  loginWithGoogle(): void {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    window.location.href = `${apiUrl}/auth/google`;
-  },
-
-  async requestPasswordReset(email: string): Promise<{ message: string }> {
-    const response = await api.post<{ message: string }>('/auth/password/request', { email });
-    return response.data;
-  },
-
-  async validateResetToken(token: string): Promise<{ valid: boolean }> {
-    const response = await api.post<{ valid: boolean }>('/auth/password/validate', { token });
-    return response.data;
-  },
-
-  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
-    const response = await api.post<{ message: string }>('/auth/password/reset', {
-      token,
-      newPassword,
-    });
-    return response.data;
-  },
-
-  async verifyEmail(token: string): Promise<AuthResponse | { message: string }> {
-    const response = await api.post<AuthResponse | { message: string }>('/auth/email/verify', { token });
-    return response.data;
-  },
-
-  async resendVerificationEmail(email: string): Promise<{ message: string }> {
-    const response = await api.post<{ message: string }>('/auth/email/resend', { email });
+  async register(data: RegisterData): Promise<{ message: string }> {
+    const response = await api.post<{ message: string }>('/auth/register', data);
     return response.data;
   },
 
@@ -50,19 +15,12 @@ export const authService = {
     return response.data;
   },
 
-  logout(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-  },
-
   async updateProfile(data: Partial<User>): Promise<User> {
     const response = await api.patch<User>('/auth/me', data);
     return response.data;
   },
 
-  async changePassword(data: any): Promise<{ message: string }> {
+  async changePassword(data: { currentPassword: string; newPassword: string }): Promise<{ message: string }> {
     const response = await api.patch<{ message: string }>('/auth/me/password', data);
     return response.data;
   },
@@ -73,6 +31,14 @@ export const authService = {
     const response = await api.post<User>('/auth/me/photo', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return response.data;
+  },
+
+  async resendVerificationEmail(email: string): Promise<{ message: string }> {
+    const response = await axios.post<{ message: string }>(
+      `${apiUrl}/api/auth/send-verification-email`,
+      { email },
+    );
     return response.data;
   },
 };

@@ -1,75 +1,78 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 import { useAuthStore } from '@/stores/auth.store';
 import { authService } from '@/services/auth.service';
-import { LoginData, RegisterData } from '@/types/auth.types';
-import { useEffect } from 'react';
+import { authClient } from '@/lib/auth-client';
+import { RegisterData } from '@/types/auth.types';
+
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export function useAuth() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { user, token, isAuthenticated, isLoading, setAuth, clearAuth, setUser, setLoading } =
-    useAuthStore();
+  const { user, isAuthenticated, isLoading, setUser, clearAuth } = useAuthStore();
 
-  // Query para buscar dados do usuário quando há token
-  const { isLoading: isLoadingUser } = useQuery({
-    queryKey: ['user'],
-    queryFn: async () => {
-      const userData = await authService.getMe();
-      setUser(userData);
-      setLoading(false);
-      return userData;
-    },
-    enabled: !!token && !user,
-    retry: false,
-  });
-
-  // Mutation de login
+  // Login com email e senha via Better Auth
   const loginMutation = useMutation({
-    mutationFn: (data: LoginData) => authService.login(data),
-    onSuccess: (response) => {
-      setAuth(response.token, response.user);
+    mutationFn: async (data: { email: string; password: string }) => {
+      const result = await authClient.signIn.email({
+        email: data.email,
+        password: data.password,
+      });
+      if (result.error) {
+        throw Object.assign(new Error(result.error.message || 'Credenciais inválidas'), {
+          code: result.error.code,
+        });
+      }
+      // Busca campos customizados (tenantId, role, etc.) do nosso endpoint
+      return authService.getMe();
+    },
+    onSuccess: (userData) => {
+      setUser(userData);
       queryClient.invalidateQueries({ queryKey: ['user'] });
       router.push('/dashboard');
     },
   });
 
-  // Mutation de registro
+  // Registro (endpoint NestJS customizado para criar tenant com tenantType/tenantName)
   const registerMutation = useMutation({
     mutationFn: (data: RegisterData) => authService.register(data),
     onSuccess: (_response, variables) => {
-      // Após registro, redireciona para verificação de email
       router.push(`/verify-email?email=${encodeURIComponent(variables.email)}`);
     },
   });
 
-  // Mutation de solicitar reset de senha
+  // Solicitar reset de senha via endpoint Better Auth
   const requestPasswordResetMutation = useMutation({
-    mutationFn: (email: string) => authService.requestPasswordReset(email),
+    mutationFn: async (email: string) => {
+      await axios.post(`${apiUrl}/api/auth/forget-password`, {
+        email,
+        redirectTo: `${appUrl}/reset-password`,
+      });
+    },
   });
 
-  // Mutation de resetar senha
+  // Resetar senha via Better Auth
   const resetPasswordMutation = useMutation({
-    mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) =>
-      authService.resetPassword(token, newPassword),
+    mutationFn: async ({ token, newPassword }: { token: string; newPassword: string }) => {
+      const result = await authClient.resetPassword({ token, newPassword });
+      if (result.error) throw new Error(result.error.message || 'Erro ao redefinir senha');
+    },
     onSuccess: () => {
       router.push('/login');
     },
   });
 
-  // Mutation de verificar email
-  const verifyEmailMutation = useMutation({
-    mutationFn: (token: string) => authService.verifyEmail(token),
-  });
-
-  // Mutation de reenviar email de verificação
+  // Reenviar email de verificação (endpoint Better Auth direto)
   const resendVerificationMutation = useMutation({
     mutationFn: (email: string) => authService.resendVerificationEmail(email),
   });
 
-  // Mutation de atualizar perfil
+  // Atualizar perfil
   const updateProfileMutation = useMutation({
     mutationFn: (data: Partial<any>) => authService.updateProfile(data),
     onSuccess: (updatedUser) => {
@@ -78,12 +81,13 @@ export function useAuth() {
     },
   });
 
-  // Mutation de trocar senha
+  // Trocar senha
   const changePasswordMutation = useMutation({
-    mutationFn: (data: any) => authService.changePassword(data),
+    mutationFn: (data: { currentPassword: string; newPassword: string }) =>
+      authService.changePassword(data),
   });
 
-  // Mutation de upload de foto
+  // Upload de foto
   const uploadPhotoMutation = useMutation({
     mutationFn: (file: File) => authService.uploadPhoto(file),
     onSuccess: (updatedUser) => {
@@ -92,35 +96,41 @@ export function useAuth() {
     },
   });
 
-  // Função de logout
-  const logout = () => {
+  // Logout via Better Auth
+  const logout = async () => {
+    await authClient.signOut();
     clearAuth();
     queryClient.clear();
     router.push('/login');
   };
 
-  // Função de login com Google
+  // Login com Google via Better Auth
   const loginWithGoogle = () => {
-    authService.loginWithGoogle();
+    authClient.signIn.social({
+      provider: 'google',
+      callbackURL: '/auth/oauth-callback',
+    });
   };
 
   return {
     // Estado
     user,
     isAuthenticated,
-    isLoading: isLoading || isLoadingUser,
+    isLoading,
 
-    // Actions
+    // Login
     login: loginMutation.mutate,
     loginAsync: loginMutation.mutateAsync,
     loginError: loginMutation.error,
     isLoginLoading: loginMutation.isPending,
 
+    // Registro
     register: registerMutation.mutate,
     registerAsync: registerMutation.mutateAsync,
     registerError: registerMutation.error,
     isRegisterLoading: registerMutation.isPending,
 
+    // Reset de senha
     requestPasswordReset: requestPasswordResetMutation.mutate,
     requestPasswordResetAsync: requestPasswordResetMutation.mutateAsync,
     requestPasswordResetError: requestPasswordResetMutation.error,
@@ -132,20 +142,18 @@ export function useAuth() {
     resetPasswordError: resetPasswordMutation.error,
     isResetPasswordLoading: resetPasswordMutation.isPending,
 
-    verifyEmail: verifyEmailMutation.mutate,
-    verifyEmailAsync: verifyEmailMutation.mutateAsync,
-    verifyEmailError: verifyEmailMutation.error,
-    isVerifyEmailLoading: verifyEmailMutation.isPending,
-
+    // Verificação de email
     resendVerificationEmail: resendVerificationMutation.mutate,
     resendVerificationEmailAsync: resendVerificationMutation.mutateAsync,
     resendVerificationError: resendVerificationMutation.error,
     isResendVerificationLoading: resendVerificationMutation.isPending,
     resendVerificationSuccess: resendVerificationMutation.isSuccess,
 
+    // Sessão
     logout,
     loginWithGoogle,
 
+    // Perfil
     updateProfile: updateProfileMutation.mutate,
     updateProfileAsync: updateProfileMutation.mutateAsync,
     isUpdateProfileLoading: updateProfileMutation.isPending,

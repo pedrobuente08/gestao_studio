@@ -53,9 +53,8 @@ export class EmailService {
     }
   }
 
-  async sendEmployeeWelcomeEmail(to: string, name: string, password: string, token: string): Promise<void> {
-    const verificationUrl = `${this.appUrl}/verify-email?token=${token}`;
-    const html = employeeWelcomeTemplate(name, to, password, verificationUrl);
+  async sendEmployeeWelcomeEmail(to: string, name: string, password: string): Promise<void> {
+    const html = employeeWelcomeTemplate(name, to, password);
 
     try {
       await this.resend.emails.send({

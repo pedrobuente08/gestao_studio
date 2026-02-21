@@ -14,7 +14,7 @@ import * as Avatar from '@radix-ui/react-avatar';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  age: z.coerce.number().int().positive().nullable().optional(),
+  age: z.number().int().positive().nullable().optional(),
   gender: z.string().optional(),
 });
 

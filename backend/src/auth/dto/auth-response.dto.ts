@@ -8,6 +8,9 @@ export class AuthUserResponse {
   tenantId!: string;
   tenantType!: TenantType;
   mustChangePassword!: boolean;
+  age?: number;
+  gender?: string;
+  profilePhotoUrl?: string;
 }
 
 export class AuthResponse {

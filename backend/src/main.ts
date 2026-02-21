@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { toNodeHandler } from 'better-auth/node';
+import { auth } from './config/better-auth.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,10 +16,15 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: 'http://localhost:3000',
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    origin: process.env.APP_URL || 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
+
+  // Monta Better Auth em /api/auth (Google OAuth, verificação de email, reset de senha)
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.all('/api/auth/*', toNodeHandler(auth));
 
   const port = process.env.PORT || 3001;
   await app.listen(port);

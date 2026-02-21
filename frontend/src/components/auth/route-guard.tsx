@@ -12,45 +12,42 @@ interface RouteGuardProps {
 export function RouteGuard({ children }: RouteGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, token, isAuthenticated, isLoading, setAuth, clearAuth, setLoading } =
-    useAuthStore();
+  const { user, isAuthenticated, isLoading, setUser, clearAuth, setLoading } = useAuthStore();
 
   useEffect(() => {
     const verifyAuth = async () => {
-      if (!token) {
-        setLoading(false);
-        router.push('/login');
-        return;
-      }
-
       if (isAuthenticated) {
-        // Verifica restrições de papel (EMPLOYEE)
         if (user?.role === 'EMPLOYEE') {
           const restrictedPaths = ['/clients', '/sessions', '/financial', '/employees', '/service-types', '/performance'];
           const isRestricted = restrictedPaths.some(path => pathname.startsWith(path));
-          
           if (isRestricted) {
             router.push('/dashboard');
-            return;
           }
         }
-        setLoading(false);
         return;
       }
 
+      setLoading(true);
       try {
-        const userResponse = await authService.getMe();
-        setAuth(token, userResponse);
+        const userData = await authService.getMe();
+        setUser(userData);
+
+        if (userData.role === 'EMPLOYEE') {
+          const restrictedPaths = ['/clients', '/sessions', '/financial', '/employees', '/service-types', '/performance'];
+          const isRestricted = restrictedPaths.some(path => pathname.startsWith(path));
+          if (isRestricted) {
+            router.push('/dashboard');
+          }
+        }
       } catch {
         clearAuth();
         router.push('/login');
       }
     };
 
-    if (!isLoading || token) {
-      verifyAuth();
-    }
-  }, [token, isAuthenticated, isLoading, router, pathname, user, setAuth, clearAuth, setLoading]);
+    verifyAuth();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   if (isLoading) {
     return (
@@ -62,14 +59,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
             fill="none"
             viewBox="0 0 24 24"
           >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path
               className="opacity-75"
               fill="currentColor"

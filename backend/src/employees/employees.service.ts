@@ -1,6 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
@@ -17,10 +16,6 @@ export class EmployeesService {
     const users = await this.prisma.user.findMany({
       where: { tenantId, role: { in: ['EMPLOYEE', 'STAFF'] } },
       include: {
-        accounts: {
-          where: { type: 'email', provider: 'credentials' },
-          select: { emailVerified: true },
-        },
         serviceType: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -32,7 +27,7 @@ export class EmployeesService {
       email: u.email,
       role: u.role,
       status: u.status,
-      emailVerified: u.accounts[0]?.emailVerified ?? null,
+      emailVerified: u.emailVerified,
       serviceTypeId: u.serviceTypeId,
       serviceType: u.serviceType,
       createdAt: u.createdAt,
@@ -52,6 +47,7 @@ export class EmployeesService {
         name: dto.name,
         role: dto.role,
         status: 'ACTIVE',
+        emailVerified: true,
         serviceTypeId: dto.serviceTypeId,
         mustChangePassword: true,
       },
@@ -63,27 +59,14 @@ export class EmployeesService {
     await this.prisma.account.create({
       data: {
         userId: user.id,
-        type: 'email',
-        provider: 'credentials',
+        accountId: user.id,
+        providerId: 'credential',
         password: hashedPassword,
-        emailVerified: null,
       },
     });
 
-    // Token de verificação (24h)
-    const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    await this.prisma.verificationToken.create({
-      data: {
-        identifier: `email-verify:${dto.email}`,
-        token,
-        expires,
-      },
-    });
-
-    // Envia email de boas-vindas com a senha e link de verificação
-    await this.emailService.sendEmployeeWelcomeEmail(dto.email, dto.name, dto.password, token);
+    // Envia email de boas-vindas com a senha temporária
+    await this.emailService.sendEmployeeWelcomeEmail(dto.email, dto.name, dto.password);
 
     return {
       id: user.id,
@@ -91,7 +74,7 @@ export class EmployeesService {
       email: user.email,
       role: user.role,
       status: user.status,
-      emailVerified: null,
+      emailVerified: user.emailVerified,
       serviceTypeId: user.serviceTypeId,
       serviceType: user.serviceType,
       createdAt: user.createdAt,
