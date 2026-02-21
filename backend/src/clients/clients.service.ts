@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserRole } from '@prisma/client';
@@ -13,12 +14,30 @@ export class ClientsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(tenantId: string, dto: CreateClientDto) {
+    // Verifica se já existe cliente com mesmo nome ou telefone no mesmo tenant
+    const existingClient = await this.prisma.client.findFirst({
+      where: {
+        tenantId,
+        OR: [
+          { name: dto.name },
+          ...(dto.phone ? [{ phone: dto.phone }] : []),
+        ],
+      },
+    });
+
+    if (existingClient) {
+      const field = existingClient.name === dto.name ? 'nome' : 'telefone';
+      throw new BadRequestException(`Já existe um cliente cadastrado com este ${field}.`);
+    }
+
     const client = await this.prisma.client.create({
       data: {
         tenantId,
         name: dto.name,
         email: dto.email,
         phone: dto.phone,
+        instagram: dto.instagram,
+        birthDate: dto.birthDate ? new Date(dto.birthDate) : null,
         notes: dto.notes,
       },
     });
@@ -64,6 +83,8 @@ export class ClientsService {
       name: client.name,
       email: client.email,
       phone: client.phone,
+      instagram: client.instagram,
+      birthDate: client.birthDate,
       notes: client.notes,
       createdAt: client.createdAt,
       updatedAt: client.updatedAt,
@@ -111,6 +132,8 @@ export class ClientsService {
       name: client.name,
       email: client.email,
       phone: client.phone,
+      instagram: client.instagram,
+      birthDate: client.birthDate,
       notes: client.notes,
       createdAt: client.createdAt,
       updatedAt: client.updatedAt,
@@ -130,9 +153,31 @@ export class ClientsService {
       throw new NotFoundException('Cliente não encontrado');
     }
 
+    // Se estiver alterando nome ou telefone, verifica duplicidade
+    if (dto.name || dto.phone) {
+      const existingClient = await this.prisma.client.findFirst({
+        where: {
+          tenantId,
+          id: { not: id },
+          OR: [
+            ...(dto.name ? [{ name: dto.name }] : []),
+            ...(dto.phone ? [{ phone: dto.phone }] : []),
+          ],
+        },
+      });
+
+      if (existingClient) {
+        const field = existingClient.name === dto.name ? 'nome' : 'telefone';
+        throw new BadRequestException(`Já existe outro cliente cadastrado com este ${field}.`);
+      }
+    }
+
     return this.prisma.client.update({
       where: { id },
-      data: dto,
+      data: {
+        ...dto,
+        birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
+      },
     });
   }
 

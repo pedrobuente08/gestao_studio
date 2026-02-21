@@ -35,7 +35,9 @@ export class SessionsService {
       where: { id: dto.serviceTypeId },
     });
 
-    if (serviceType?.name === 'Tatuagem') {
+    const isTattoo = serviceType?.name === 'Tatuagem' || serviceType?.name === 'TATUAGEM';
+
+    if (isTattoo) {
       if (!dto.size || !dto.complexity || !dto.bodyLocation) {
         throw new BadRequestException(
           'Campos tamanho, complexidade e local do corpo são obrigatórios para o tipo Tatuagem',
@@ -58,11 +60,17 @@ export class SessionsService {
       tatuadorRevenue = finalPriceCents - studioFee;
     }
 
+    // Se userId não for fornecido, tenta usar um padrão ou lança erro (embora o DTO exija)
+    const userId = dto.userId;
+    if (!userId) {
+      throw new BadRequestException('ID do usuário/profissional é obrigatório');
+    }
+
     const session = await this.prisma.tattooSession.create({
       data: {
         tenantId,
         clientId: dto.clientId,
-        userId: dto.userId,
+        userId: userId,
         procedureId: dto.procedureId,
         serviceTypeId: dto.serviceTypeId,
         size: dto.size,

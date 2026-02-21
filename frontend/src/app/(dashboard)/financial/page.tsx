@@ -17,9 +17,9 @@ import {
 import { TransactionModal } from '@/components/modals/transaction-modal';
 import { formatCurrency } from '@/utils/format-currency';
 import { formatDate } from '@/utils/format-date';
-import { Plus, Search, DollarSign, TrendingDown, TrendingUp, MoreVertical, Wallet } from 'lucide-react';
+import { Plus, Search, TrendingDown, TrendingUp, MoreVertical, Wallet } from 'lucide-react';
 import { Transaction } from '@/types/financial.types';
-import { TRANSACTION_CATEGORY_LABELS } from '@/utils/constants';
+import { TRANSACTION_CATEGORY_LABELS, PAYMENT_METHOD_LABELS } from '@/utils/constants';
 
 export default function FinancialPage() {
   const { transactions, summary, isLoading } = useFinancial();
@@ -104,13 +104,14 @@ export default function FinancialPage() {
               <TableHead>Data</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead>Categoria</TableHead>
+              <TableHead>Pagamento</TableHead>
               <TableHead className="text-right">Valor</TableHead>
               <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableSkeleton colSpan={5} />
+              <TableSkeleton colSpan={6} />
             ) : filteredTransactions.length > 0 ? (
               filteredTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
@@ -125,15 +126,20 @@ export default function FinancialPage() {
                       {TRANSACTION_CATEGORY_LABELS[transaction.category] || transaction.category}
                     </span>
                   </TableCell>
+                  <TableCell>
+                    <span className="text-zinc-400 text-sm">
+                      {transaction.paymentMethod ? PAYMENT_METHOD_LABELS[transaction.paymentMethod] : '—'}
+                    </span>
+                  </TableCell>
                   <TableCell className={`text-right font-medium ${
                     transaction.type === 'INCOME' ? 'text-emerald-500' : 'text-rose-500'
                   }`}>
                     {transaction.type === 'INCOME' ? '+' : '-'} {formatCurrency(transaction.amount)}
                   </TableCell>
                   <TableCell>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="h-8 w-8 p-0"
                       onClick={() => handleEdit(transaction)}
                     >
@@ -143,7 +149,7 @@ export default function FinancialPage() {
                 </TableRow>
               ))
             ) : (
-              <TableEmpty colSpan={5} />
+              <TableEmpty colSpan={6} />
             )}
           </TableBody>
         </Table>

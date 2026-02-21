@@ -86,7 +86,9 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
   } = useForm<SessionFormData>({
     resolver: zodResolver(sessionSchema) as any,
     defaultValues: {
+      userId: user?.id || '',
       date: new Date().toISOString().split('T')[0],
+      finalPrice: 0,
     },
   });
 
@@ -209,7 +211,7 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
         />
 
         {/* Profissional (Só mostra se for Studio) */}
-        {user?.tenantType === 'STUDIO' && (
+        {user?.tenantType === 'STUDIO' ? (
           <Select
             label="Profissional"
             placeholder="Selecione o tatuador/profissional"
@@ -217,6 +219,8 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
             error={errors.userId?.message}
             {...register('userId')}
           />
+        ) : (
+          <input type="hidden" {...register('userId')} />
         )}
 
         {/* Tipo de Serviço */}

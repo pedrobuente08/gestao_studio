@@ -1,9 +1,6 @@
-// ============================================================
-// INKSTUDIO — Schema do Prisma
-// ============================================================
-// Convenção: valores monetários salvos em centavos (Int)
-// Exemplo: R$ 1.500,00 = 150000
-// ============================================================
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider  = "postgresql"
@@ -11,190 +8,53 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-// ============================================================
-// 1. ENUMS
-// ============================================================
-
-// Tipo de conta: autônomo ou estúdio
-enum TenantType {
-  AUTONOMO
-  STUDIO
-}
-
-// Roles dentro de um tenant
-enum UserRole {
-  OWNER      // Dono do estúdio ou o próprio autônomo
-  STAFF      // Funcionário geral (faz orçamentos, atendimento, agenda)
-  EMPLOYEE   // Tatuador funcionário do estúdio
-}
-
-// Status do usuário
-enum UserStatus {
-  ACTIVE               // Ativo
-  INACTIVE             // Inativo
-}
-
-// Tipo de autônomo
-enum AutonomoType {
-  OWN_SPACE  // Tem seu próprio espaço (paga aluguel)
-  GUEST      // Faz guest em estúdios
-}
-
-// Modo de cálculo da calculadora
-enum CalculatorMode {
-  AUTONOMOUS        // Tem espaço próprio (custos fixos habilitados)
-  STUDIO_PERCENTAGE // Trabalha em studio pagando percentual
-}
-
-// Categorias de lançamento financeiro
-enum TransactionCategory {
-  TATTOO      // Receita de tatuagem
-  MATERIAL    // Compra de materiais
-  FIXED       // Custos fixos (aluguel, energia, etc.)
-  MARKETING   // Custos de marketing
-  PRO_LABORE  // Pró-labore
-  INVESTMENT  // Investimento
-  OTHER       // Outros
-}
-
-// Tipo de lançamento
-enum TransactionType {
-  INCOME   // Entrada
-  EXPENSE  // Saída
-}
-
-// Formas de pagamento
-enum PaymentMethod {
-  PIX
-  CREDIT_CARD
-  DEBIT_CARD
-  BOLETO
-  CASH
-}
-
-// Tamanho da tatuagem (parâmetro de sugestão)
-enum TattooSize {
-  MICRO       // Micro (até 7cm)
-  SMALL       // Pequena (7-10cm)
-  MEDIUM      // Média (10-15cm)
-  LARGE       // Grande (15-20cm)
-  EXTRA_LARGE // XL (20-30cm)
-  XLARGE      // XXL (30+ cm)
-  FULL_BODY   // Full body (legado)
-}
-
-// Complexidade da tatuagem (parâmetro de sugestão)
-enum TattooComplexity {
-  LOW        // Baixa
-  MEDIUM     // Média
-  HIGH       // Alta
-  VERY_HIGH  // Muito alta
-}
-
-// Local do corpo (parâmetro de sugestão)
-enum BodyLocation {
-  ARM          // Braço parte externa
-  FOREARM      // Antebraço
-  HAND         // Mão
-  FINGER       // Dedo
-  UPPER_BACK   // Costas superior
-  LOWER_BACK   // Costas inferior
-  FULL_BACK    // Costas inteiras (legado)
-  CHEST        // Peito
-  ABDOMEN      // Abdomen
-  SHOULDER     // Ombro
-  NECK         // Pescoço
-  FACE         // Rosto
-  HEAD         // Cabeça
-  THIGH        // Coxa
-  CALF         // Panturilha
-  FOOT         // Pé
-  RIB          // Costela
-  INNER_ARM    // Braço parte interna
-  WRIST        // Pulso
-  ANKLE        // Tornozelo
-  TRAPEZIUS    // Trapézio
-  SHIN         // Canela
-  COLLARBONE   // Clavícula
-  OTHER        // Outro (legado)
-}
-
-// ============================================================
-// 2. TENANT (conta principal — autônomo ou estúdio)
-// ============================================================
-
 model Tenant {
-  id        String     @id @default(cuid())
-  type      TenantType
-  name      String                          // Nome do estúdio ou do autônomo
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  // Relações
-  users          User[]
-  clients        Client[]
-  procedures     Procedure[]
-  sessions       TattooSession[]
-  transactions   Transaction[]
-  fixedCosts     FixedCost[]
-  variableCosts  VariableCost[]
-  workSettings   WorkSettings?
-  guestLocations GuestLocation[]            // Locais onde o autônomo faz guest
-  linkedAsGuest  GuestLocation[] @relation("LinkedGuest") // Estúdios que são referenciados como guest
-  studioConfig   StudioConfig?              // Configurações específicas do estúdio
-  serviceTypes      ServiceType[]              // Tipos de serviço personalizados do tenant
-  seedTrainingData  SeedTrainingData[]
+  id               String             @id @default(cuid())
+  type             TenantType
+  name             String
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  clients          Client[]
+  fixedCosts       FixedCost[]
+  linkedAsGuest    GuestLocation[]    @relation("LinkedGuest")
+  guestLocations   GuestLocation[]
+  procedures       Procedure[]
+  seedTrainingData SeedTrainingData[]
+  serviceTypes     ServiceType[]
+  studioConfig     StudioConfig?
+  sessions         TattooSession[]
+  transactions     Transaction[]
+  users            User[]
+  variableCosts    VariableCost[]
+  workSettings     WorkSettings?
 }
-
-// ============================================================
-// 3. USUÁRIO E AUTENTICAÇÃO
-// ============================================================
 
 model User {
-  id            String     @id @default(cuid())
-  tenantId      String
-  email         String     @unique
-  name          String
-  role          UserRole
-  status        UserStatus @default(ACTIVE)
-  serviceTypeId String?                        // Tipo de serviço do prestador (EMPLOYEE/STAFF)
-  mustChangePassword Boolean @default(false)
-  age           Int?
-  gender        String?                        // "MASCULINO" | "FEMININO" | etc.
-  profilePhotoUrl String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  // Relações
-  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  serviceType     ServiceType?    @relation(fields: [serviceTypeId], references: [id])
-  // Sessões de tatuagem realizadas por este tatuador
-  tattooSessions  TattooSession[]
-  // Procedimentos cadastrados por este tatuador
-  procedures      Procedure[]
-  // Benefícios recebidos dentro de um estúdio
-  benefits        TatuadorBenefit[]
-  // Modelo ML próprio do tatuador
-  mlModels        MLModel[]
-  // Dados de treinamento do modelo
-  mlTrainingData  MLTrainingData[]
-  // Predições feitas pelo modelo
-  mlPredictions   MLPrediction[]
-  
-  // Better-Auth relations
-  sessions Session[]
-  accounts Account[]
-
-  seedTrainingData SeedTrainingData[]
+  id                 String             @id @default(cuid())
+  tenantId           String
+  email              String             @unique
+  name               String
+  role               UserRole
+  status             UserStatus         @default(ACTIVE)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  serviceTypeId      String?
+  age                Int?
+  gender             String?
+  mustChangePassword Boolean            @default(false)
+  profilePhotoUrl    String?
+  accounts           Account[]
+  mlModels           MLModel[]
+  mlPredictions      MLPrediction[]
+  mlTrainingData     MLTrainingData[]
+  procedures         Procedure[]
+  seedTrainingData   SeedTrainingData[]
+  sessions           Session[]
+  tattooSessions     TattooSession[]
+  benefits           TatuadorBenefit[]
+  serviceType        ServiceType?       @relation(fields: [serviceTypeId], references: [id])
+  tenant             Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
-
-// ============================================================
-// BETTER-AUTH MODELS
-// ============================================================
 
 model Session {
   id        String   @id @default(cuid())
@@ -205,17 +65,16 @@ model Session {
   userAgent String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model Account {
-  id                String   @id @default(cuid())
+  id                String    @id @default(cuid())
   userId            String
-  type              String   // "email" | "oauth"
-  provider          String   // "google" | "credentials"
+  type              String
+  provider          String
   providerAccountId String?
   refresh_token     String?
   access_token      String?
@@ -224,15 +83,11 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  
-  // Para email/password
   password          String?
   emailVerified     DateTime?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -248,294 +103,205 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ============================================================
-// 4. CONFIGURAÇÕES DO ESTÚDIO
-// ============================================================
-
-// Configurações específicas quando o tenant é STUDIO
 model StudioConfig {
-  id                  String   @id @default(cuid())
-  tenantId            String   @unique
-  defaultPercentage  Int                    // Percentual padrão cobrado (ex: 30 = 30%)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  // Benefícios individuais por tatuador (sobrescreve o percentual padrão)
-  tatuadorBenefits TatuadorBenefit[]
+  id                String            @id @default(cuid())
+  tenantId          String            @unique
+  defaultPercentage Int
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tatuadorBenefits  TatuadorBenefit[]
 }
 
-// Benefício individual de um tatuador dentro do estúdio
-// Se existir, sobrescreve o percentual padrão do estúdio para esse tatuador
 model TatuadorBenefit {
-  id              String   @id @default(cuid())
-  studioConfigId  String
-  userId         String                   // Tatuador que recebe o benefício
-  percentage      Int                      // Percentual específico para este tatuador
-  reason          String?                  // Motivo do benefício (opcional)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  studioConfig StudioConfig @relation(fields: [studioConfigId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id])
+  id             String       @id @default(cuid())
+  studioConfigId String
+  userId         String
+  percentage     Int
+  reason         String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  studioConfig   StudioConfig @relation(fields: [studioConfigId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id])
 }
 
-// ============================================================
-// 5. GUEST LOCATION (onde o autônomo faz guest)
-// ============================================================
-
-// Registra os estúdios onde o autônomo faz guest
-// Pode ser um estúdio cadastrado na plataforma ou apenas um nome livre
 model GuestLocation {
-  id              String   @id @default(cuid())
-  tenantId        String                   // Tenant do autônomo
-  name            String                   // Nome do estúdio
-  linkedTenantId  String?                  // Se o estúdio estiver cadastrado na plataforma
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  linkedTenant Tenant?         @relation("LinkedGuest", fields: [linkedTenantId], references: [id])
-  // Sessões realizadas neste local
-  sessions     TattooSession[]
+  id             String          @id @default(cuid())
+  tenantId       String
+  name           String
+  linkedTenantId String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  linkedTenant   Tenant?         @relation("LinkedGuest", fields: [linkedTenantId], references: [id])
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions       TattooSession[]
 }
-
-// ============================================================
-// 6. CLIENTE (da tatuagem)
-// ============================================================
 
 model Client {
-  id        String   @id @default(cuid())
-  tenantId  String
-  name      String
-  email     String?
-  phone     String?
-  instagram String?                        // Handle do Instagram (@usuario)
-  notes     String?                        // Notas gerais sobre o cliente
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  sessions TattooSession[] // Histórico de sessões do cliente
-  transactions Transaction[] // Lançamentos financeiros associados
-}
-
-// ============================================================
-// 7. PROCEDIMENTO (tipo de tatuagem cadastrado)
-// ============================================================
-
-// Cada procedimento cadastrado pelo tatuador serve como referência
-// tanto para busca por semelhança quanto para treinamento do modelo ML
-model Procedure {
   id           String          @id @default(cuid())
   tenantId     String
-  userId      String                         // Tatuador que cadastrou
-  name         String                         // Nome descritivo (ex: "Blackwork Braço")
+  name         String
+  email        String?
+  phone        String?
+  notes        String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  instagram    String?
+  birthDate    DateTime?
+  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions     TattooSession[]
+  transactions Transaction[]
+}
+
+model Procedure {
+  id           String           @id @default(cuid())
+  tenantId     String
+  userId       String
+  name         String
   description  String?
-  // Parâmetros para sugestão de valor
   size         TattooSize
   complexity   TattooComplexity
   bodyLocation BodyLocation
-  // Valor cobrado (em centavos)
   finalPrice   Int
-  // Duração da sessão em minutos
   duration     Int
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-
-  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user     User            @relation(fields: [userId], references: [id])
-  sessions TattooSession[] // Sessões que usaram este procedimento como referência
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id])
+  sessions     TattooSession[]
 }
 
-// ============================================================
-// 8. TIPO DE SERVIÇO (generalizável: tatuagem, piercing, laser, etc.)
-// ============================================================
-
-// Tipos de serviço oferecidos pelo tenant
-// isSystem = true: tipos padrão da plataforma (não podem ser deletados)
-// tenantId = null: tipo global/sistema disponível para todos
 model ServiceType {
-  id        String          @id @default(cuid())
-  tenantId  String?                                // null = tipo global do sistema
-  name      String                                 // Ex: "Tatuagem", "Piercing", "Laser"
-  isSystem  Boolean         @default(false)
-  createdAt DateTime        @default(now())
-
+  id          String          @id @default(cuid())
+  tenantId    String?
+  name        String
+  isSystem    Boolean         @default(false)
+  createdAt   DateTime        @default(now())
   tenant      Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   sessions    TattooSession[]
   prestadores User[]
 }
 
-// ============================================================
-// 9. SESSÃO / PROCEDIMENTO REALIZADO
-// ============================================================
-
 model TattooSession {
-  id               String          @id @default(cuid())
+  id               String            @id @default(cuid())
   tenantId         String
   clientId         String
-  userId          String                          // Profissional que realizou
-  procedureId      String?                         // Procedimento de referência (opcional, legado)
-  serviceTypeId    String?                         // Tipo de serviço (Tatuagem, Piercing, etc.)
-  // Parâmetros da sessão (específicos para tatuagem — opcionais para outros serviços)
+  userId           String
+  procedureId      String?
   size             TattooSize?
   complexity       TattooComplexity?
   bodyLocation     BodyLocation?
-  description      String?                         // Descrição livre do serviço realizado
-  // Valores (em centavos)
-  finalPrice       Int                             // Valor cobrado ao cliente
-  // Para autônomo guest
-  guestLocationId  String?                         // Onde foi realizada (se for guest)
-  studioPercentage Int?                            // Percentual cobrado pelo estúdio (em %)
-  studioFee        Int?                            // Valor cobrado pelo estúdio (calculado, em centavos)
-  tatuadorRevenue  Int?                            // O que o profissional ficou (em centavos)
-  // Duração em minutos
+  description      String?
+  finalPrice       Int
+  guestLocationId  String?
+  studioPercentage Int?
+  studioFee        Int?
+  tatuadorRevenue  Int?
   duration         Int?
-  // Data da sessão
   date             DateTime
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-
-  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  user          User          @relation(fields: [userId], references: [id])
-  procedure     Procedure?    @relation(fields: [procedureId], references: [id])
-  serviceType   ServiceType?  @relation(fields: [serviceTypeId], references: [id])
-  guestLocation GuestLocation? @relation(fields: [guestLocationId], references: [id])
-  // Dados usados para treino do modelo ML
-  mlTrainingData MLTrainingData?
-  // Lançamento financeiro gerado por esta sessão
-  transaction    Transaction?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  serviceTypeId    String?
+  mlTrainingData   MLTrainingData?
+  client           Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  guestLocation    GuestLocation?    @relation(fields: [guestLocationId], references: [id])
+  procedure        Procedure?        @relation(fields: [procedureId], references: [id])
+  serviceType      ServiceType?      @relation(fields: [serviceTypeId], references: [id])
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user             User              @relation(fields: [userId], references: [id])
+  transaction      Transaction?
 }
-
-// ============================================================
-// 10. FINANCEIRO
-// ============================================================
 
 model Transaction {
-  id          String              @id @default(cuid())
-  tenantId    String
-  type        TransactionType
-  category    TransactionCategory
-  amount      Int                                  // Valor em centavos
+  id            String              @id @default(cuid())
+  tenantId      String
+  type          TransactionType
+  category      TransactionCategory
+  amount        Int
   paymentMethod PaymentMethod?
-  clientId    String?                              // Cliente associado (se for tattoo)
-  sessionId   String?  @unique                      // Sessão associada (se for tattoo)
-  description String?
-  date        DateTime
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-
-  tenant  Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  client  Client?        @relation(fields: [clientId], references: [id])
-  session TattooSession? @relation(fields: [sessionId], references: [id])
+  clientId      String?
+  sessionId     String?             @unique
+  description   String?
+  date          DateTime
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  client        Client?             @relation(fields: [clientId], references: [id])
+  session       TattooSession?      @relation(fields: [sessionId], references: [id])
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
-// ============================================================
-// 11. CALCULADORA DE CUSTOS
-// ============================================================
-
-// Custos fixos mensais do tenant
 model FixedCost {
   id        String   @id @default(cuid())
   tenantId  String
-  name      String   // Ex: "Aluguel do Espaço"
-  amount    Int      // Valor em centavos
+  name      String
+  amount    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
-// Custos variáveis mensais do tenant
 model VariableCost {
   id        String   @id @default(cuid())
   tenantId  String
-  name      String   // Ex: "Materiais (tintas, agulhas)"
-  amount    Int      // Valor em centavos
+  name      String
+  amount    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
-// Configurações de trabalho (horas trabalhadas e margem de lucro)
 model WorkSettings {
   id               String         @id @default(cuid())
   tenantId         String         @unique
-  hoursPerMonth    Int            // Horas trabalhadas por mês
-  profitMargin     Int            // Margem de lucro desejada em % (ex: 30 = 30%)
-  mode             CalculatorMode @default(AUTONOMOUS) // Modo de trabalho
-  studioPercentage Int?           // Percentual pago ao studio (quando modo = STUDIO_PERCENTAGE)
+  hoursPerMonth    Int
+  profitMargin     Int
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  mode             CalculatorMode @default(AUTONOMOUS)
+  studioPercentage Int?
+  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
-// ============================================================
-// 12. SISTEMA ML (Sugestão de valores por CatBoost)
-// ============================================================
-
-// Dados de treinamento extraídos de cada sessão concluída
-// Alimenta o modelo CatBoost do tatuador
 model MLTrainingData {
-  id           String          @id @default(cuid())
-  sessionId    String          @unique
-  userId      String                          // Tatuador dono dos dados
-  // Features (entrada do modelo)
+  id           String           @id @default(cuid())
+  sessionId    String           @unique
+  userId       String
   size         TattooSize
   complexity   TattooComplexity
   bodyLocation BodyLocation
-  duration     Int                             // Duração em minutos
-  // Target (saída do modelo — valor cobrado)
-  finalPrice   Int                             // Valor em centavos
-  createdAt    DateTime        @default(now())
-
-  session TattooSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  user    User          @relation(fields: [userId], references: [id])
+  duration     Int
+  finalPrice   Int
+  createdAt    DateTime         @default(now())
+  session      TattooSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id])
 }
 
-// Registro de cada modelo treinado por tatuador
 model MLModel {
-  id            String   @id @default(cuid())
-  userId       String                          // Tatuador dono do modelo
-  trainedAt     DateTime                        // Quando foi treinado
-  dataPointsUsed Int                            // Quantidade de sessões usadas no treino
-  modelPath     String                          // Caminho do modelo salvo no disco/storage
-  isActive      Boolean  @default(true)         // Se é o modelo atual ou um histórico
-  createdAt     DateTime @default(now())
-
-  user        User          @relation(fields: [userId], references: [id])
-  predictions MLPrediction[]
+  id             String         @id @default(cuid())
+  userId         String
+  trainedAt      DateTime
+  dataPointsUsed Int
+  modelPath      String
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  user           User           @relation(fields: [userId], references: [id])
+  predictions    MLPrediction[]
 }
 
-// Histórico de predições feitas pelo modelo
 model MLPrediction {
-  id           String          @id @default(cuid())
-  userId      String                          // Tatuador
-  modelId      String                          // Modelo usado
-  // Features usadas na predição
-  size         TattooSize
-  complexity   TattooComplexity
-  bodyLocation BodyLocation
-  // Resultado
-  predictedPrice Int                           // Valor sugerido em centavos
-  // Se o usuário aceitou ou ajustou
-  acceptedPrice  Int?                          // Valor final usado (null se não foi usado)
-  createdAt      DateTime        @default(now())
-
-  user  User    @relation(fields: [userId], references: [id])
-  model MLModel @relation(fields: [modelId], references: [id])
+  id             String           @id @default(cuid())
+  userId         String
+  modelId        String
+  size           TattooSize
+  complexity     TattooComplexity
+  bodyLocation   BodyLocation
+  predictedPrice Int
+  acceptedPrice  Int?
+  createdAt      DateTime         @default(now())
+  model          MLModel          @relation(fields: [modelId], references: [id])
+  user           User             @relation(fields: [userId], references: [id])
 }
 
-// ============================================================
-// 13. DADOS HISTÓRICOS INICIAIS (seed manual do usuário)
-// ============================================================
-
-// Tatuagens passadas inseridas manualmente pelo usuário para inicializar
-// a base de sugestão de preços. Limite: 30 por userId.
 model SeedTrainingData {
   id           String           @id @default(cuid())
   tenantId     String
@@ -543,31 +309,116 @@ model SeedTrainingData {
   size         TattooSize
   complexity   TattooComplexity
   bodyLocation BodyLocation
-  finalPrice   Int              // em centavos
+  finalPrice   Int
   createdAt    DateTime         @default(now())
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ============================================================
-// 14. TABELAS DE ESCALA (níveis de dificuldade/complexidade)
-// ============================================================
-
-// Nível de dificuldade por tamanho da tatuagem (1 = menor, 5 = maior)
 model TattooSizeScale {
   size  TattooSize @id
   level Int
 }
 
-// Nível de dificuldade por complexidade da tatuagem (1 = baixa, 4 = muito alta)
 model TattooComplexityScale {
   complexity TattooComplexity @id
   level      Int
 }
 
-// Nível de dificuldade por local do corpo (1 = fácil, 3 = difícil)
 model BodyLocationScale {
   bodyLocation BodyLocation @id
   level        Int
+}
+
+enum TenantType {
+  AUTONOMO
+  STUDIO
+}
+
+enum UserRole {
+  OWNER
+  STAFF
+  EMPLOYEE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AutonomoType {
+  OWN_SPACE
+  GUEST
+}
+
+enum CalculatorMode {
+  AUTONOMOUS
+  STUDIO_PERCENTAGE
+}
+
+enum TransactionCategory {
+  TATTOO
+  MATERIAL
+  FIXED
+  MARKETING
+  PRO_LABORE
+  INVESTMENT
+  OTHER
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
+  BOLETO
+  CASH
+}
+
+enum TattooSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+  XLARGE
+  FULL_BODY
+  MICRO
+}
+
+enum TattooComplexity {
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+}
+
+enum BodyLocation {
+  ARM
+  FOREARM
+  HAND
+  FINGER
+  UPPER_BACK
+  LOWER_BACK
+  FULL_BACK
+  CHEST
+  ABDOMEN
+  SHOULDER
+  NECK
+  FACE
+  HEAD
+  THIGH
+  CALF
+  FOOT
+  RIB
+  INNER_ARM
+  WRIST
+  ANKLE
+  OTHER
+  TRAPEZIUS
+  SHIN
+  COLLARBONE
 }

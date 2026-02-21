@@ -20,11 +20,15 @@ const procedureSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   description: z.string().optional().or(z.literal('')),
   finalPrice: z.coerce.number().min(0, 'Preço deve ser maior ou igual a 0'),
-  duration: z.coerce.number().min(0, 'Duração deve ser maior ou igual a 0'),
+  duration: z.coerce.number().min(1, 'Duração deve ser no mínimo 1 minuto'),
   size: z.string().min(1, 'Selecione o tamanho'),
   complexity: z.string().min(1, 'Selecione a complexidade'),
   bodyLocation: z.string().min(1, 'Selecione o local do corpo'),
-});
+}).transform((data) => ({
+  ...data,
+  // Garante que campos opcionais vazios não quebrem o backend
+  description: data.description || undefined,
+}));
 
 type ProcedureFormData = z.infer<typeof procedureSchema>;
 

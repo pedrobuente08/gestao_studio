@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Camera, Loader2, User as UserIcon } from 'lucide-react';
+import { Camera, Loader2, AlertCircle } from 'lucide-react';
 import { Modal } from '../ui/modal';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
@@ -14,7 +14,7 @@ import * as Avatar from '@radix-ui/react-avatar';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  age: z.number().nullable().optional(),
+  age: z.coerce.number().int().positive().nullable().optional(),
   gender: z.string().optional(),
 });
 
@@ -26,9 +26,9 @@ interface ProfileModalProps {
 }
 
 export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
-  const { user, updateProfile, isUpdateProfileLoading, uploadPhoto, isUploadPhotoLoading } = useAuth();
+  const { user, updateProfile, isUpdateProfileLoading, uploadPhoto, isUploadPhotoLoading, uploadPhotoError } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const {
     register,
     handleSubmit,
@@ -37,7 +37,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name,
-      age: user?.age,
+      age: user?.age ?? undefined,
       gender: user?.gender,
     },
   });
@@ -56,6 +56,8 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
     const file = e.target.files?.[0];
     if (file) {
       uploadPhoto(file);
+      // Reset input so the same file can be re-selected if needed
+      e.target.value = '';
     }
   };
 
@@ -75,7 +77,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Foto de Perfil */}
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-3">
           <div className="relative group cursor-pointer" onClick={handlePhotoClick}>
             <Avatar.Root className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-rose-500/10 border-2 border-zinc-800 group-hover:border-rose-500/50 transition-colors">
               <Avatar.Image
@@ -87,7 +89,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
                 {initials}
               </Avatar.Fallback>
             </Avatar.Root>
-            
+
             <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
               {isUploadPhotoLoading ? (
                 <Loader2 className="h-6 w-6 animate-spin text-white" />
@@ -96,13 +98,20 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
               )}
             </div>
           </div>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={handlePhotoClick}
-            className="text-xs text-rose-500 hover:text-rose-400 font-medium transition-colors"
+            disabled={isUploadPhotoLoading}
+            className="text-xs text-rose-500 hover:text-rose-400 font-medium transition-colors disabled:opacity-50"
           >
-            Alterar foto
+            {isUploadPhotoLoading ? 'Enviando...' : 'Alterar foto'}
           </button>
+          {uploadPhotoError && (
+            <div className="flex items-center gap-1.5 text-xs text-rose-400">
+              <AlertCircle className="h-3.5 w-3.5" />
+              <span>Falha ao enviar foto. Tente novamente.</span>
+            </div>
+          )}
           <input
             type="file"
             ref={fileInputRef}
@@ -125,10 +134,10 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
               label="Idade"
               type="number"
               placeholder="Ex: 25"
-              {...register('age')}
+              {...register('age', { valueAsNumber: true })}
               error={errors.age?.message}
             />
-            
+
             <Select
               label="Gênero"
               options={[

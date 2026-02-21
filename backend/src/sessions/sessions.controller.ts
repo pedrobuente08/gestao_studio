@@ -26,7 +26,14 @@ export class SessionsController {
 
   @Post()
   @Roles('OWNER', 'STAFF')
-  create(@CurrentTenant() tenantId: string, @Body() dto: CreateSessionDto) {
+  create(
+    @CurrentTenant() tenantId: string,
+    @Req() req: any,
+    @Body() dto: CreateSessionDto,
+  ) {
+    if (!dto.userId) {
+      dto.userId = req.user.id;
+    }
     return this.sessionsService.create(tenantId, dto);
   }
 

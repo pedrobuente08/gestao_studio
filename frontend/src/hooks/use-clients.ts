@@ -42,6 +42,8 @@ export function useClients() {
     isCreating: createClientMutation.isPending,
     isUpdating: updateMutation.isPending,
     isRemoving: removeMutation.isPending,
+    createError: createClientMutation.error,
+    updateError: updateMutation.error,
   };
 }
 

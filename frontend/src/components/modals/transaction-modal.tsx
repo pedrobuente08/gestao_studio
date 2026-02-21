@@ -10,13 +10,14 @@ import { Button } from '@/components/ui/button';
 import { useFinancial } from '@/hooks/use-financial';
 import { CreateTransactionData, Transaction } from '@/types/financial.types';
 import { useEffect } from 'react';
-import { TRANSACTION_CATEGORY_LABELS } from '@/utils/constants';
+import { TRANSACTION_CATEGORY_LABELS, PAYMENT_METHOD_LABELS } from '@/utils/constants';
 
 const transactionSchema = z.object({
   description: z.string().min(3, 'Descrição deve ter no mínimo 3 caracteres'),
-  amount: z.coerce.number().min(1, 'O valor deve ser maior que zero'),
+  amount: z.coerce.number().min(0.01, 'O valor deve ser maior que zero'),
   type: z.enum(['INCOME', 'EXPENSE'], { message: 'Selecione o tipo' }),
   category: z.string().min(1, 'Selecione uma categoria'),
+  paymentMethod: z.string().optional(),
   date: z.string().min(1, 'Selecione a data'),
 });
 
@@ -48,9 +49,10 @@ export function TransactionModal({ isOpen, onClose, transaction }: TransactionMo
     if (transaction) {
       reset({
         description: transaction.description || '',
-        amount: transaction.amount,
+        amount: transaction.amount / 100,
         type: transaction.type,
         category: transaction.category,
+        paymentMethod: transaction.paymentMethod || '',
         date: transaction.date.split('T')[0],
       });
     } else {
@@ -59,13 +61,18 @@ export function TransactionModal({ isOpen, onClose, transaction }: TransactionMo
         amount: 0,
         type: 'EXPENSE',
         category: 'MATERIAL',
+        paymentMethod: '',
         date: new Date().toISOString().split('T')[0],
       });
     }
   }, [transaction, reset, isOpen]);
 
   const onSubmit = (data: TransactionFormData) => {
-    const formattedData = data as unknown as CreateTransactionData;
+    const formattedData = {
+      ...data,
+      amount: Math.round(data.amount * 100),
+      paymentMethod: (data.paymentMethod || undefined),
+    } as unknown as CreateTransactionData;
     if (transaction) {
       updateTransaction(
         { id: transaction.id, data: formattedData },
@@ -96,6 +103,11 @@ export function TransactionModal({ isOpen, onClose, transaction }: TransactionMo
     { value: 'EXPENSE', label: 'Despesa (-)' },
   ];
 
+  const paymentMethodOptions = [
+    { value: '', label: 'Não informado' },
+    ...Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => ({ value, label })),
+  ];
+
   return (
     <Modal
       isOpen={isOpen}
@@ -112,9 +124,10 @@ export function TransactionModal({ isOpen, onClose, transaction }: TransactionMo
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
-            label="Valor (centavos)"
+            label="Valor (R$)"
             type="number"
-            placeholder="Ex: 50000"
+            step="0.01"
+            placeholder="Ex: 50.00"
             error={errors.amount?.message}
             {...register('amount')}
           />
@@ -140,6 +153,13 @@ export function TransactionModal({ isOpen, onClose, transaction }: TransactionMo
             {...register('category')}
           />
         </div>
+
+        <Select
+          label="Método de Pagamento"
+          options={paymentMethodOptions}
+          error={errors.paymentMethod?.message}
+          {...register('paymentMethod')}
+        />
 
         <div className="flex justify-end gap-3 pt-4">
           <Button

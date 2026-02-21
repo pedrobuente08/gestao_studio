@@ -5,6 +5,7 @@ export interface Client {
   email?: string;
   phone?: string;
   instagram?: string;
+  birthDate?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -19,6 +20,7 @@ export interface CreateClientData {
   email?: string;
   phone?: string;
   instagram?: string;
+  birthDate?: string;
   notes?: string;
 }
 

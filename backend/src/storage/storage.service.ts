@@ -11,7 +11,7 @@ export class StorageService {
     const supabaseKey = process.env.SUPABASE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      this.logger.warn('SUPABASE_URL ou SUPABASE_KEY não configurados. Upload de arquivos não funcionará.');
+      this.logger.warn('SUPABASE_URL ou SUPABASE_KEY não configurados no arquivo .env. O upload de arquivos (fotos de perfil) não funcionará até que estas variáveis sejam preenchidas.');
     } else {
       this.supabase = createClient(supabaseUrl, supabaseKey);
     }

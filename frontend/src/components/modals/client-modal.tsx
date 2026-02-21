@@ -1,5 +1,3 @@
-'use client';
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,13 +7,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useClients } from '@/hooks/use-clients';
 import { CreateClientData, Client } from '@/types/client.types';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { AxiosError } from 'axios';
 
 const clientSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   instagram: z.string().optional().or(z.literal('')),
+  birthDate: z.string().min(1, 'Data de nascimento é obrigatória'),
   notes: z.string().optional().or(z.literal('')),
 });
 
@@ -28,7 +28,8 @@ interface ClientModalProps {
 }
 
 export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
-  const { createClient, updateClient, isCreating, isUpdating } = useClients();
+  const { createClient, updateClient, isCreating, isUpdating, createError, updateError } = useClients();
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
@@ -40,12 +41,14 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
   });
 
   useEffect(() => {
+    setServerError(null);
     if (client) {
       reset({
         name: client.name,
         email: client.email || '',
         phone: client.phone || '',
         instagram: client.instagram || '',
+        birthDate: client.birthDate ? new Date(client.birthDate).toISOString().split('T')[0] : '',
         notes: client.notes || '',
       });
     } else {
@@ -54,12 +57,14 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
         email: '',
         phone: '',
         instagram: '',
+        birthDate: '',
         notes: '',
       });
     }
   }, [client, reset, isOpen]);
 
   const onSubmit = (data: ClientFormData) => {
+    setServerError(null);
     if (client) {
       updateClient(
         { id: client.id, data },
@@ -68,6 +73,11 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
             onClose();
             reset();
           },
+          onError: (error) => {
+            if (error instanceof AxiosError) {
+              setServerError(error.response?.data?.message || 'Erro ao atualizar cliente');
+            }
+          }
         }
       );
     } else {
@@ -76,6 +86,11 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
           onClose();
           reset();
         },
+        onError: (error) => {
+          if (error instanceof AxiosError) {
+            setServerError(error.response?.data?.message || 'Erro ao criar cliente');
+          }
+        }
       });
     }
   };
@@ -87,6 +102,12 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
       title={client ? 'Editar Cliente' : 'Novo Cliente'}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {serverError && (
+          <p className="text-sm font-medium text-red-500 bg-red-500/10 p-3 rounded-lg">
+            {serverError}
+          </p>
+        )}
+
         <Input
           label="Nome completo"
           placeholder="Ex: João Silva"
@@ -108,11 +129,20 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
             error={errors.phone?.message}
             {...register('phone')}
           />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
             label="Instagram (opcional)"
             placeholder="@usuario"
             error={errors.instagram?.message}
             {...register('instagram')}
+          />
+          <Input
+            label="Data de Nascimento (opcional)"
+            type="date"
+            error={errors.birthDate?.message}
+            {...register('birthDate')}
           />
         </div>
 
