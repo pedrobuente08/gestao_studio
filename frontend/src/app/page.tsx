@@ -3,22 +3,28 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
+import { authService } from '@/services/auth.service';
 
 export default function Home() {
   const router = useRouter();
-  const { token, initializeFromStorage } = useAuthStore();
+  const { setUser, clearAuth } = useAuthStore();
 
   useEffect(() => {
-    initializeFromStorage();
-  }, [initializeFromStorage]);
-
-  useEffect(() => {
-    if (token) {
-      router.push('/dashboard');
-    } else {
-      router.push('/login');
-    }
-  }, [token, router]);
+    authService.getMe()
+      .then((user) => {
+        setUser(user);
+        if (user.status === 'PENDING_SETUP' || !user.tenantId) {
+          router.replace('/complete-registration');
+        } else {
+          router.replace('/dashboard');
+        }
+      })
+      .catch(() => {
+        clearAuth();
+        router.replace('/login');
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center">

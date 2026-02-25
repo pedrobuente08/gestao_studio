@@ -1,6 +1,6 @@
 import api from './api';
 import axios from 'axios';
-import { RegisterData, User } from '@/types/auth.types';
+import { RegisterData, StudioProfile, User } from '@/types/auth.types';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -35,15 +35,21 @@ export const authService = {
   },
 
   async resendVerificationEmail(email: string): Promise<{ message: string }> {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const response = await axios.post<{ message: string }>(
       `${apiUrl}/api/auth/send-verification-email`,
-      { email },
+      { email, callbackURL: `${appUrl}/verify-email-success` },
     );
     return response.data;
   },
   
   async completeSocialRegistration(data: { tenantType: 'AUTONOMO' | 'STUDIO'; tenantName: string; city?: string; state?: string }): Promise<User> {
     const response = await api.post<User>('/auth/complete-social-registration', data);
+    return response.data;
+  },
+
+  async updateTenant(data: Partial<StudioProfile>): Promise<StudioProfile> {
+    const response = await api.patch<StudioProfile>('/auth/tenant', data);
     return response.data;
   },
 };

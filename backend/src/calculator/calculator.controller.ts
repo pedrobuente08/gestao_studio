@@ -52,7 +52,7 @@ export class CalculatorController {
 
   @Post('settings')
   @Roles('OWNER', 'STAFF')
-  setWorkSettings(
+  async setWorkSettings(
     @CurrentTenant() tenantId: string,
     @Body()
     body: {
@@ -62,13 +62,14 @@ export class CalculatorController {
       studioPercentage?: number;
     },
   ) {
-    return this.calculatorService.setWorkSettings(
+    await this.calculatorService.setWorkSettings(
       tenantId,
       body.hoursPerMonth,
       body.profitMargin,
       body.mode,
       body.studioPercentage,
     );
+    return this.calculatorService.calculate(tenantId);
   }
 
   @Get()

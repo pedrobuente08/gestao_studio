@@ -13,7 +13,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { AuthGuard } from '../common/guards/auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CompleteSocialRegistrationDto } from './dto/complete-social-registration.dto';
 import { StorageService } from '../storage/storage.service';
@@ -55,6 +58,13 @@ export class AuthController {
     const fileName = `avatars/${req.user.id}-${Date.now()}`;
     const url = await this.storageService.uploadFile(file, fileName);
     return this.authService.updateProfile(req.user.id, { profilePhotoUrl: url });
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('OWNER')
+  @Patch('tenant')
+  async updateTenant(@Req() req: any, @Body() dto: UpdateTenantDto) {
+    return this.authService.updateTenant(req.user.id, dto);
   }
 
   @UseGuards(AuthGuard)

@@ -237,6 +237,13 @@ export default function CalculatorPage() {
                         </TableCell>
                       </TableRow>
                     )}
+                    {(data?.fixedCosts.length ?? 0) > 0 && (
+                      <TableRow className="border-t border-zinc-700">
+                        <TableCell className="font-bold text-zinc-300">Total</TableCell>
+                        <TableCell className="text-right font-bold text-zinc-100">{formatCurrency(data?.totalFixed || 0)}</TableCell>
+                        <TableCell />
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -296,6 +303,13 @@ export default function CalculatorPage() {
                       <TableCell colSpan={3} className="text-center py-4 text-zinc-500 text-xs italic">
                         Nenhum custo variável cadastrado
                       </TableCell>
+                    </TableRow>
+                  )}
+                  {(data?.variableCosts.length ?? 0) > 0 && (
+                    <TableRow className="border-t border-zinc-700">
+                      <TableCell className="font-bold text-zinc-300">Total</TableCell>
+                      <TableCell className="text-right font-bold text-zinc-100">{formatCurrency(data?.totalVariable || 0)}</TableCell>
+                      <TableCell />
                     </TableRow>
                   )}
                 </TableBody>

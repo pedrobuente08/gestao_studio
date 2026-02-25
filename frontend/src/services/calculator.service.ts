@@ -17,7 +17,8 @@ export const calculatorService = {
   async removeCost(id: string, type: 'fixed' | 'variable'): Promise<void> {
     await api.delete(`/calculator/costs/${id}`, { params: { type } });
   },
-  async setWorkSettings(data: WorkSettingsData): Promise<void> {
-    await api.post('/calculator/settings', data);
+  async setWorkSettings(data: WorkSettingsData): Promise<CalculatorResult> {
+    const res = await api.post<CalculatorResult>('/calculator/settings', data);
+    return res.data;
   },
 };

@@ -11,8 +11,19 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/utils/format-currency';
 
+const PALETTE = [
+  '#f43f5e', // rose-500
+  '#3b82f6', // blue-500
+  '#10b981', // emerald-500
+  '#f59e0b', // amber-500
+  '#8b5cf6', // violet-500
+  '#06b6d4', // cyan-500
+  '#ec4899', // pink-500
+  '#84cc16', // lime-500
+];
+
 interface DonutChartProps {
-  data: { name: string; value: number; color: string }[];
+  data: { name: string; value: number; color?: string }[];
   height?: number;
 }
 
@@ -44,7 +55,7 @@ export function DonutChart({ data, height = 300 }: DonutChartProps) {
             dataKey="value"
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
+              <Cell key={`cell-${index}`} fill={entry.color ?? PALETTE[index % PALETTE.length]} stroke="transparent" />
             ))}
           </Pie>
         </PieChart>

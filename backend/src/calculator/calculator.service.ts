@@ -105,7 +105,7 @@ export class CalculatorService {
     const studioPercentage = workSettings?.studioPercentage ?? null;
 
     const costPerHour =
-      hoursPerMonth > 0 ? Math.round(totalCosts / hoursPerMonth) : 0;
+      hoursPerMonth > 0 ? Math.round(totalFixed / hoursPerMonth) : 0;
     const minimumPricePerHour = Math.round(
       costPerHour * (1 + profitMargin / 100),
     );

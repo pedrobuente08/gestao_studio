@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { TenantType } from '@prisma/client';
 
 export class RegisterDto {
@@ -21,4 +21,12 @@ export class RegisterDto {
   @IsString()
   @IsNotEmpty()
   tenantName!: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  state?: string;
 }

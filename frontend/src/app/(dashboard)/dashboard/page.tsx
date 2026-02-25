@@ -3,13 +3,13 @@
 import { useAuth } from '@/hooks/use-auth';
 import { useClients } from '@/hooks/use-clients';
 import { useSessions } from '@/hooks/use-sessions';
-import { useFinancial } from '@/hooks/use-financial';
+import { useFinancial, useFinancialMonthlySummary, useFinancialRevenueSplit } from '@/hooks/use-financial';
 import { StatCard } from '@/components/ui/card';
 import { LineChart } from '@/components/charts/line-chart';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableSkeleton, TableEmpty } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from '@/components/ui/table';
 import { formatCurrency } from '@/utils/format-currency';
 import { formatDate } from '@/utils/format-date';
-import { Users, Calendar, DollarSign, TrendingUp } from 'lucide-react';
+import { Users, Calendar, DollarSign, TrendingUp, Store, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,9 +19,23 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const { clients, isLoading: isLoadingClients } = useClients();
   const { sessions, isLoading: isLoadingSessions } = useSessions();
-  const { summary, isLoading: isLoadingFinancial } = useFinancial();
 
-  const isLoading = isLoadingClients || isLoadingSessions || isLoadingFinancial;
+  // Faturamento do mês atual
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+  const { summary, isLoading: isLoadingFinancial } = useFinancial({ startDate: monthStart, endDate: monthEnd });
+
+  // Dados do gráfico (últimos 6 meses)
+  const { data: monthlySummary, isLoading: isLoadingMonthly } = useFinancialMonthlySummary();
+
+  // Divisão de receita: studio vs prestadores (mês atual)
+  const { data: revenueSplit, isLoading: isLoadingRevenueSplit } = useFinancialRevenueSplit({
+    startDate: monthStart,
+    endDate: monthEnd,
+  });
+
+  const isLoading = isLoadingClients || isLoadingSessions || isLoadingFinancial || isLoadingMonthly || isLoadingRevenueSplit;
 
   if (isLoading) {
     return (
@@ -38,6 +52,11 @@ export default function DashboardPage() {
           <Skeleton className="h-32 w-full" />
         </div>
 
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 mb-8">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+
         <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
           <Skeleton className="h-96 lg:col-span-2 w-full" />
           <Skeleton className="h-96 w-full" />
@@ -47,24 +66,39 @@ export default function DashboardPage() {
   }
 
   // Pegar as últimas 5 sessões (ordenadas por data decrescente)
-  const latestSessions = [...sessions].sort((a, b) => 
+  const latestSessions = [...sessions].sort((a, b) =>
     new Date(b.date).getTime() - new Date(a.date).getTime()
   ).slice(0, 5);
 
-  // Calcular ticket médio
-  const totalRevenue = summary?.totalIncome || 0;
-  const sessionCount = sessions.length;
-  const averageTicket = sessionCount > 0 ? Math.round(totalRevenue / sessionCount) : 0;
+  // Faturamento do mês atual
+  const monthlyIncome = summary?.totalIncome ?? 0;
 
-  // Mock data para o gráfico (em produção isso deve vir da API formatado por mês)
-  const chartData = [
-    { label: 'Set', value: 450000 },
-    { label: 'Out', value: 520000 },
-    { label: 'Nov', value: 480000 },
-    { label: 'Dez', value: 650000 },
-    { label: 'Jan', value: 590000 },
-    { label: 'Fev', value: totalRevenue },
-  ];
+  // Dados do gráfico em centavos (LineChart converte para R$ internamente)
+  const chartData = (monthlySummary ?? []).map((m) => ({
+    label: m.label,
+    value: m.income,
+  }));
+
+  // Trend: mês atual vs mês anterior (usando centavos para comparação)
+  let trendValue: number | null = null;
+  let trendIsUp = true;
+  if (chartData.length >= 2) {
+    const prev = chartData[chartData.length - 2].value;
+    const curr = chartData[chartData.length - 1].value;
+    if (prev > 0) {
+      trendValue = Math.round(((curr - prev) / prev) * 100);
+      trendIsUp = trendValue >= 0;
+    }
+  }
+
+  // Ticket médio (all-time, em centavos para formatCurrency)
+  const sessionCount = sessions.length;
+  const totalAllTime = (monthlySummary ?? []).reduce((sum, m) => sum + m.income, 0);
+  const averageTicket = sessionCount > 0 ? Math.round(totalAllTime / sessionCount) : 0;
+
+  const studioRevenue = revenueSplit?.studioRevenue ?? 0;
+  const prestadorRevenue = revenueSplit?.prestadorRevenue ?? 0;
+  const hasRevenueSplit = studioRevenue > 0;
 
   const firstName = user?.name?.split(' ')[0] || 'Usuário';
 
@@ -79,9 +113,9 @@ export default function DashboardPage() {
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Faturamento Mensal"
-          value={formatCurrency(totalRevenue)}
+          value={formatCurrency(monthlyIncome)}
           icon={<DollarSign className="h-6 w-6" />}
-          trend={{ value: 12, isUp: true }}
+          trend={trendValue !== null ? { value: Math.abs(trendValue), isUp: trendIsUp } : undefined}
           description="em relação ao mês passado"
         />
         <StatCard
@@ -100,6 +134,26 @@ export default function DashboardPage() {
           icon={<TrendingUp className="h-6 w-6" />}
         />
       </div>
+
+      {/* Divisão de Receita — Studio vs Prestadores */}
+      {hasRevenueSplit && (
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+          <StatCard
+            title="Lucro Bruto do Studio"
+            value={formatCurrency(studioRevenue)}
+            icon={<Store className="h-6 w-6" />}
+            description="Percentual retido pelo studio no mês"
+            className="bg-rose-500/5 border-rose-500/20"
+          />
+          <StatCard
+            title="Repasse aos Prestadores"
+            value={formatCurrency(prestadorRevenue)}
+            icon={<UserCheck className="h-6 w-6" />}
+            description="Valor repassado aos prestadores no mês"
+            className="bg-blue-500/5 border-blue-500/20"
+          />
+        </div>
+      )}
 
       <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
         {/* Gráfico de Faturamento */}
@@ -121,7 +175,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
           </div>
-          
+
           <Table className="bg-transparent border-none">
             <TableHeader>
               <TableRow className="hover:bg-transparent border-zinc-800">
@@ -130,9 +184,7 @@ export default function DashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <TableSkeleton colSpan={2} rows={5} />
-              ) : latestSessions.length > 0 ? (
+              {latestSessions.length > 0 ? (
                 latestSessions.map((session) => (
                   <TableRow key={session.id} className="hover:bg-zinc-800/30 border-zinc-800/50">
                     <TableCell className="px-0">

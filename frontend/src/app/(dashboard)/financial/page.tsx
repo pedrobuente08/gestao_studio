@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useFinancial } from '@/hooks/use-financial';
+import { useEmployees } from '@/hooks/use-employees';
 import { Button } from '@/components/ui/button';
 import { Card, StatCard } from '@/components/ui/card';
 import {
@@ -16,6 +17,7 @@ import {
 } from '@/components/ui/table';
 import { TransactionModal } from '@/components/modals/transaction-modal';
 import { PageHeader } from '@/components/ui/page-header';
+import { DateFilterBar, DateFilter } from '@/components/ui/date-filter-bar';
 import { formatCurrency } from '@/utils/format-currency';
 import { formatDate } from '@/utils/format-date';
 import { Plus, Search, TrendingDown, TrendingUp, MoreVertical, Wallet } from 'lucide-react';
@@ -24,10 +26,19 @@ import { TRANSACTION_CATEGORY_LABELS, PAYMENT_METHOD_LABELS } from '@/utils/cons
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function FinancialPage() {
-  const { transactions, summary, isLoading, isError } = useFinancial();
+  const [dateFilter, setDateFilter] = useState<DateFilter | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>();
+
+  const { employees } = useEmployees();
+
+  const { transactions, summary, isLoading, isError } = useFinancial({
+    startDate: dateFilter?.startDate,
+    endDate: dateFilter?.endDate,
+    userId: selectedUserId || undefined,
+  });
 
   const filteredTransactions = transactions.filter((t) =>
     (t.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
@@ -121,20 +132,35 @@ export default function FinancialPage() {
         </Button>
       </PageHeader>
 
+      {/* Filtros */}
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <DateFilterBar value={dateFilter} onChange={setDateFilter} />
+        <select
+          value={selectedUserId}
+          onChange={(e) => setSelectedUserId(e.target.value)}
+          className="h-8 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
+        >
+          <option value="">Todos Profissionais</option>
+          {employees.map((e) => (
+            <option key={e.id} value={e.id}>{e.name}</option>
+          ))}
+        </select>
+      </div>
+
       {/* Resumo Financeiro */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 mb-8">
         <StatCard
           title="Receitas"
           value={formatCurrency(totalIncome)}
           icon={<TrendingUp className="h-6 w-6" />}
-          description="Total bruto recebido"
+          description={dateFilter ? 'No período selecionado' : 'Total bruto recebido'}
           className="bg-emerald-500/5 border-emerald-500/10"
         />
         <StatCard
           title="Despesas"
           value={formatCurrency(totalExpense)}
           icon={<TrendingDown className="h-6 w-6 text-rose-500" />}
-          description="Custos e materiais"
+          description={dateFilter ? 'No período selecionado' : 'Custos e materiais'}
           className="bg-rose-500/5 border-rose-500/10"
         />
         <StatCard

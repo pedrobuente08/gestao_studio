@@ -23,15 +23,22 @@ export const auth = betterAuth({
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'noreply@tattoohubink.cloud',
         to: user.email,
-        subject: 'Recuperação de senha — Gestão Studio',
+        subject: 'Recuperação de senha — InkStudio',
         html: `
-          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-            <h2>Olá, ${user.name}!</h2>
-            <p>Clique no botão abaixo para redefinir sua senha.</p>
-            <a href="${url}" style="display:inline-block;background:#e11d48;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;">
-              Redefinir Senha
-            </a>
-            <p style="color:#888;font-size:12px;margin-top:24px;">Se você não solicitou a recuperação, ignore este email.</p>
+          <div style="background:#09090b;padding:40px 16px;min-height:100vh;">
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#18181b;border-radius:12px;padding:40px 32px;border:1px solid #27272a;">
+              <div style="margin-bottom:28px;">
+                <span style="font-size:22px;font-weight:900;color:#e11d48;font-style:italic;letter-spacing:-1px;">InkStudio</span>
+              </div>
+              <h2 style="color:#ffffff;margin:0 0 12px;font-size:20px;">Olá, ${user.name}!</h2>
+              <p style="color:#a1a1aa;margin:0 0 28px;font-size:15px;line-height:1.6;">Clique no botão abaixo para redefinir sua senha.</p>
+              <a href="${url}" style="display:inline-block;background:#e11d48;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">
+                Redefinir Senha
+              </a>
+              <p style="color:#52525b;font-size:12px;margin-top:32px;border-top:1px solid #27272a;padding-top:20px;">
+                Se você não solicitou a recuperação de senha, ignore este email com segurança.
+              </p>
+            </div>
           </div>
         `,
       });
@@ -39,19 +46,27 @@ export const auth = betterAuth({
   },
 
   emailVerification: {
+    callbackURL: `${process.env.APP_URL || 'http://localhost:3000'}/verify-email-success`,
     sendVerificationEmail: async ({ user, url }) => {
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'noreply@tattoohubink.cloud',
         to: user.email,
-        subject: 'Verifique seu email — Gestão Studio',
+        subject: 'Verifique seu email — InkStudio',
         html: `
-          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-            <h2>Olá, ${user.name}!</h2>
-            <p>Clique no botão abaixo para verificar seu email e ativar sua conta.</p>
-            <a href="${url}" style="display:inline-block;background:#e11d48;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;">
-              Verificar Email
-            </a>
-            <p style="color:#888;font-size:12px;margin-top:24px;">Se você não criou uma conta, ignore este email.</p>
+          <div style="background:#09090b;padding:40px 16px;min-height:100vh;">
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#18181b;border-radius:12px;padding:40px 32px;border:1px solid #27272a;">
+              <div style="margin-bottom:28px;">
+                <span style="font-size:22px;font-weight:900;color:#e11d48;font-style:italic;letter-spacing:-1px;">InkStudio</span>
+              </div>
+              <h2 style="color:#ffffff;margin:0 0 12px;font-size:20px;">Olá, ${user.name}!</h2>
+              <p style="color:#a1a1aa;margin:0 0 28px;font-size:15px;line-height:1.6;">Clique no botão abaixo para verificar seu email e ativar sua conta.</p>
+              <a href="${url}" style="display:inline-block;background:#e11d48;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">
+                Verificar Email
+              </a>
+              <p style="color:#52525b;font-size:12px;margin-top:32px;border-top:1px solid #27272a;padding-top:20px;">
+                Se você não criou uma conta no InkStudio, pode ignorar este email com segurança.
+              </p>
+            </div>
           </div>
         `,
       });

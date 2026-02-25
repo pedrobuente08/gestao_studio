@@ -25,12 +25,36 @@ export class AuthGuard implements CanActivate {
 
     const user = await this.prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { tenant: { select: { type: true } } },
+      include: {
+        tenant: {
+          select: {
+            type: true,
+            name: true,
+            cnpj: true,
+            address: true,
+            zipCode: true,
+            instagram: true,
+            phone: true,
+          },
+        },
+      },
     });
 
     if (!user || (!['ACTIVE', 'PENDING_SETUP'].includes(user.status))) {
       throw new UnauthorizedException('Usuário inativo ou não encontrado');
     }
+
+    const studio =
+      user.tenant?.type === 'STUDIO'
+        ? {
+            name: user.tenant.name,
+            cnpj: user.tenant.cnpj,
+            address: user.tenant.address,
+            zipCode: user.tenant.zipCode,
+            instagram: user.tenant.instagram,
+            phone: user.tenant.phone,
+          }
+        : undefined;
 
     request.user = {
       id: user.id,
@@ -42,8 +66,11 @@ export class AuthGuard implements CanActivate {
       status: user.status,
       mustChangePassword: user.mustChangePassword,
       profilePhotoUrl: user.profilePhotoUrl,
-      age: user.age,
+      birthDate: user.birthDate?.toISOString(),
       gender: user.gender,
+      instagram: user.instagram,
+      phone: user.phone,
+      studio,
     };
 
     return true;

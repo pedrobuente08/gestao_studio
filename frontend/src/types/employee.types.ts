@@ -7,6 +7,7 @@ export interface Employee {
   emailVerified: string | null;
   serviceTypeId: string | null;
   serviceType: { id: string; name: string } | null;
+  studioPercentage: number | null;
   createdAt: string;
 }
 
@@ -22,4 +23,5 @@ export interface UpdateEmployeeData {
   name?: string;
   role?: 'EMPLOYEE' | 'STAFF';
   status?: 'ACTIVE' | 'INACTIVE';
+  studioPercentage?: number | null;
 }

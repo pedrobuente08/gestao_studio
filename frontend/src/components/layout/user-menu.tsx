@@ -5,13 +5,12 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import * as Avatar from '@radix-ui/react-avatar';
 import { LogOut, User as UserIcon, Lock, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { ProfileModal } from '@/components/modals/profile-modal';
-import { ChangePasswordModal } from '@/components/modals/change-password-modal';
+import { ProfileModal } from '@/components/profile/profile-modal';
 
 export function UserMenu() {
-  const { user, logout } = useAuth();
-  const [showProfileModal, setShowProfileModal] = React.useState(false);
-  const [showPasswordModal, setShowPasswordModal] = React.useState(false);
+  const { user, logout, isLogoutLoading } = useAuth();
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [profileTab, setProfileTab] = React.useState<'profile' | 'password'>('profile');
 
   if (!user) return null;
 
@@ -22,8 +21,22 @@ export function UserMenu() {
     .toUpperCase()
     .substring(0, 2);
 
+  const openProfile = (tab: 'profile' | 'password') => {
+    setProfileTab(tab);
+    setIsOpen(true);
+  };
+
   return (
     <>
+      {isLogoutLoading && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-zinc-950">
+          <svg className="h-10 w-10 text-rose-500 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <p className="mt-4 text-sm text-zinc-400">Saindo...</p>
+        </div>
+      )}
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
           <button className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-all group outline-none">
@@ -37,14 +50,14 @@ export function UserMenu() {
                 {initials}
               </Avatar.Fallback>
             </Avatar.Root>
-            
+
             <div className="flex flex-1 flex-col items-start overflow-hidden">
               <span className="truncate w-full text-zinc-200">{user.name}</span>
               <span className="truncate w-full text-xs text-zinc-500 capitalize">
                 {user.role.toLowerCase()}
               </span>
             </div>
-            
+
             <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
           </button>
         </DropdownMenu.Trigger>
@@ -60,15 +73,15 @@ export function UserMenu() {
             </div>
 
             <DropdownMenu.Item
-              onClick={() => setShowProfileModal(true)}
+              onClick={() => openProfile('profile')}
               className="group flex w-full items-center gap-3 rounded-lg px-2 py-2 text-sm text-zinc-400 outline-none hover:bg-zinc-800 hover:text-zinc-100 cursor-pointer transition-colors"
             >
               <UserIcon className="h-4 w-4 shrink-0 transition-colors" />
-              Ver Perfil
+              Meu Perfil
             </DropdownMenu.Item>
 
             <DropdownMenu.Item
-              onClick={() => setShowPasswordModal(true)}
+              onClick={() => openProfile('password')}
               className="group flex w-full items-center gap-3 rounded-lg px-2 py-2 text-sm text-zinc-400 outline-none hover:bg-zinc-800 hover:text-zinc-100 cursor-pointer transition-colors"
             >
               <Lock className="h-4 w-4 shrink-0 transition-colors" />
@@ -88,8 +101,11 @@ export function UserMenu() {
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
 
-      <ProfileModal open={showProfileModal} onOpenChange={setShowProfileModal} />
-      <ChangePasswordModal open={showPasswordModal} onOpenChange={setShowPasswordModal} />
+      <ProfileModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        initialTab={profileTab}
+      />
     </>
   );
 }

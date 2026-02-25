@@ -10,7 +10,6 @@ import { authService } from '@/services/auth.service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Select } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 
 const ESTADOS_BR = [
@@ -70,7 +69,8 @@ export default function CompleteRegistrationPage() {
   const tenantType = watch('tenantType');
 
   useEffect(() => {
-    if (!isLoading && user && user.status !== 'PENDING_SETUP') {
+    // Só redireciona se o usuário está completamente configurado (tem tenant)
+    if (!isLoading && user && user.tenantId) {
       router.replace('/dashboard');
     }
     if (!isLoading && !user) {
@@ -99,7 +99,7 @@ export default function CompleteRegistrationPage() {
     }
   };
 
-  if (isLoading || (user && user.status !== 'PENDING_SETUP')) {
+  if (isLoading || (user && user.tenantId)) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
@@ -121,15 +121,35 @@ export default function CompleteRegistrationPage() {
               </div>
             )}
 
-            <Select
-              label="Tipo de Conta"
-              options={[
-                { value: 'AUTONOMO', label: 'Tatuador Autônomo' },
-                { value: 'STUDIO', label: 'Estúdio / Empresa' },
-              ]}
-              error={errors.tenantType?.message}
-              {...register('tenantType')}
-            />
+            {/* Tipo de Conta — PRIMEIRO */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-zinc-300">
+                Tipo de Conta
+              </label>
+              <div className="flex gap-3">
+                <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors flex-1">
+                  <input
+                    type="radio"
+                    value="AUTONOMO"
+                    className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900"
+                    {...register('tenantType')}
+                  />
+                  <span className="text-zinc-300">Autônomo</span>
+                </label>
+                <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors flex-1">
+                  <input
+                    type="radio"
+                    value="STUDIO"
+                    className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900"
+                    {...register('tenantType')}
+                  />
+                  <span className="text-zinc-300">Estúdio</span>
+                </label>
+              </div>
+              {errors.tenantType && (
+                <p className="mt-1 text-sm text-red-500">{errors.tenantType.message}</p>
+              )}
+            </div>
 
             <Input
               label={tenantType === 'STUDIO' ? 'Nome do Estúdio / Empresa' : 'Seu nome profissional'}
@@ -139,24 +159,28 @@ export default function CompleteRegistrationPage() {
               {...register('tenantName')}
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Cidade"
-                id="city"
-                placeholder="Ex: São Paulo"
-                error={errors.city?.message}
-                {...register('city')}
-              />
-
-              <Select
-                label="Estado"
-                options={[
-                  { value: '', label: 'Selecione...' },
-                  ...ESTADOS_BR,
-                ]}
-                error={errors.state?.message}
-                {...register('state')}
-              />
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <Input
+                  label="Cidade"
+                  id="city"
+                  placeholder="Ex: São Paulo"
+                  error={errors.city?.message}
+                  {...register('city')}
+                />
+              </div>
+              <div className="w-28">
+                <label className="mb-1 block text-sm font-medium text-zinc-300">Estado</label>
+                <select
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500 h-[42px]"
+                  {...register('state')}
+                >
+                  <option value="">UF</option>
+                  {ESTADOS_BR.map((item) => (
+                    <option key={item.value} value={item.value}>{item.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <Button

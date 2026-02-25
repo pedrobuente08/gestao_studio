@@ -1,5 +1,6 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { UserStatus } from '@prisma/client';
+import { Type } from 'class-transformer';
 
 export class UpdateEmployeeDto {
   @IsOptional()
@@ -13,4 +14,11 @@ export class UpdateEmployeeDto {
   @IsOptional()
   @IsEnum(UserStatus)
   status?: UserStatus;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  studioPercentage?: number | null;
 }

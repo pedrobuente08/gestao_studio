@@ -1,11 +1,13 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
+import { hashPassword, verifyPassword } from 'better-auth/crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CompleteSocialRegistrationDto } from './dto/complete-social-registration.dto';
 import { auth } from '../config/better-auth.config';
@@ -28,6 +30,8 @@ export class AuthService {
       data: {
         type: dto.tenantType,
         name: dto.tenantName,
+        city: dto.city,
+        state: dto.state,
       },
     });
 
@@ -43,8 +47,8 @@ export class AuthService {
       },
     });
 
-    // Cria a conta com senha no formato Better Auth
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    // Cria a conta com senha no formato Better Auth (scrypt)
+    const hashedPassword = await hashPassword(dto.password);
     await this.prisma.account.create({
       data: {
         userId: user.id,
@@ -59,7 +63,7 @@ export class AuthService {
       await auth.api.sendVerificationEmail({
         body: {
           email: dto.email,
-          callbackURL: `${process.env.APP_URL || 'http://localhost:3000'}/login`,
+          callbackURL: `${process.env.APP_URL || 'http://localhost:3000'}/verify-email-success`,
         },
       });
     } catch {
@@ -73,7 +77,12 @@ export class AuthService {
     return this.prisma.user.update({
       where: { id: userId },
       data: {
-        ...dto,
+        name: dto.name,
+        birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
+        gender: dto.gender,
+        instagram: dto.instagram,
+        phone: dto.phone,
+        profilePhotoUrl: dto.profilePhotoUrl,
         mustChangePassword: false,
       },
       select: {
@@ -81,11 +90,38 @@ export class AuthService {
         email: true,
         name: true,
         role: true,
-        age: true,
+        status: true,
+        birthDate: true,
         gender: true,
+        instagram: true,
+        phone: true,
         profilePhotoUrl: true,
         tenantId: true,
         mustChangePassword: true,
+        tenant: { select: { type: true } },
+      },
+    });
+  }
+
+  async updateTenant(userId: string, dto: UpdateTenantDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { tenantId: true },
+    });
+
+    if (!user?.tenantId) {
+      throw new NotFoundException('Tenant não encontrado');
+    }
+
+    return this.prisma.tenant.update({
+      where: { id: user.tenantId },
+      data: {
+        name: dto.name,
+        cnpj: dto.cnpj,
+        address: dto.address,
+        zipCode: dto.zipCode,
+        instagram: dto.instagram,
+        phone: dto.phone,
       },
     });
   }
@@ -103,13 +139,13 @@ export class AuthService {
     }
 
     const account = user.accounts[0];
-    const isPasswordValid = await bcrypt.compare(dto.currentPassword, account.password!);
+    const isPasswordValid = await verifyPassword({ hash: account.password!, password: dto.currentPassword });
 
     if (!isPasswordValid) {
       throw new BadRequestException('Senha atual incorreta');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    const hashedPassword = await hashPassword(dto.newPassword);
 
     await this.prisma.account.update({
       where: { id: account.id },
@@ -133,8 +169,9 @@ export class AuthService {
       throw new BadRequestException('Usuário não encontrado');
     }
 
-    if (user.status !== 'PENDING_SETUP') {
-      throw new BadRequestException('Configuração já completada ou usuário não pendente');
+    // Bloqueia apenas se já tiver um tenant vinculado
+    if (user.tenantId) {
+      throw new BadRequestException('Configuração já completada');
     }
 
     // Cria o tenant

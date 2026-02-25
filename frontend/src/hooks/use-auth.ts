@@ -2,11 +2,12 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth.store';
 import { authService } from '@/services/auth.service';
 import { authClient } from '@/lib/auth-client';
-import { RegisterData } from '@/types/auth.types';
+import { RegisterData, StudioProfile } from '@/types/auth.types';
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -81,6 +82,16 @@ export function useAuth() {
     },
   });
 
+  // Atualizar dados do tenant (STUDIO OWNER)
+  const updateTenantMutation = useMutation({
+    mutationFn: (data: Partial<StudioProfile>) => authService.updateTenant(data),
+    onSuccess: (updatedStudio) => {
+      if (user) {
+        setUser({ ...user, studio: { ...user.studio, ...updatedStudio } });
+      }
+    },
+  });
+
   // Trocar senha
   const changePasswordMutation = useMutation({
     mutationFn: (data: { currentPassword: string; newPassword: string }) =>
@@ -97,11 +108,18 @@ export function useAuth() {
   });
 
   // Logout via Better Auth
+  const [isLogoutLoading, setIsLogoutLoading] = useState(false);
+
   const logout = async () => {
-    await authClient.signOut();
-    clearAuth();
-    queryClient.clear();
-    router.push('/login');
+    setIsLogoutLoading(true);
+    try {
+      await authClient.signOut();
+      clearAuth();
+      queryClient.clear();
+      router.push('/login');
+    } finally {
+      setIsLogoutLoading(false);
+    }
   };
 
   // Login com Google via Better Auth
@@ -151,6 +169,7 @@ export function useAuth() {
 
     // Sessão
     logout,
+    isLogoutLoading,
     loginWithGoogle,
 
     // Perfil
@@ -168,5 +187,10 @@ export function useAuth() {
     uploadPhotoAsync: uploadPhotoMutation.mutateAsync,
     isUploadPhotoLoading: uploadPhotoMutation.isPending,
     uploadPhotoError: uploadPhotoMutation.error,
+
+    updateTenant: updateTenantMutation.mutate,
+    updateTenantAsync: updateTenantMutation.mutateAsync,
+    isUpdateTenantLoading: updateTenantMutation.isPending,
+    updateTenantError: updateTenantMutation.error,
   };
 }

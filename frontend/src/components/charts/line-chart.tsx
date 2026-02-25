@@ -31,12 +31,16 @@ export function LineChart({ data, height = 300 }: LineChartProps) {
             axisLine={false}
             dy={10}
           />
-          <YAxis 
-            stroke="#71717a" 
-            fontSize={12} 
+          <YAxis
+            stroke="#71717a"
+            fontSize={12}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(value) => `R$ ${value / 1000}k`}
+            tickFormatter={(value) => {
+              const reais = value / 100;
+              if (reais >= 1000) return `R$ ${(reais / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+              return `R$ ${reais.toFixed(0)}`;
+            }}
           />
           <Tooltip
             contentStyle={{

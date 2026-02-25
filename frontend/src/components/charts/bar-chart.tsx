@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  LabelList,
 } from 'recharts';
 import { formatCurrency } from '@/utils/format-currency';
 
@@ -25,20 +26,20 @@ export function BarChart({ data, height = 300, layout = 'vertical', color = '#f4
   return (
     <div style={{ width: '100%', height }}>
       <ResponsiveContainer>
-        <ReChartsBar 
-          data={data} 
+        <ReChartsBar
+          data={data}
           layout={isVertical ? 'vertical' : 'horizontal'}
-          margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+          margin={{ top: 5, right: 110, left: 20, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={!isVertical} vertical={isVertical} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={!isVertical} vertical={false} />
           {isVertical ? (
             <>
               <XAxis type="number" hide />
-              <YAxis 
-                dataKey="name" 
-                type="category" 
-                stroke="#71717a" 
-                fontSize={12} 
+              <YAxis
+                dataKey="name"
+                type="category"
+                stroke="#71717a"
+                fontSize={12}
                 tickLine={false}
                 axisLine={false}
                 width={100}
@@ -46,19 +47,23 @@ export function BarChart({ data, height = 300, layout = 'vertical', color = '#f4
             </>
           ) : (
             <>
-              <XAxis 
-                dataKey="name" 
-                stroke="#71717a" 
-                fontSize={12} 
+              <XAxis
+                dataKey="name"
+                stroke="#71717a"
+                fontSize={12}
                 tickLine={false}
                 axisLine={false}
               />
-              <YAxis 
-                stroke="#71717a" 
-                fontSize={12} 
+              <YAxis
+                stroke="#71717a"
+                fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `R$ ${value / 100}`}
+                tickFormatter={(value) => {
+                  const reais = value / 100;
+                  if (reais >= 1000) return `R$ ${(reais / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+                  return `R$ ${reais.toFixed(0)}`;
+                }}
               />
             </>
           )}
@@ -69,15 +74,24 @@ export function BarChart({ data, height = 300, layout = 'vertical', color = '#f4
               borderRadius: '8px',
               color: '#f4f4f5',
             }}
-            formatter={(value: any) => [formatCurrency(Number(value) || 0), 'Valor']}
+            formatter={(value: any) => [formatCurrency(Number(value) || 0), 'Faturamento']}
             cursor={{ fill: '#27272a', opacity: 0.4 }}
           />
-          <Bar 
-            dataKey="value" 
-            fill={color} 
+          <Bar
+            dataKey="value"
+            fill={color}
             radius={isVertical ? [0, 4, 4, 0] : [4, 4, 0, 0]}
             barSize={isVertical ? 20 : 40}
-          />
+          >
+            {isVertical && (
+              <LabelList
+                dataKey="value"
+                position="right"
+                formatter={(value: number) => formatCurrency(value)}
+                style={{ fill: '#a1a1aa', fontSize: 12 }}
+              />
+            )}
+          </Bar>
         </ReChartsBar>
       </ResponsiveContainer>
     </div>

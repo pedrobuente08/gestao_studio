@@ -8,51 +8,55 @@ import { useServiceTypes } from '@/hooks/use-service-types';
 import { useEmployees } from '@/hooks/use-employees';
 import { BarChart } from '@/components/charts/bar-chart';
 import { DonutChart } from '@/components/charts/donut-chart';
+import { DateFilterBar, DateFilter } from '@/components/ui/date-filter-bar';
+
+function getDefaultDateFilter(): DateFilter {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 29);
+  return {
+    startDate: start.toISOString().split('T')[0],
+    endDate: end.toISOString().split('T')[0],
+  };
+}
 
 export default function PerformancePage() {
-  const [filters, setFilters] = useState({
-    startDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
+  const [dateFilter, setDateFilter] = useState<DateFilter | null>(getDefaultDateFilter());
+  const [selectedUserId, setSelectedUserId] = useState('');
+
+  const filters = {
+    startDate: dateFilter?.startDate ?? '',
+    endDate: dateFilter?.endDate ?? '',
     serviceTypeId: '',
-    userId: '',
-  });
+    userId: selectedUserId,
+  };
 
   const { stats, isLoading } = useSessionStats(filters);
   const { serviceTypes } = useServiceTypes();
   const { employees } = useEmployees();
 
+  // Valores em centavos — formatCurrency converte internamente nos charts
   const serviceTypeData = stats?.byServiceType.map((t: any) => ({
     name: t.name,
-    value: t.revenue / 100,
+    value: t.revenue,
   })) || [];
 
   const employeeData = stats?.byEmployee.map((e: any) => ({
     name: e.name,
-    value: e.revenue / 100,
+    value: e.revenue,
   })) || [];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <h1 className="text-2xl font-bold text-zinc-100">Desempenho</h1>
-        
-        <div className="flex flex-wrap gap-2">
-          <input
-            type="date"
-            value={filters.startDate}
-            onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-100 outline-none focus:border-rose-500"
-          />
-          <input
-            type="date"
-            value={filters.endDate}
-            onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-100 outline-none focus:border-rose-500"
-          />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <DateFilterBar value={dateFilter} onChange={setDateFilter} />
           <select
-            value={filters.userId}
-            onChange={(e) => setFilters(prev => ({ ...prev, userId: e.target.value }))}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-100 outline-none focus:border-rose-500"
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+            className="h-8 rounded-lg border border-zinc-800 bg-zinc-900 px-2 text-xs text-zinc-100 outline-none focus:border-rose-500"
           >
             <option value="">Todos Profissionais</option>
             {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
@@ -85,7 +89,7 @@ export default function PerformancePage() {
             </div>
 
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6">
-              <h3 className="mb-6 text-sm font-medium text-zinc-400">Desempenho da Equipe (R$)</h3>
+              <h3 className="mb-6 text-sm font-medium text-zinc-400">Desempenho por Profissional (R$)</h3>
               <div className="h-[300px]">
                 {employeeData.length > 0 ? (
                   <BarChart data={employeeData} />

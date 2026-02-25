@@ -17,7 +17,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
   useEffect(() => {
     const verifyAuth = async () => {
       if (isAuthenticated) {
-        if (user?.status === 'PENDING_SETUP') {
+        if (user?.status === 'PENDING_SETUP' || !user?.tenantId) {
           router.replace('/complete-registration');
           return;
         }

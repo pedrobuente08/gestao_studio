@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
+import { IsDateString, IsOptional, IsString } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -6,14 +6,20 @@ export class UpdateProfileDto {
   name?: string;
 
   @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(120)
-  age?: number;
+  @IsDateString()
+  birthDate?: string;
 
   @IsOptional()
   @IsString()
   gender?: string;
+
+  @IsOptional()
+  @IsString()
+  instagram?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
 
   @IsOptional()
   @IsString()

@@ -1,16 +1,29 @@
-import { UserRole, TenantType } from '@prisma/client';
+import { UserRole, TenantType, UserStatus } from '@prisma/client';
+
+export class StudioProfile {
+  name?: string;
+  cnpj?: string;
+  address?: string;
+  zipCode?: string;
+  instagram?: string;
+  phone?: string;
+}
 
 export class AuthUserResponse {
   id!: string;
   email!: string;
   name!: string;
   role!: UserRole;
-  tenantId!: string;
-  tenantType!: TenantType;
+  status!: UserStatus;
+  tenantId?: string;
+  tenantType?: TenantType;
   mustChangePassword!: boolean;
-  age?: number;
+  birthDate?: string;
   gender?: string;
+  instagram?: string;
+  phone?: string;
   profilePhotoUrl?: string;
+  studio?: StudioProfile;
 }
 
 export class AuthResponse {

@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
+import { hashPassword } from 'better-auth/crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
@@ -30,6 +30,7 @@ export class EmployeesService {
       emailVerified: u.emailVerified,
       serviceTypeId: u.serviceTypeId,
       serviceType: u.serviceType,
+      studioPercentage: u.studioPercentage,
       createdAt: u.createdAt,
     }));
   }
@@ -38,7 +39,7 @@ export class EmployeesService {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existing) throw new BadRequestException('Email já cadastrado');
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await hashPassword(dto.password);
 
     const user = await this.prisma.user.create({
       data: {
@@ -89,7 +90,7 @@ export class EmployeesService {
     return this.prisma.user.update({
       where: { id },
       data: dto,
-      select: { id: true, name: true, email: true, role: true, status: true, serviceTypeId: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, status: true, serviceTypeId: true, studioPercentage: true, createdAt: true },
     });
   }
 

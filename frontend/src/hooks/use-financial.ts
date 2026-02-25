@@ -3,7 +3,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financialService } from '@/services/financial.service';
 import { CreateTransactionData, UpdateTransactionData } from '@/types/financial.types';
 
-export function useFinancial(params?: { type?: string; category?: string; startDate?: string; endDate?: string }) {
+export function useFinancialMonthlySummary() {
+  return useQuery({
+    queryKey: ['financial-monthly-summary'],
+    queryFn: financialService.getMonthlySummary,
+  });
+}
+
+export function useFinancialRevenueSplit(params?: { startDate?: string; endDate?: string }) {
+  return useQuery({
+    queryKey: ['financial-revenue-split', params],
+    queryFn: () => financialService.getRevenueSplit(params),
+  });
+}
+
+export function useFinancial(params?: { type?: string; category?: string; startDate?: string; endDate?: string; userId?: string }) {
   const queryClient = useQueryClient();
 
   const { data: transactions = [], isLoading: isLoadingTransactions, isError: isErrorTransactions } = useQuery({
@@ -12,8 +26,8 @@ export function useFinancial(params?: { type?: string; category?: string; startD
   });
 
   const { data: summary, isLoading: isLoadingSummary, isError: isErrorSummary } = useQuery({
-    queryKey: ['financial-summary'],
-    queryFn: financialService.getSummary,
+    queryKey: ['financial-summary', params?.startDate, params?.endDate, params?.userId],
+    queryFn: () => financialService.getSummary({ startDate: params?.startDate, endDate: params?.endDate, userId: params?.userId }),
   });
 
   const createMutation = useMutation({
@@ -33,11 +47,12 @@ export function useFinancial(params?: { type?: string; category?: string; startD
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['financial-monthly-summary'] });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateTransactionData }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateTransactionData }) =>
       financialService.update(id, data),
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: ['transactions', params] });
@@ -53,6 +68,7 @@ export function useFinancial(params?: { type?: string; category?: string; startD
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['financial-monthly-summary'] });
     },
   });
 
@@ -72,6 +88,7 @@ export function useFinancial(params?: { type?: string; category?: string; startD
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['financial-monthly-summary'] });
     },
   });
 

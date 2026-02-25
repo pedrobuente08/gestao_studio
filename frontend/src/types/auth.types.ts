@@ -1,3 +1,12 @@
+export interface StudioProfile {
+  name?: string;
+  cnpj?: string;
+  address?: string;
+  zipCode?: string;
+  instagram?: string;
+  phone?: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -7,9 +16,12 @@ export interface User {
   tenantType?: 'AUTONOMO' | 'STUDIO';
   status: 'ACTIVE' | 'INACTIVE' | 'PENDING_SETUP';
   mustChangePassword: boolean;
-  age?: number;
+  birthDate?: string;
   gender?: string;
+  instagram?: string;
+  phone?: string;
   profilePhotoUrl?: string;
+  studio?: StudioProfile;
 }
 
 export interface AuthResponse {
@@ -23,6 +35,8 @@ export interface RegisterData {
   password: string;
   tenantType: 'AUTONOMO' | 'STUDIO';
   tenantName: string;
+  city?: string;
+  state?: string;
 }
 
 export interface LoginData {

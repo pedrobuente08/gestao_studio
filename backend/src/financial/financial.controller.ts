@@ -39,23 +39,47 @@ export class FinancialController {
     @Query('category') category?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('userId') filterUserId?: string,
   ) {
     return this.financialService.findAll(tenantId, req.user.id, req.user.role, {
       type,
       category,
       startDate,
       endDate,
+      filterUserId,
     });
   }
 
   @Get('summary')
   @Roles('OWNER', 'STAFF', 'EMPLOYEE')
-  getSummary(@CurrentTenant() tenantId: string, @Req() req: any) {
-    return this.financialService.getSummary(
-      tenantId,
-      req.user.id,
-      req.user.role,
-    );
+  getSummary(
+    @CurrentTenant() tenantId: string,
+    @Req() req: any,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('userId') filterUserId?: string,
+  ) {
+    return this.financialService.getSummary(tenantId, req.user.id, req.user.role, {
+      startDate,
+      endDate,
+      filterUserId,
+    });
+  }
+
+  @Get('monthly-summary')
+  @Roles('OWNER', 'STAFF')
+  getMonthlySummary(@CurrentTenant() tenantId: string) {
+    return this.financialService.getMonthlySummary(tenantId);
+  }
+
+  @Get('revenue-split')
+  @Roles('OWNER', 'STAFF')
+  getRevenueSplit(
+    @CurrentTenant() tenantId: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.financialService.getRevenueSplit(tenantId, { startDate, endDate });
   }
 
   @Get(':id')

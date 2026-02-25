@@ -31,7 +31,7 @@ export function useCalculator() {
 
   const setWorkSettingsMutation = useMutation({
     mutationFn: calculatorService.setWorkSettings,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['calculator'] }),
+    onSuccess: (data) => queryClient.setQueryData(['calculator'], data),
   });
 
   return {
