@@ -325,10 +325,15 @@ export class SessionsService {
     const norm = (v: number, min: number, max: number) =>
       max === min ? 0 : (v - min) / (max - min);
 
+    // Location tem peso reduzido (0.2) porque tamanho e complexidade têm maior
+    // impacto no preço. Sem esse ajuste, um ponto com mesmo local mas tamanho
+    // menor domina o IDW e subestima o preço.
+    const LOCATION_WEIGHT = 0.2;
+
     const queryVec = [
       norm(size ? (sizeLevel[size] ?? 1) : 3, 1, 6),
       norm(complexity ? (complexityLevel[complexity] ?? 1) : 2, 1, 4),
-      norm(bodyLocation ? (locationLevel[bodyLocation] ?? 1) : 2, 1, 3),
+      norm(bodyLocation ? (locationLevel[bodyLocation] ?? 1) : 2, 1, 3) * LOCATION_WEIGHT,
     ];
 
     const calcDist = (v: number[]) =>
@@ -342,7 +347,7 @@ export class SessionsService {
       const vec = [
         norm(sizeLevel[e.size] ?? 1, 1, 6),
         norm(complexityLevel[e.complexity] ?? 1, 1, 4),
-        norm(locationLevel[e.bodyLocation] ?? 1, 1, 3),
+        norm(locationLevel[e.bodyLocation] ?? 1, 1, 3) * LOCATION_WEIGHT,
       ];
       candidates.push({ finalPrice: e.finalPrice, dist: calcDist(vec) });
     }
@@ -353,7 +358,7 @@ export class SessionsService {
       const vec = [
         norm(sizeLevel[s.size] ?? 1, 1, 6),
         norm(complexityLevel[s.complexity] ?? 1, 1, 4),
-        norm(locationLevel[s.bodyLocation] ?? 1, 1, 3),
+        norm(locationLevel[s.bodyLocation] ?? 1, 1, 3) * LOCATION_WEIGHT,
       ];
       const dist = calcDist(vec);
       candidates.push({ finalPrice: s.finalPrice, dist });
