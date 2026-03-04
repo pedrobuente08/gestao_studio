@@ -154,7 +154,10 @@ export class MlService {
         this.http.post(`${this.mlServiceUrl}/train`, { userId, sessions: allData }),
       );
 
-      // Desativa modelos anteriores e cria o novo registro
+      // Remove registros antigos e cria o novo (o arquivo .cbm é sobrescrito no mesmo path)
+      await this.prisma.mLModel.deleteMany({
+        where: { userId, isActive: false },
+      });
       await this.prisma.mLModel.updateMany({
         where: { userId, isActive: true },
         data: { isActive: false },
