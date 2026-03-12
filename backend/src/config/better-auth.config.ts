@@ -14,7 +14,12 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3001',
 
-  trustedOrigins: [process.env.APP_URL || 'http://localhost:3000'],
+  trustedOrigins: [
+    process.env.APP_URL || 'http://localhost:3000',
+    ...(process.env.EXTRA_TRUSTED_ORIGINS
+      ? process.env.EXTRA_TRUSTED_ORIGINS.split(',')
+      : []),
+  ],
 
   emailAndPassword: {
     enabled: true,
@@ -84,6 +89,10 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7,  // 7 dias
     updateAge: 60 * 60 * 24,       // renova a cada 24h
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // cache de 5 minutos no cookie
+    },
   },
 
   // Multi-tenant: marca como PENDING_SETUP para usuários via Google OAuth

@@ -15,8 +15,15 @@ async function bootstrap() {
     }),
   );
 
+  const allowedOrigins = [
+    process.env.APP_URL || 'http://localhost:3000',
+    ...(process.env.EXTRA_TRUSTED_ORIGINS
+      ? process.env.EXTRA_TRUSTED_ORIGINS.split(',')
+      : []),
+  ];
+
   app.enableCors({
-    origin: process.env.APP_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],

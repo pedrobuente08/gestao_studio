@@ -109,6 +109,7 @@ export default function DashboardPage() {
         description="Acompanhe o desempenho do seu estúdio em tempo real"
       />
 
+      <div className="space-y-8">
       {/* Métricas Principais */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
@@ -204,6 +205,7 @@ export default function DashboardPage() {
             </TableBody>
           </Table>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -89,3 +89,4 @@ models/
 *.pkl
 *.joblib
 *.h5
+.aider*

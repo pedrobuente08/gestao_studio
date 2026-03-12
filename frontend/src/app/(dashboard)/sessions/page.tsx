@@ -110,7 +110,7 @@ export default function ProcedimentosPage() {
         <select
           value={selectedServiceTypeId}
           onChange={(e) => setSelectedServiceTypeId(e.target.value)}
-          className="h-8 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
+          className="h-9 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
         >
           <option value="">Todos os tipos</option>
           {serviceTypes.map((st) => (

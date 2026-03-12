@@ -138,7 +138,7 @@ export default function FinancialPage() {
         <select
           value={selectedUserId}
           onChange={(e) => setSelectedUserId(e.target.value)}
-          className="h-8 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
+          className="h-9 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
         >
           <option value="">Todos Profissionais</option>
           {employees.map((e) => (
@@ -189,8 +189,8 @@ export default function FinancialPage() {
             <TableRow>
               <TableHead>Data</TableHead>
               <TableHead>Descrição</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead>Pagamento</TableHead>
+              <TableHead className="hidden sm:table-cell">Categoria</TableHead>
+              <TableHead className="hidden md:table-cell">Pagamento</TableHead>
               <TableHead className="text-right">Valor</TableHead>
               <TableHead className="w-10"></TableHead>
             </TableRow>
@@ -199,23 +199,23 @@ export default function FinancialPage() {
             {filteredTransactions.length > 0 ? (
               filteredTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-medium whitespace-nowrap">
                     {formatDate(transaction.date)}
                   </TableCell>
-                  <TableCell>
-                    <span className="text-zinc-200">{transaction.description}</span>
+                  <TableCell className="max-w-[140px] sm:max-w-none">
+                    <span className="text-zinc-200 line-clamp-1">{transaction.description}</span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <span className="inline-flex items-center rounded-full bg-zinc-800 px-2 py-0.5 text-xs font-medium text-zinc-400">
                       {TRANSACTION_CATEGORY_LABELS[transaction.category] || transaction.category}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <span className="text-zinc-400 text-sm">
                       {transaction.paymentMethod ? PAYMENT_METHOD_LABELS[transaction.paymentMethod] : '—'}
                     </span>
                   </TableCell>
-                  <TableCell className={`text-right font-medium ${
+                  <TableCell className={`text-right font-medium whitespace-nowrap ${
                     transaction.type === 'INCOME' ? 'text-emerald-500' : 'text-rose-500'
                   }`}>
                     {transaction.type === 'INCOME' ? '+' : '-'} {formatCurrency(transaction.amount)}

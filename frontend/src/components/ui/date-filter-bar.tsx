@@ -80,7 +80,7 @@ export function DateFilterBar({ value, onChange }: DateFilterBarProps) {
           <button
             key={preset.label}
             onClick={() => handlePreset(preset)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[36px] ${
               active
                 ? 'bg-rose-500 text-white'
                 : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-100'
@@ -91,24 +91,24 @@ export function DateFilterBar({ value, onChange }: DateFilterBarProps) {
         );
       })}
 
-      <div className="flex items-center gap-1.5">
+      <div className="hidden sm:flex items-center gap-1.5">
         <input
           type="date"
           value={customStart}
           onChange={(e) => setCustomStart(e.target.value)}
-          className="h-8 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
+          className="h-9 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
         />
         <span className="text-zinc-600 text-sm">até</span>
         <input
           type="date"
           value={customEnd}
           onChange={(e) => setCustomEnd(e.target.value)}
-          className="h-8 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
+          className="h-9 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
         />
         {(customStart || customEnd) && (
           <button
             onClick={handleCustomApply}
-            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-rose-500 text-white hover:bg-rose-600 transition-colors"
+            className="px-3 py-2 rounded-lg text-sm font-medium bg-rose-500 text-white hover:bg-rose-600 transition-colors"
           >
             Aplicar
           </button>
@@ -118,7 +118,7 @@ export function DateFilterBar({ value, onChange }: DateFilterBarProps) {
       {value && (
         <button
           onClick={handleClear}
-          className="px-3 py-1.5 rounded-lg text-sm text-zinc-500 hover:text-zinc-300 transition-colors underline"
+          className="px-3 py-2 rounded-lg text-sm text-zinc-500 hover:text-zinc-300 transition-colors underline min-h-[36px]"
         >
           Limpar
         </button>
