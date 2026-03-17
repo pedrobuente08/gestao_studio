@@ -4,9 +4,11 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { UserRole, TransactionType } from '@prisma/client';
+import { UserRole, TransactionType, TransactionCategory } from '@prisma/client';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
+import { CreateRecurringExpenseDto } from './dto/create-recurring-expense.dto';
+import { UpdateRecurringExpenseDto } from './dto/update-recurring-expense.dto';
 
 @Injectable()
 export class FinancialService {
@@ -215,6 +217,89 @@ export class FinancialService {
     }
 
     return this.prisma.transaction.delete({ where: { id } });
+  }
+
+  // ── Gastos Recorrentes ──────────────────────────────────────────────────────
+
+  async listRecurring(tenantId: string) {
+    return this.prisma.recurringExpense.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async createRecurring(tenantId: string, dto: CreateRecurringExpenseDto) {
+    return this.prisma.recurringExpense.create({
+      data: {
+        tenantId,
+        name: dto.name,
+        amount: dto.amount,
+        category: dto.category ?? TransactionCategory.FIXED,
+        dayOfMonth: dto.dayOfMonth ?? 1,
+      },
+    });
+  }
+
+  async updateRecurring(id: string, tenantId: string, dto: UpdateRecurringExpenseDto) {
+    const expense = await this.prisma.recurringExpense.findFirst({ where: { id, tenantId } });
+    if (!expense) throw new NotFoundException('Gasto recorrente não encontrado');
+
+    return this.prisma.recurringExpense.update({
+      where: { id },
+      data: {
+        name: dto.name,
+        amount: dto.amount,
+        category: dto.category,
+        dayOfMonth: dto.dayOfMonth,
+        isActive: dto.isActive,
+      },
+    });
+  }
+
+  async deleteRecurring(id: string, tenantId: string) {
+    const expense = await this.prisma.recurringExpense.findFirst({ where: { id, tenantId } });
+    if (!expense) throw new NotFoundException('Gasto recorrente não encontrado');
+    return this.prisma.recurringExpense.delete({ where: { id } });
+  }
+
+  // Lança transações do mês atual para todos os recorrentes ativos de um tenant.
+  // Seguro chamar múltiplas vezes: verifica se já foi lançado no mês antes de criar.
+  async processMonthlyRecurring(tenantId: string) {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const recurring = await this.prisma.recurringExpense.findMany({
+      where: { tenantId, isActive: true },
+    });
+
+    let created = 0;
+    for (const expense of recurring) {
+      const alreadyExists = await this.prisma.transaction.findFirst({
+        where: {
+          tenantId,
+          recurringExpenseId: expense.id,
+          date: { gte: monthStart, lte: monthEnd },
+        },
+      });
+      if (alreadyExists) continue;
+
+      const day = Math.min(expense.dayOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate());
+      await this.prisma.transaction.create({
+        data: {
+          tenantId,
+          type: TransactionType.EXPENSE,
+          category: expense.category,
+          amount: expense.amount,
+          description: expense.name,
+          date: new Date(now.getFullYear(), now.getMonth(), day),
+          recurringExpenseId: expense.id,
+        },
+      });
+      created++;
+    }
+
+    return { processed: recurring.length, created };
   }
 
   async getRevenueSplit(

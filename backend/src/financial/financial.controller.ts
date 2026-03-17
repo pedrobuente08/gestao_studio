@@ -13,6 +13,8 @@ import {
 import { FinancialService } from './financial.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
+import { CreateRecurringExpenseDto } from './dto/create-recurring-expense.dto';
+import { UpdateRecurringExpenseDto } from './dto/update-recurring-expense.dto';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -81,6 +83,44 @@ export class FinancialController {
   ) {
     return this.financialService.getRevenueSplit(tenantId, { startDate, endDate });
   }
+
+  // ── Gastos Recorrentes ──────────────────────────────────────────────────────
+
+  @Get('recurring')
+  @Roles('OWNER', 'STAFF')
+  listRecurring(@CurrentTenant() tenantId: string) {
+    return this.financialService.listRecurring(tenantId);
+  }
+
+  @Post('recurring')
+  @Roles('OWNER', 'STAFF')
+  createRecurring(@CurrentTenant() tenantId: string, @Body() dto: CreateRecurringExpenseDto) {
+    return this.financialService.createRecurring(tenantId, dto);
+  }
+
+  @Patch('recurring/:id')
+  @Roles('OWNER', 'STAFF')
+  updateRecurring(
+    @Param('id') id: string,
+    @CurrentTenant() tenantId: string,
+    @Body() dto: UpdateRecurringExpenseDto,
+  ) {
+    return this.financialService.updateRecurring(id, tenantId, dto);
+  }
+
+  @Delete('recurring/:id')
+  @Roles('OWNER', 'STAFF')
+  deleteRecurring(@Param('id') id: string, @CurrentTenant() tenantId: string) {
+    return this.financialService.deleteRecurring(id, tenantId);
+  }
+
+  @Post('recurring/process')
+  @Roles('OWNER', 'STAFF')
+  processMonthlyRecurring(@CurrentTenant() tenantId: string) {
+    return this.financialService.processMonthlyRecurring(tenantId);
+  }
+
+  // ── Transações individuais ──────────────────────────────────────────────────
 
   @Get(':id')
   @Roles('OWNER', 'STAFF', 'EMPLOYEE')

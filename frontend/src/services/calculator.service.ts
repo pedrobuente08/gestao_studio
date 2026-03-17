@@ -7,7 +7,7 @@ export const calculatorService = {
     return res.data;
   },
   async addCost(data: CreateCostData, type: 'fixed' | 'variable'): Promise<Cost> {
-    const res = await api.post<Cost>(`/calculator/costs`, data, { params: { type } });
+    const res = await api.post<Cost>(`/calculator/costs`, { ...data, type });
     return res.data;
   },
   async updateCost(id: string, data: Partial<CreateCostData>, type: 'fixed' | 'variable'): Promise<Cost> {

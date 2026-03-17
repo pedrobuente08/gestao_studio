@@ -30,6 +30,7 @@ import { CalculatorMode } from '@/types/calculator.types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageOverlay } from '@/components/ui/page-loader';
 import { PageHeader } from '@/components/ui/page-header';
+import { useAuthStore } from '@/stores/auth.store';
 
 const settingsSchema = z.object({
   hoursPerMonth: z.coerce.number().min(1, 'Mínimo de 1 hora'),
@@ -46,6 +47,9 @@ type SettingsFormData = z.infer<typeof settingsSchema>;
 type CostFormData = z.infer<typeof costSchema>;
 
 export default function CalculatorPage() {
+  const { user } = useAuthStore();
+  const isStudioTenant = user?.tenantType === 'STUDIO';
+
   const {
     result: data,
     isLoading,
@@ -56,6 +60,7 @@ export default function CalculatorPage() {
     isSettingWorkSettings,
   } = useCalculator();
 
+  const [addingType, setAddingType] = useState<'fixed' | 'variable' | null>(null);
   const [simHours, setSimHours] = useState(2);
   const [simComplexity, setSimComplexity] = useState(1.2);
   const [desiredNet, setDesiredNet] = useState(0);
@@ -68,7 +73,11 @@ export default function CalculatorPage() {
     resolver: zodResolver(settingsSchema) as any,
   });
 
-  const costForm = useForm<CostFormData>({
+  const fixedCostForm = useForm<CostFormData>({
+    resolver: zodResolver(costSchema) as any,
+  });
+
+  const variableCostForm = useForm<CostFormData>({
     resolver: zodResolver(costSchema) as any,
   });
 
@@ -86,9 +95,10 @@ export default function CalculatorPage() {
       ? Math.round((desiredNet * 100 + totalVariableCents) / (1 - studioPct))
       : 0;
 
-  const handleAddCost = (type: 'fixed' | 'variable') => (formData: CostFormData) => {
-    addCost({ data: { ...formData, type }, type });
-    costForm.reset();
+  const handleAddCost = (type: 'fixed' | 'variable', reset: () => void) => (formData: CostFormData) => {
+    setAddingType(type);
+    addCost({ data: { ...formData, type }, type }, { onSettled: () => setAddingType(null) });
+    reset();
   };
 
   const handleUpdateSettings = (formData: SettingsFormData) => {
@@ -152,48 +162,64 @@ export default function CalculatorPage() {
         description="Entenda seus custos e defina preços lucrativos"
       />
 
-      {/* Toggle de Modo */}
-      <div className="flex gap-3">
-        <button
-          onClick={() => handleSwitchMode('AUTONOMOUS')}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium border transition-all ${
-            !isStudioMode
-              ? 'bg-rose-500/10 border-rose-500 text-rose-500'
-              : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
-          }`}
-        >
-          <Home className="h-4 w-4" />
-          Tenho meu próprio espaço
-        </button>
-        <button
-          onClick={() => handleSwitchMode('STUDIO_PERCENTAGE')}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium border transition-all ${
-            isStudioMode
-              ? 'bg-rose-500/10 border-rose-500 text-rose-500'
-              : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
-          }`}
-        >
-          <Building2 className="h-4 w-4" />
-          Trabalho em studio (pago percentual)
-        </button>
-      </div>
+      {/* Toggle de Modo — apenas para autônomos */}
+      {!isStudioTenant && (
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={() => handleSwitchMode('AUTONOMOUS')}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium border transition-all ${
+              !isStudioMode
+                ? 'bg-rose-500/10 border-rose-500 text-rose-500'
+                : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+            }`}
+          >
+            <Home className="h-4 w-4" />
+            Tenho meu próprio espaço
+          </button>
+          <button
+            onClick={() => handleSwitchMode('STUDIO_PERCENTAGE')}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium border transition-all ${
+              isStudioMode
+                ? 'bg-rose-500/10 border-rose-500 text-rose-500'
+                : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+            }`}
+          >
+            <Building2 className="h-4 w-4" />
+            Trabalho em studio (pago percentual)
+          </button>
+        </div>
+      )}
 
       <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
         {/* Coluna da Esquerda: Custos */}
         <div className="lg:col-span-2 space-y-8">
           {/* Custos Fixos — só no modo autônomo */}
           {!isStudioMode && (
-            <Card title="Custos Fixos Mensais" description="Aluguel, luz, internet, etc.">
+            <Card
+              title="Custos Fixos Mensais"
+              description="Tudo que você paga todo mês, independente de trabalhar ou não"
+            >
+              <div className="mb-5 rounded-lg bg-zinc-800/60 border border-zinc-700/50 p-4 text-xs text-zinc-400 space-y-2 leading-relaxed">
+                <p>
+                  Custos fixos são os gastos que existem <span className="text-zinc-200 font-medium">independente da sua produção</span> — mesmo num mês sem atendimentos, eles continuam. Exemplos: aluguel, internet, assinaturas, contador.
+                </p>
+                <p>
+                  Custos como energia elétrica variam, mas são essenciais e previsíveis — <span className="text-zinc-200 font-medium">cadastre o valor médio mensal</span>. Dessa forma sua precificação absorve essas variações sem surpresas.
+                </p>
+                <p className="text-zinc-500">
+                  💡 Dica: some tudo que sai da sua conta todo mês antes de você fazer um único atendimento.
+                </p>
+              </div>
               <div className="space-y-6">
                 <form
-                  onSubmit={costForm.handleSubmit((d) => handleAddCost('fixed')(d as CostFormData))}
+                  onSubmit={fixedCostForm.handleSubmit((d) => handleAddCost('fixed', fixedCostForm.reset)(d as CostFormData))}
                   className="flex gap-3 items-end"
                 >
                   <div className="flex-1">
                     <Input
                       label="Novo Custo Fixo"
                       placeholder="Ex: Aluguel"
-                      {...costForm.register('name')}
+                      {...fixedCostForm.register('name')}
                     />
                   </div>
                   <div className="w-32 sm:w-48">
@@ -202,10 +228,10 @@ export default function CalculatorPage() {
                       type="number"
                       step="0.01"
                       placeholder="200,00"
-                      {...costForm.register('amount')}
+                      {...fixedCostForm.register('amount')}
                     />
                   </div>
-                  <Button type="submit" size="sm" className="mb-0.5" isLoading={isAddingCost}>
+                  <Button type="submit" size="sm" className="mb-0.5" isLoading={addingType === 'fixed'}>
                     <Plus className="h-4 w-4" />
                   </Button>
                 </form>
@@ -251,17 +277,31 @@ export default function CalculatorPage() {
           )}
 
           {/* Custos Variáveis — sempre visível */}
-          <Card title="Custos Variáveis por Atendimento" description="Materiais, transporte, descartáveis, etc.">
+          <Card
+            title="Custos Variáveis por Atendimento"
+            description="O que você gasta a cada sessão realizada"
+          >
+            <div className="mb-5 rounded-lg bg-zinc-800/60 border border-zinc-700/50 p-4 text-xs text-zinc-400 space-y-2 leading-relaxed">
+              <p>
+                Custos variáveis são os gastos que só ocorrem <span className="text-zinc-200 font-medium">quando você realiza um atendimento</span>. Eles aumentam proporcionalmente com sua produção. Exemplos: agulhas, tintas, películas, luvas, transporte.
+              </p>
+              <p>
+                Cadastre aqui o <span className="text-zinc-200 font-medium">custo médio por sessão</span> de cada item. Esses valores serão somados automaticamente ao preço mínimo sugerido para cada atendimento.
+              </p>
+              <p className="text-zinc-500">
+                💡 Dica: se você gasta R$ 60 em materiais por mês e faz em média 10 sessões, o custo por sessão é R$ 6.
+              </p>
+            </div>
             <div className="space-y-6">
               <form
-                onSubmit={costForm.handleSubmit((d) => handleAddCost('variable')(d as CostFormData))}
+                onSubmit={variableCostForm.handleSubmit((d) => handleAddCost('variable', variableCostForm.reset)(d as CostFormData))}
                 className="flex gap-3 items-end"
               >
                 <div className="flex-1">
                   <Input
                     label="Descrição"
                     placeholder="Ex: Agulhas, Uber"
-                    {...costForm.register('name')}
+                    {...variableCostForm.register('name')}
                   />
                 </div>
                 <div className="w-32 sm:w-48">
@@ -270,10 +310,10 @@ export default function CalculatorPage() {
                     type="number"
                     step="0.01"
                     placeholder="15,00"
-                    {...costForm.register('amount')}
+                    {...variableCostForm.register('amount')}
                   />
                 </div>
-                <Button type="submit" size="sm" className="mb-0.5" isLoading={isAddingCost}>
+                <Button type="submit" size="sm" className="mb-0.5" isLoading={addingType === 'variable'}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </form>
@@ -321,6 +361,22 @@ export default function CalculatorPage() {
         {/* Coluna da Direita: Configurações e Simulador */}
         <div className="space-y-8">
           <Card title="Configurações">
+            <div className="mb-4 rounded-lg bg-zinc-800/60 border border-zinc-700/50 p-4 text-xs text-zinc-400 space-y-2 leading-relaxed">
+              {!isStudioMode ? (
+                <>
+                  <p>
+                    <span className="text-zinc-200 font-medium">Horas mensais:</span> considere apenas as horas efetivamente produtivas (em atendimento). Uma semana de trabalho com 5h/dia resulta em ~80h/mês. Inclua uma margem para dias sem agendamento.
+                  </p>
+                  <p>
+                    <span className="text-zinc-200 font-medium">Margem de lucro:</span> é o percentual que você quer ganhar além de cobrir seus custos. No mercado criativo, margens entre <span className="text-zinc-200">20% e 40%</span> são comuns. Abaixo de 20% você mal cobre imprevistos; acima de 50% pode afastar clientes.
+                  </p>
+                </>
+              ) : (
+                <p>
+                  <span className="text-zinc-200 font-medium">Percentual ao studio:</span> é a parte do valor cobrado que fica com o studio. Se você cobra R$ 400 e o percentual é 40%, você fica com R$ 240. Use esse campo para entender quanto precisa cobrar para atingir o lucro desejado.
+                </p>
+              )}
+            </div>
             <form
               onSubmit={settingsForm.handleSubmit((d) => handleUpdateSettings(d as SettingsFormData))}
               className="space-y-4"
@@ -330,7 +386,7 @@ export default function CalculatorPage() {
                   <Input
                     label="Horas de Trabalho Mensal"
                     type="number"
-                    placeholder={data?.hoursPerMonth?.toString() || '100'}
+                    placeholder={data?.hoursPerMonth?.toString() || '80'}
                     {...settingsForm.register('hoursPerMonth')}
                   />
                   <Input
@@ -344,7 +400,7 @@ export default function CalculatorPage() {
                 <Input
                   label="Percentual pago ao studio (%)"
                   type="number"
-                  placeholder={data?.studioPercentage?.toString() || '30'}
+                  placeholder={data?.studioPercentage?.toString() || '40'}
                   {...settingsForm.register('studioPercentage')}
                 />
               )}

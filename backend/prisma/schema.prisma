@@ -21,19 +21,20 @@ model Tenant {
   phone            String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
-  clients          Client[]
-  fixedCosts       FixedCost[]
-  linkedAsGuest    GuestLocation[]    @relation("LinkedGuest")
-  guestLocations   GuestLocation[]
-  procedures       Procedure[]
-  seedTrainingData SeedTrainingData[]
-  serviceTypes     ServiceType[]
-  studioConfig     StudioConfig?
-  sessions         TattooSession[]
-  transactions     Transaction[]
-  users            User[]
-  variableCosts    VariableCost[]
-  workSettings     WorkSettings?
+  clients             Client[]
+  fixedCosts          FixedCost[]
+  linkedAsGuest       GuestLocation[]    @relation("LinkedGuest")
+  guestLocations      GuestLocation[]
+  procedures          Procedure[]
+  seedTrainingData    SeedTrainingData[]
+  serviceTypes        ServiceType[]
+  studioConfig        StudioConfig?
+  sessions            TattooSession[]
+  transactions        Transaction[]
+  users               User[]
+  variableCosts       VariableCost[]
+  workSettings        WorkSettings?
+  recurringExpenses   RecurringExpense[]
 }
 
 model User {
@@ -220,21 +221,37 @@ model TattooSession {
 }
 
 model Transaction {
-  id            String              @id @default(cuid())
-  tenantId      String
-  type          TransactionType
-  category      TransactionCategory
-  amount        Int
-  paymentMethod PaymentMethod?
-  clientId      String?
-  sessionId     String?             @unique
-  description   String?
-  date          DateTime
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  client        Client?             @relation(fields: [clientId], references: [id])
-  session       TattooSession?      @relation(fields: [sessionId], references: [id])
-  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id                  String              @id @default(cuid())
+  tenantId            String
+  type                TransactionType
+  category            TransactionCategory
+  amount              Int
+  paymentMethod       PaymentMethod?
+  clientId            String?
+  sessionId           String?             @unique
+  recurringExpenseId  String?
+  description         String?
+  date                DateTime
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  client              Client?             @relation(fields: [clientId], references: [id])
+  session             TattooSession?      @relation(fields: [sessionId], references: [id])
+  tenant              Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  recurringExpense    RecurringExpense?   @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
+}
+
+model RecurringExpense {
+  id           String              @id @default(cuid())
+  tenantId     String
+  name         String
+  amount       Int
+  category     TransactionCategory @default(FIXED)
+  dayOfMonth   Int                 @default(1)
+  isActive     Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
 }
 
 model FixedCost {

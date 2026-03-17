@@ -35,3 +35,24 @@ export interface CreateTransactionData {
 }
 
 export type UpdateTransactionData = Partial<CreateTransactionData>;
+
+export interface RecurringExpense {
+  id: string;
+  tenantId: string;
+  name: string;
+  amount: number; // em centavos
+  category: TransactionCategory;
+  dayOfMonth: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateRecurringExpenseData {
+  name: string;
+  amount: number; // em centavos
+  category?: TransactionCategory;
+  dayOfMonth?: number;
+}
+
+export type UpdateRecurringExpenseData = Partial<CreateRecurringExpenseData & { isActive: boolean }>;

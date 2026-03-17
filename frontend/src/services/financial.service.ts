@@ -1,5 +1,5 @@
 import api from './api';
-import { Transaction, CreateTransactionData, UpdateTransactionData, FinancialSummary } from '@/types/financial.types';
+import { Transaction, CreateTransactionData, UpdateTransactionData, FinancialSummary, RecurringExpense, CreateRecurringExpenseData, UpdateRecurringExpenseData } from '@/types/financial.types';
 
 export const financialService = {
   async getAll(params?: { type?: string; category?: string; startDate?: string; endDate?: string; userId?: string }): Promise<Transaction[]> {
@@ -28,5 +28,25 @@ export const financialService = {
   },
   async remove(id: string): Promise<void> {
     await api.delete(`/financial/${id}`);
+  },
+
+  async listRecurring(): Promise<RecurringExpense[]> {
+    const res = await api.get<RecurringExpense[]>('/financial/recurring');
+    return res.data;
+  },
+  async createRecurring(data: CreateRecurringExpenseData): Promise<RecurringExpense> {
+    const res = await api.post<RecurringExpense>('/financial/recurring', data);
+    return res.data;
+  },
+  async updateRecurring(id: string, data: UpdateRecurringExpenseData): Promise<RecurringExpense> {
+    const res = await api.patch<RecurringExpense>(`/financial/recurring/${id}`, data);
+    return res.data;
+  },
+  async deleteRecurring(id: string): Promise<void> {
+    await api.delete(`/financial/recurring/${id}`);
+  },
+  async processMonthlyRecurring(): Promise<{ processed: number; created: number }> {
+    const res = await api.post('/financial/recurring/process');
+    return res.data;
   },
 };

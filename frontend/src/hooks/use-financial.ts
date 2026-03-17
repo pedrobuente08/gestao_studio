@@ -1,7 +1,7 @@
 'use client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financialService } from '@/services/financial.service';
-import { CreateTransactionData, UpdateTransactionData } from '@/types/financial.types';
+import { CreateTransactionData, UpdateTransactionData, CreateRecurringExpenseData, UpdateRecurringExpenseData } from '@/types/financial.types';
 
 export function useFinancialMonthlySummary() {
   return useQuery({
@@ -103,5 +103,49 @@ export function useFinancial(params?: { type?: string; category?: string; startD
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isRemoving: removeMutation.isPending,
+  };
+}
+
+export function useRecurringExpenses() {
+  const queryClient = useQueryClient();
+
+  const { data: recurring = [], isLoading } = useQuery({
+    queryKey: ['recurring-expenses'],
+    queryFn: financialService.listRecurring,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreateRecurringExpenseData) => financialService.createRecurring(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recurring-expenses'] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateRecurringExpenseData }) =>
+      financialService.updateRecurring(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recurring-expenses'] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => financialService.deleteRecurring(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recurring-expenses'] }),
+  });
+
+  const processMutation = useMutation({
+    mutationFn: financialService.processMonthlyRecurring,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['financial'] }),
+  });
+
+  return {
+    recurring,
+    isLoading,
+    createRecurring: createMutation.mutate,
+    updateRecurring: updateMutation.mutate,
+    deleteRecurring: deleteMutation.mutate,
+    processRecurring: processMutation.mutate,
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
+    isProcessing: processMutation.isPending,
+    processResult: processMutation.data,
   };
 }

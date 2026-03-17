@@ -20,10 +20,11 @@ import { PageHeader } from '@/components/ui/page-header';
 import { DateFilterBar, DateFilter } from '@/components/ui/date-filter-bar';
 import { formatCurrency } from '@/utils/format-currency';
 import { formatDate } from '@/utils/format-date';
-import { Plus, Search, TrendingDown, TrendingUp, MoreVertical, Wallet } from 'lucide-react';
-import { Transaction } from '@/types/financial.types';
+import { Plus, Search, TrendingDown, TrendingUp, MoreVertical, Wallet, RefreshCw, Repeat2, Pencil, Trash2, X, Check } from 'lucide-react';
+import { Transaction, RecurringExpense } from '@/types/financial.types';
 import { TRANSACTION_CATEGORY_LABELS, PAYMENT_METHOD_LABELS } from '@/utils/constants';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRecurringExpenses } from '@/hooks/use-financial';
 
 export default function FinancialPage() {
   const [dateFilter, setDateFilter] = useState<DateFilter | null>(null);
@@ -31,8 +32,12 @@ export default function FinancialPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>();
+  const [showRecurring, setShowRecurring] = useState(false);
+  const [editingRecurring, setEditingRecurring] = useState<RecurringExpense | null>(null);
+  const [recurringForm, setRecurringForm] = useState({ name: '', amount: '', category: 'FIXED', dayOfMonth: '1' });
 
   const { employees } = useEmployees();
+  const { recurring, createRecurring, updateRecurring, deleteRecurring, processRecurring, isCreating, isProcessing, processResult } = useRecurringExpenses();
 
   const { transactions, summary, isLoading, isError } = useFinancial({
     startDate: dateFilter?.startDate,
@@ -131,6 +136,151 @@ export default function FinancialPage() {
           Nova Transação
         </Button>
       </PageHeader>
+
+      {/* Gastos Recorrentes */}
+      <div className="mb-6 rounded-lg border border-zinc-800 bg-zinc-900/50">
+        <button
+          onClick={() => setShowRecurring((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-zinc-300 hover:text-zinc-100 transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <Repeat2 className="h-4 w-4 text-rose-400" />
+            Gastos Recorrentes
+            <span className="text-xs text-zinc-500 font-normal">
+              ({recurring.filter(r => r.isActive).length} ativo{recurring.filter(r => r.isActive).length !== 1 ? 's' : ''})
+            </span>
+          </span>
+          <span className="text-zinc-600 text-xs">{showRecurring ? '▲' : '▼'}</span>
+        </button>
+
+        {showRecurring && (
+          <div className="border-t border-zinc-800 p-4 space-y-4">
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              Cadastre aqui os gastos que se repetem todo mês (aluguel, internet, IPTU, etc.). No dia 1º de cada mês eles são lançados automaticamente como despesas no financeiro. Você pode editar o valor quando ele mudar.
+            </p>
+
+            {/* Formulário de novo recorrente */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-end">
+              <input
+                placeholder="Nome (ex: Aluguel)"
+                value={recurringForm.name}
+                onChange={(e) => setRecurringForm(f => ({ ...f, name: e.target.value }))}
+                className="col-span-2 sm:col-span-1 rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-rose-500"
+              />
+              <input
+                placeholder="Valor R$"
+                type="number"
+                step="0.01"
+                value={recurringForm.amount}
+                onChange={(e) => setRecurringForm(f => ({ ...f, amount: e.target.value }))}
+                className="rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-rose-500"
+              />
+              <select
+                value={recurringForm.category}
+                onChange={(e) => setRecurringForm(f => ({ ...f, category: e.target.value }))}
+                className="rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-rose-500"
+              >
+                {Object.entries(TRANSACTION_CATEGORY_LABELS).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+              <Button
+                size="sm"
+                isLoading={isCreating}
+                disabled={!recurringForm.name || !recurringForm.amount}
+                onClick={() => {
+                  createRecurring({
+                    name: recurringForm.name,
+                    amount: Math.round(parseFloat(recurringForm.amount) * 100),
+                    category: recurringForm.category as any,
+                    dayOfMonth: parseInt(recurringForm.dayOfMonth) || 1,
+                  }, {
+                    onSuccess: () => setRecurringForm({ name: '', amount: '', category: 'FIXED', dayOfMonth: '1' }),
+                  });
+                }}
+              >
+                <Plus className="h-4 w-4 mr-1" /> Adicionar
+              </Button>
+            </div>
+
+            {/* Lista de recorrentes */}
+            {recurring.length > 0 && (
+              <div className="space-y-2">
+                {recurring.map((r) => (
+                  <div key={r.id} className={`flex items-center justify-between gap-3 rounded-md px-3 py-2 border transition-colors ${r.isActive ? 'bg-zinc-800/50 border-zinc-700' : 'bg-zinc-900/30 border-zinc-800 opacity-50'}`}>
+                    {editingRecurring?.id === r.id ? (
+                      <div className="flex flex-1 items-center gap-2 flex-wrap">
+                        <input
+                          value={editingRecurring.name}
+                          onChange={(e) => setEditingRecurring(prev => prev ? { ...prev, name: e.target.value } : null)}
+                          className="flex-1 min-w-24 rounded bg-zinc-700 border border-zinc-600 px-2 py-1 text-xs text-zinc-100 outline-none focus:border-rose-500"
+                        />
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={(editingRecurring.amount / 100).toFixed(2)}
+                          onChange={(e) => setEditingRecurring(prev => prev ? { ...prev, amount: Math.round(parseFloat(e.target.value) * 100) } : null)}
+                          className="w-24 rounded bg-zinc-700 border border-zinc-600 px-2 py-1 text-xs text-zinc-100 outline-none focus:border-rose-500"
+                        />
+                        <button onClick={() => {
+                          updateRecurring({ id: r.id, data: { name: editingRecurring.name, amount: editingRecurring.amount } });
+                          setEditingRecurring(null);
+                        }} className="text-emerald-400 hover:text-emerald-300">
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => setEditingRecurring(null)} className="text-zinc-500 hover:text-zinc-300">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-zinc-200 truncate">{r.name}</p>
+                          <p className="text-xs text-zinc-500">{TRANSACTION_CATEGORY_LABELS[r.category as keyof typeof TRANSACTION_CATEGORY_LABELS]} · dia {r.dayOfMonth}</p>
+                        </div>
+                        <span className="text-sm font-semibold text-rose-400 shrink-0">{formatCurrency(r.amount)}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => updateRecurring({ id: r.id, data: { isActive: !r.isActive } })}
+                            className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${r.isActive ? 'border-zinc-600 text-zinc-400 hover:border-rose-500 hover:text-rose-400' : 'border-zinc-700 text-zinc-600 hover:border-emerald-500 hover:text-emerald-400'}`}
+                          >
+                            {r.isActive ? 'Pausar' : 'Ativar'}
+                          </button>
+                          <button onClick={() => setEditingRecurring(r)} className="text-zinc-500 hover:text-zinc-300 p-1">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button onClick={() => deleteRecurring(r.id)} className="text-zinc-500 hover:text-rose-400 p-1">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Botão lançar manualmente */}
+            <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
+              <p className="text-xs text-zinc-600">O lançamento automático ocorre todo dia 1º às 6h.</p>
+              <Button
+                variant="outline"
+                size="sm"
+                isLoading={isProcessing}
+                onClick={() => processRecurring(undefined)}
+              >
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Lançar agora
+              </Button>
+            </div>
+            {processResult && (
+              <p className="text-xs text-emerald-400">
+                ✓ {processResult.created} transaç{processResult.created !== 1 ? 'ões' : 'ão'} lançada{processResult.created !== 1 ? 's' : ''} ({processResult.processed} recorrente{processResult.processed !== 1 ? 's' : ''} verificado{processResult.processed !== 1 ? 's' : ''}).
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Filtros */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
