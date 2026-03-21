@@ -87,7 +87,7 @@ export function BarChart({ data, height = 300, layout = 'vertical', color = '#f4
               <LabelList
                 dataKey="value"
                 position="right"
-                formatter={(value: number) => formatCurrency(value)}
+                formatter={(value: unknown) => formatCurrency(value as number)}
                 style={{ fill: '#a1a1aa', fontSize: 12 }}
               />
             )}
