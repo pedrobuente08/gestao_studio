@@ -23,6 +23,23 @@ export class AppService {
     this.logger.log('Keep-alive do banco executado.');
   }
 
+  // Roda todo domingo às 4h — limpa registros expirados/obsoletos do banco
+  @Cron('0 4 * * 0')
+  async cleanupDatabase() {
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+
+    const [predictions, sessions, verifications] = await Promise.all([
+      this.prisma.mLPrediction.deleteMany({ where: { createdAt: { lt: sixtyDaysAgo } } }),
+      this.prisma.session.deleteMany({ where: { expiresAt: { lt: now } } }),
+      this.prisma.verification.deleteMany({ where: { expiresAt: { lt: now } } }),
+    ]);
+
+    this.logger.log(
+      `Limpeza semanal: ${predictions.count} predições ML, ${sessions.count} sessões auth, ${verifications.count} verificações removidas.`,
+    );
+  }
+
   // Roda todo dia 1 às 6h — lança transações dos gastos recorrentes de cada tenant
   @Cron('0 6 1 * *')
   async processAllRecurringExpenses() {

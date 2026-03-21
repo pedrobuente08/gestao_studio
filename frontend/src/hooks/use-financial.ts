@@ -132,7 +132,12 @@ export function useRecurringExpenses() {
 
   const processMutation = useMutation({
     mutationFn: financialService.processMonthlyRecurring,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['financial'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['financial-monthly-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['recurring-expenses'] });
+    },
   });
 
   return {
