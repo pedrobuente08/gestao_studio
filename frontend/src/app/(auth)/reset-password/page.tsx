@@ -73,7 +73,7 @@ function ResetPasswordContent() {
     return (
       <div className="space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-rose-500">InkStudio</h1>
+          <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
           <p className="mt-2 text-zinc-400">Defina sua nova senha</p>
         </div>
 
@@ -122,7 +122,7 @@ function ResetPasswordContent() {
     return (
       <div className="space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-rose-500">InkStudio</h1>
+          <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
           <p className="mt-2 text-zinc-400">Email enviado!</p>
         </div>
         <div className="rounded-lg bg-green-500/10 p-4 text-center text-sm text-green-500">
@@ -144,7 +144,7 @@ function ResetPasswordContent() {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-rose-500">InkStudio</h1>
+        <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
         <p className="mt-2 text-zinc-400">Recuperar senha</p>
       </div>
 
@@ -185,7 +185,7 @@ function LoadingFallback() {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-rose-500">InkStudio</h1>
+        <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
         <p className="mt-2 text-zinc-400">Carregando...</p>
       </div>
       <div className="flex justify-center">

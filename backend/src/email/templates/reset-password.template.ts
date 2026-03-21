@@ -5,12 +5,12 @@ export function resetPasswordTemplate(name: string, resetUrl: string): string {
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Recuperação de senha — InkStudio</title>
+        <title>Recuperação de senha — Tattoo Hub</title>
       </head>
       <body style="margin:0; padding:0; background:#09090b; color:#f4f4f5; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
         <div style="max-width:600px; margin:0 auto; padding:40px 20px;">
           <div style="text-align:center; margin-bottom:32px;">
-            <h1 style="margin:0; font-size:28px; font-weight:700; color:#f43f5e;">InkStudio</h1>
+            <h1 style="margin:0; font-size:28px; font-weight:700; color:#f43f5e;">Tattoo Hub</h1>
           </div>
 
           <div style="background:#18181b; border:1px solid #27272a; border-radius:12px; padding:32px;">
@@ -18,7 +18,7 @@ export function resetPasswordTemplate(name: string, resetUrl: string): string {
               Olá, ${name}! 🔐
             </h2>
             <p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#a1a1aa;">
-              Recebemos uma solicitação para redefinir a senha da sua conta InkStudio.
+              Recebemos uma solicitação para redefinir a senha da sua conta Tattoo Hub.
               Clique no botão abaixo para criar uma nova senha:
             </p>
 
@@ -47,7 +47,7 @@ export function resetPasswordTemplate(name: string, resetUrl: string): string {
           </div>
 
           <p style="text-align:center; margin-top:24px; font-size:12px; color:#52525b;">
-            © ${new Date().getFullYear()} InkStudio. Todos os direitos reservados.
+            © ${new Date().getFullYear()} Tattoo Hub. Todos os direitos reservados.
           </p>
         </div>
       </body>

@@ -23,9 +23,9 @@ export class EmailService {
 
     try {
       await this.resend.emails.send({
-        from: `InkStudio <${this.fromEmail}>`,
+        from: `Tattoo Hub <${this.fromEmail}>`,
         to,
-        subject: 'Verifique seu email — InkStudio',
+        subject: 'Verifique seu email — Tattoo Hub',
         html,
       });
       this.logger.log(`Email de verificação enviado para ${to}`);
@@ -41,9 +41,9 @@ export class EmailService {
 
     try {
       await this.resend.emails.send({
-        from: `InkStudio <${this.fromEmail}>`,
+        from: `Tattoo Hub <${this.fromEmail}>`,
         to,
-        subject: 'Recuperação de senha — InkStudio',
+        subject: 'Recuperação de senha — Tattoo Hub',
         html,
       });
       this.logger.log(`Email de recuperação de senha enviado para ${to}`);
@@ -58,9 +58,9 @@ export class EmailService {
 
     try {
       await this.resend.emails.send({
-        from: `InkStudio <${this.fromEmail}>`,
+        from: `Tattoo Hub <${this.fromEmail}>`,
         to,
-        subject: 'Boas-vindas ao InkStudio — Ative sua conta',
+        subject: 'Boas-vindas ao Tattoo Hub — Ative sua conta',
         html,
       });
       this.logger.log(`Email de boas-vindas enviado para ${to}`);

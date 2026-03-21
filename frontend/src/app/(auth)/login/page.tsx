@@ -82,7 +82,7 @@ export default function LoginPage() {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-rose-500">InkStudio</h1>
+        <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
         <p className="mt-2 text-zinc-400">Faça login na sua conta</p>
       </div>
 

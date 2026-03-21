@@ -56,7 +56,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center">
             <span className="text-white font-black text-sm italic">I</span>
           </div>
-          <span className="text-white font-bold tracking-tight">InkStudio</span>
+          <span className="text-white font-bold tracking-tight">Tattoo Hub</span>
         </div>
 
         {/* Espaço flexível */}

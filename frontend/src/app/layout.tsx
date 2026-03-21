@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'InkStudio - Gestão para Tatuadores',
+  title: 'Tattoo Hub - Gestão para Tatuadores',
   description: 'Sistema de gestão para tatuadores e estúdios de tatuagem',
 };
 

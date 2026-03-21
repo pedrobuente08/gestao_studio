@@ -13,7 +13,7 @@ export class AppService {
   ) {}
 
   getStatus() {
-    return { status: 'ok', name: 'InkStudio API' };
+    return { status: 'ok', name: 'Tattoo Hub API' };
   }
 
   // Roda a cada 5 dias para evitar que o Supabase pause o banco por inatividade

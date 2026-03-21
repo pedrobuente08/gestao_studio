@@ -80,7 +80,7 @@ export function Sidebar({ onClose }: SidebarProps) {
           <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-lg shadow-rose-500/20">
             <span className="text-white font-black text-xl italic">I</span>
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">InkStudio</span>
+          <span className="text-xl font-bold tracking-tight text-white">Tattoo Hub</span>
         </div>
         {onClose && (
           <button

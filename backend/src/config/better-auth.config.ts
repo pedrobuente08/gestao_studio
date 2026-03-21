@@ -28,12 +28,12 @@ export const auth = betterAuth({
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'noreply@tattoohubink.cloud',
         to: user.email,
-        subject: 'Recuperação de senha — InkStudio',
+        subject: 'Recuperação de senha — Tattoo Hub',
         html: `
           <div style="background:#09090b;padding:40px 16px;min-height:100vh;">
             <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#18181b;border-radius:12px;padding:40px 32px;border:1px solid #27272a;">
               <div style="margin-bottom:28px;">
-                <span style="font-size:22px;font-weight:900;color:#e11d48;font-style:italic;letter-spacing:-1px;">InkStudio</span>
+                <span style="font-size:22px;font-weight:900;color:#e11d48;font-style:italic;letter-spacing:-1px;">Tattoo Hub</span>
               </div>
               <h2 style="color:#ffffff;margin:0 0 12px;font-size:20px;">Olá, ${user.name}!</h2>
               <p style="color:#a1a1aa;margin:0 0 28px;font-size:15px;line-height:1.6;">Clique no botão abaixo para redefinir sua senha.</p>
@@ -56,12 +56,12 @@ export const auth = betterAuth({
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'noreply@tattoohubink.cloud',
         to: user.email,
-        subject: 'Verifique seu email — InkStudio',
+        subject: 'Verifique seu email — Tattoo Hub',
         html: `
           <div style="background:#09090b;padding:40px 16px;min-height:100vh;">
             <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#18181b;border-radius:12px;padding:40px 32px;border:1px solid #27272a;">
               <div style="margin-bottom:28px;">
-                <span style="font-size:22px;font-weight:900;color:#e11d48;font-style:italic;letter-spacing:-1px;">InkStudio</span>
+                <span style="font-size:22px;font-weight:900;color:#e11d48;font-style:italic;letter-spacing:-1px;">Tattoo Hub</span>
               </div>
               <h2 style="color:#ffffff;margin:0 0 12px;font-size:20px;">Olá, ${user.name}!</h2>
               <p style="color:#a1a1aa;margin:0 0 28px;font-size:15px;line-height:1.6;">Clique no botão abaixo para verificar seu email e ativar sua conta.</p>
@@ -69,7 +69,7 @@ export const auth = betterAuth({
                 Verificar Email
               </a>
               <p style="color:#52525b;font-size:12px;margin-top:32px;border-top:1px solid #27272a;padding-top:20px;">
-                Se você não criou uma conta no InkStudio, pode ignorar este email com segurança.
+                Se você não criou uma conta no Tattoo Hub, pode ignorar este email com segurança.
               </p>
             </div>
           </div>
