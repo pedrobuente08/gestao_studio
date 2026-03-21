@@ -28,15 +28,22 @@ export function useEmployees() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employees'] }),
   });
 
+  const removeMutation = useMutation({
+    mutationFn: (id: string) => employeesService.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employees'] }),
+  });
+
   return {
     employees,
     isLoading,
     createEmployee: createMutation.mutate,
     updateEmployee: updateMutation.mutate,
     deactivateEmployee: deactivateMutation.mutate,
+    removeEmployee: removeMutation.mutate,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeactivating: deactivateMutation.isPending,
+    isRemoving: removeMutation.isPending,
     createError: createMutation.error,
   };
 }

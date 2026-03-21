@@ -21,4 +21,9 @@ export const employeesService = {
     const response = await api.delete<Employee>(`/employees/${id}`);
     return response.data;
   },
+
+  async remove(id: string): Promise<{ success: boolean }> {
+    const response = await api.delete<{ success: boolean }>(`/employees/${id}/permanent`);
+    return response.data;
+  },
 };

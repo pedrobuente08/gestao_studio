@@ -39,4 +39,10 @@ export class EmployeesController {
   deactivate(@Param('id') id: string, @CurrentTenant() tenantId: string) {
     return this.employeesService.deactivate(id, tenantId);
   }
+
+  @Delete(':id/permanent')
+  @Roles('OWNER')
+  remove(@Param('id') id: string, @CurrentTenant() tenantId: string) {
+    return this.employeesService.remove(id, tenantId);
+  }
 }

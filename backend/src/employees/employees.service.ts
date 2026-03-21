@@ -105,4 +105,14 @@ export class EmployeesService {
       select: { id: true, name: true, email: true, role: true, status: true, serviceTypeId: true, createdAt: true },
     });
   }
+
+  async remove(id: string, tenantId: string) {
+    const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
+    if (!user) throw new NotFoundException('Prestador não encontrado');
+    if (user.role === 'OWNER') throw new ForbiddenException('Não é possível excluir o proprietário');
+    if (user.status !== 'INACTIVE') throw new BadRequestException('Desative o prestador antes de excluí-lo');
+
+    await this.prisma.user.delete({ where: { id } });
+    return { success: true };
+  }
 }

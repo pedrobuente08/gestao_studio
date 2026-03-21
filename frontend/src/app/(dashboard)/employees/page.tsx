@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { useEmployees } from '@/hooks/use-employees';
 import { EmployeeModal } from '@/components/modals/employee-modal';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Pencil, Check, X } from 'lucide-react';
+import { UserPlus, Pencil, Check, X, Trash2 } from 'lucide-react';
 
 export default function EmployeesPage() {
-  const { employees, isLoading, updateEmployee, deactivateEmployee } = useEmployees();
+  const { employees, isLoading, updateEmployee, deactivateEmployee, removeEmployee, isRemoving } = useEmployees();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPercentageId, setEditingPercentageId] = useState<string | null>(null);
   const [percentageInput, setPercentageInput] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const roleLabel = (role: string) =>
     role === 'STAFF' ? 'Staff' : 'Prestador';
@@ -77,6 +78,10 @@ export default function EmployeesPage() {
       ? deactivateEmployee(emp.id)
       : updateEmployee({ id: emp.id, data: { status: 'ACTIVE' } });
 
+  const handleDeleteConfirm = (id: string) => {
+    removeEmployee(id, { onSuccess: () => setConfirmDeleteId(null) });
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -134,13 +139,41 @@ export default function EmployeesPage() {
               </div>
             </div>
 
-            <div className="pt-1 border-t border-zinc-800">
+            <div className="pt-1 border-t border-zinc-800 space-y-2">
               <button
                 onClick={() => toggleStatus(emp)}
                 className="text-xs font-medium text-zinc-500 hover:text-rose-400 transition-colors bg-zinc-950/50 hover:bg-rose-500/10 px-3 py-1.5 rounded-md border border-zinc-800 hover:border-rose-500/20 w-full"
               >
                 {emp.status === 'ACTIVE' ? 'Desativar prestador' : 'Reativar prestador'}
               </button>
+              {emp.status === 'INACTIVE' && (
+                confirmDeleteId === emp.id ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-zinc-400 flex-1">Excluir permanentemente?</span>
+                    <button
+                      onClick={() => handleDeleteConfirm(emp.id)}
+                      disabled={isRemoving}
+                      className="text-xs font-medium text-rose-400 hover:text-rose-300 px-2 py-1 rounded border border-rose-500/30 hover:border-rose-500/60 transition-colors"
+                    >
+                      Sim
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="text-xs font-medium text-zinc-500 hover:text-zinc-300 px-2 py-1 rounded border border-zinc-700 transition-colors"
+                    >
+                      Não
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDeleteId(emp.id)}
+                    className="flex items-center justify-center gap-1.5 text-xs font-medium text-zinc-600 hover:text-rose-400 transition-colors w-full px-3 py-1.5 rounded-md border border-zinc-800 hover:border-rose-500/20 hover:bg-rose-500/5"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Excluir prestador
+                  </button>
+                )
+              )}
             </div>
           </div>
         ))}
@@ -170,7 +203,7 @@ export default function EmployeesPage() {
             {employees.map((emp) => (
               <tr key={emp.id} className="hover:bg-zinc-900/30 transition-colors">
                 <td className="px-4 py-3 font-medium text-zinc-200">{emp.name}</td>
-                <td className="px-4 py-3 text-zinc-400">{emp.email}</td>
+                <td className="px-4 py-3 text-zinc-400 max-w-[160px] truncate">{emp.email}</td>
                 <td className="px-4 py-3 text-zinc-300 hidden md:table-cell">
                   {emp.serviceType?.name ?? <span className="text-zinc-600 italic">—</span>}
                 </td>
@@ -191,12 +224,42 @@ export default function EmployeesPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => toggleStatus(emp)}
-                    className="text-xs font-medium text-zinc-500 hover:text-rose-400 transition-colors bg-zinc-900/50 hover:bg-rose-500/10 px-3 py-1 rounded-md border border-zinc-800 hover:border-rose-500/20"
-                  >
-                    {emp.status === 'ACTIVE' ? 'Desativar' : 'Reativar'}
-                  </button>
+                  <div className="flex items-center justify-end gap-2">
+                    {emp.status === 'INACTIVE' && (
+                      confirmDeleteId === emp.id ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-zinc-400">Excluir?</span>
+                          <button
+                            onClick={() => handleDeleteConfirm(emp.id)}
+                            disabled={isRemoving}
+                            className="text-xs font-medium text-rose-400 hover:text-rose-300 px-2 py-1 rounded border border-rose-500/30 hover:border-rose-500/60 transition-colors"
+                          >
+                            Sim
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="text-xs font-medium text-zinc-500 hover:text-zinc-300 px-2 py-1 rounded border border-zinc-700 transition-colors"
+                          >
+                            Não
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmDeleteId(emp.id)}
+                          className="text-zinc-600 hover:text-rose-400 transition-colors p-1 rounded hover:bg-rose-500/10"
+                          title="Excluir prestador"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )
+                    )}
+                    <button
+                      onClick={() => toggleStatus(emp)}
+                      className="text-xs font-medium text-zinc-500 hover:text-rose-400 transition-colors bg-zinc-900/50 hover:bg-rose-500/10 px-3 py-1 rounded-md border border-zinc-800 hover:border-rose-500/20"
+                    >
+                      {emp.status === 'ACTIVE' ? 'Desativar' : 'Reativar'}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
