@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { hashPassword, verifyPassword } from 'better-auth/crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -48,6 +47,7 @@ export class AuthService {
     });
 
     // Cria a conta com senha no formato Better Auth (scrypt)
+    const { hashPassword } = await import('better-auth/crypto');
     const hashedPassword = await hashPassword(dto.password);
     await this.prisma.account.create({
       data: {
@@ -139,6 +139,7 @@ export class AuthService {
     }
 
     const account = user.accounts[0];
+    const { hashPassword, verifyPassword } = await import('better-auth/crypto');
     const isPasswordValid = await verifyPassword({ hash: account.password!, password: dto.currentPassword });
 
     if (!isPasswordValid) {
