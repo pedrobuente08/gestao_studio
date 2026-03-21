@@ -37,7 +37,6 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name,
-      age: user?.age ?? undefined,
       gender: user?.gender,
     },
   });
