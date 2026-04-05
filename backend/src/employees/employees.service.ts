@@ -1,4 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { hashPassword } from 'better-auth/crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
@@ -66,8 +67,20 @@ export class EmployeesService {
       },
     });
 
-    // Envia email de boas-vindas com a senha temporária
-    await this.emailService.sendEmployeeWelcomeEmail(dto.email, dto.name, dto.password);
+    // Gera token de convite e persiste na tabela Verification (better-auth).
+    // O colaborador define a própria senha ao clicar no link — a senha temporária nunca trafega por email.
+    const inviteToken = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 horas
+
+    await this.prisma.verification.create({
+      data: {
+        identifier: `invite:${user.id}`,
+        value: inviteToken,
+        expiresAt,
+      },
+    });
+
+    await this.emailService.sendEmployeeWelcomeEmail(dto.email, dto.name, inviteToken);
 
     return {
       id: user.id,

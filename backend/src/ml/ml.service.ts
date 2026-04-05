@@ -154,24 +154,24 @@ export class MlService {
         this.http.post(`${this.mlServiceUrl}/train`, { userId, sessions: allData }),
       );
 
-      // Remove registros antigos e cria o novo (o arquivo .cbm é sobrescrito no mesmo path)
-      await this.prisma.mLModel.deleteMany({
-        where: { userId, isActive: false },
-      });
-      await this.prisma.mLModel.updateMany({
-        where: { userId, isActive: true },
-        data: { isActive: false },
-      });
-
-      await this.prisma.mLModel.create({
-        data: {
-          userId,
-          trainedAt: new Date(),
-          dataPointsUsed: data.dataPointsUsed,
-          modelPath: data.modelPath,
-          isActive: true,
-        },
-      });
+      // Operação atômica: desativa modelo atual e cria novo em uma única transação.
+      // Se o create falhar, o updateMany é revertido e o usuário mantém o modelo anterior ativo.
+      await this.prisma.$transaction([
+        this.prisma.mLModel.deleteMany({ where: { userId, isActive: false } }),
+        this.prisma.mLModel.updateMany({
+          where: { userId, isActive: true },
+          data: { isActive: false },
+        }),
+        this.prisma.mLModel.create({
+          data: {
+            userId,
+            trainedAt: new Date(),
+            dataPointsUsed: data.dataPointsUsed,
+            modelPath: data.modelPath,
+            isActive: true,
+          },
+        }),
+      ]);
 
       return { trained: true, dataPointsUsed: data.dataPointsUsed };
     } catch (err: any) {

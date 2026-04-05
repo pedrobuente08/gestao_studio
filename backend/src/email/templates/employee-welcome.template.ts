@@ -1,4 +1,4 @@
-export const employeeWelcomeTemplate = (name: string, email: string, password: string) => `
+export const employeeWelcomeTemplate = (name: string, inviteUrl: string) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,7 +6,7 @@ export const employeeWelcomeTemplate = (name: string, email: string, password: s
     body { font-family: sans-serif; line-height: 1.6; color: #333; }
     .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px; }
     .header { text-align: center; margin-bottom: 30px; }
-    .credentials { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px dashed #ccc; }
+    .btn { display: inline-block; background-color: #f43f5e; color: #ffffff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; margin: 20px 0; }
     .footer { font-size: 12px; color: #666; margin-top: 30px; text-align: center; }
   </style>
 </head>
@@ -18,16 +18,16 @@ export const employeeWelcomeTemplate = (name: string, email: string, password: s
 
     <p>Olá, <strong>${name}</strong>!</p>
 
-    <p>Você foi convidado(a) para fazer parte de uma equipe no Gestão Studio. Abaixo estão seus dados de acesso:</p>
+    <p>Você foi convidado(a) para fazer parte de uma equipe no Gestão Studio.</p>
 
-    <div class="credentials">
-      <p style="margin: 0;"><strong>Email:</strong> ${email}</p>
-      <p style="margin: 5px 0 0 0;"><strong>Senha Temporária:</strong> ${password}</p>
+    <p>Clique no botão abaixo para definir sua senha e ativar sua conta:</p>
+
+    <div style="text-align: center;">
+      <a href="${inviteUrl}" class="btn">Ativar minha conta</a>
     </div>
 
-    <p>Após o primeiro acesso, recomendamos que você altere sua senha no menu de perfil.</p>
-
-    <p>Desejamos muito sucesso em sua jornada conosco!</p>
+    <p style="font-size: 13px; color: #888;">Este link é válido por 72 horas. Caso não consiga clicar no botão, copie e cole o endereço abaixo no seu navegador:</p>
+    <p style="font-size: 12px; word-break: break-all; color: #aaa;">${inviteUrl}</p>
 
     <div class="footer">
       <p>Equipe Gestão Studio</p>

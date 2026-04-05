@@ -66,38 +66,43 @@ export class SessionsService {
       throw new BadRequestException('ID do usuário/profissional é obrigatório');
     }
 
-    const session = await this.prisma.tattooSession.create({
-      data: {
-        tenantId,
-        clientId: dto.clientId,
-        userId: userId,
-        procedureId: dto.procedureId,
-        serviceTypeId: dto.serviceTypeId,
-        size: dto.size,
-        complexity: dto.complexity,
-        bodyLocation: dto.bodyLocation,
-        description: dto.description,
-        finalPrice: finalPriceCents,
-        guestLocationId: dto.guestLocationId,
-        studioPercentage: dto.studioPercentage,
-        studioFee,
-        tatuadorRevenue,
-        duration: dto.duration,
-        date: new Date(dto.date),
-      },
-      include: SESSION_INCLUDES,
-    });
+    // Operação atômica: se a Transaction falhar, a TattooSession é revertida.
+    const session = await this.prisma.$transaction(async (tx) => {
+      const newSession = await tx.tattooSession.create({
+        data: {
+          tenantId,
+          clientId: dto.clientId,
+          userId: userId,
+          procedureId: dto.procedureId,
+          serviceTypeId: dto.serviceTypeId,
+          size: dto.size,
+          complexity: dto.complexity,
+          bodyLocation: dto.bodyLocation,
+          description: dto.description,
+          finalPrice: finalPriceCents,
+          guestLocationId: dto.guestLocationId,
+          studioPercentage: dto.studioPercentage,
+          studioFee,
+          tatuadorRevenue,
+          duration: dto.duration,
+          date: new Date(dto.date),
+        },
+        include: SESSION_INCLUDES,
+      });
 
-    await this.prisma.transaction.create({
-      data: {
-        tenantId,
-        type: TransactionType.INCOME,
-        category: TransactionCategory.TATTOO,
-        amount: finalPriceCents,
-        clientId: dto.clientId,
-        sessionId: session.id,
-        date: new Date(dto.date),
-      },
+      await tx.transaction.create({
+        data: {
+          tenantId,
+          type: TransactionType.INCOME,
+          category: TransactionCategory.TATTOO,
+          amount: finalPriceCents,
+          clientId: dto.clientId,
+          sessionId: newSession.id,
+          date: new Date(dto.date),
+        },
+      });
+
+      return newSession;
     });
 
     return session;

@@ -15,6 +15,26 @@ MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
 MIN_SESSIONS = 15
 
+# Cache em memória: evita ler o .cbm do disco a cada predição
+_model_cache: dict[str, CatBoostRegressor] = {}
+
+# Supabase Storage (opcional — gracefully degraded se não configurado)
+_supabase = None
+SUPABASE_BUCKET = "ml-models"
+
+def _init_supabase():
+    global _supabase
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_SERVICE_KEY")
+    if url and key:
+        try:
+            from supabase import create_client
+            _supabase = create_client(url, key)
+        except Exception as e:
+            print(f"[ML] Supabase não disponível, usando armazenamento local: {e}")
+
+_init_supabase()
+
 # Mapeamento ordinal: size e complexity viram números, bodyLocation fica como string categórica
 SIZE_MAP = {
     "MICRO": 0,
@@ -72,7 +92,6 @@ def _meta_path(user_id: str) -> Path:
 
 
 def _to_features(size: str, complexity: str, body_location: str) -> list:
-    # [size_ordinal, complexity_ordinal, body_location_categorical]
     return [
         SIZE_MAP.get(size, 2),
         COMPLEXITY_MAP.get(complexity, 1),
@@ -80,11 +99,63 @@ def _to_features(size: str, complexity: str, body_location: str) -> list:
     ]
 
 
+def _upload_model(user_id: str, local_path: Path) -> None:
+    """Faz upload do .cbm para o Supabase Storage. Silencioso se não configurado."""
+    if _supabase is None:
+        return
+    try:
+        with open(local_path, "rb") as f:
+            _supabase.storage.from_(SUPABASE_BUCKET).upload(
+                path=f"{user_id}/model.cbm",
+                file=f,
+                file_options={"upsert": "true"},
+            )
+    except Exception as e:
+        print(f"[ML] Falha no upload do modelo userId={user_id}: {e}")
+
+
+def _download_model(user_id: str, local_path: Path) -> bool:
+    """Tenta baixar o .cbm do Supabase Storage. Retorna True se obteve sucesso."""
+    if _supabase is None:
+        return False
+    try:
+        data = _supabase.storage.from_(SUPABASE_BUCKET).download(f"{user_id}/model.cbm")
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(local_path, "wb") as f:
+            f.write(data)
+        return True
+    except Exception:
+        return False
+
+
+def _get_model(user_id: str) -> Optional[CatBoostRegressor]:
+    """Retorna o modelo do cache, do disco ou do Supabase Storage (nessa ordem)."""
+    if user_id in _model_cache:
+        return _model_cache[user_id]
+
+    mp = _model_path(user_id)
+
+    # Tenta baixar do Supabase se não estiver em disco
+    if not mp.exists():
+        if not _download_model(user_id, mp):
+            return None
+
+    model = CatBoostRegressor()
+    model.load_model(str(mp))
+    _model_cache[user_id] = model
+    return model
+
+
+def _invalidate_cache(user_id: str) -> None:
+    """Remove modelo do cache em memória após novo treino."""
+    _model_cache.pop(user_id, None)
+
+
 # ─── Endpoints ───────────────────────────────────────────────────────────────
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "storage": "supabase" if _supabase else "local"}
 
 
 @app.post("/train")
@@ -92,6 +163,7 @@ def train(req: TrainRequest):
     """
     Treina um modelo CatBoost por userId usando sessões históricas.
     Requer mínimo de MIN_SESSIONS sessões com tamanho, complexidade e local.
+    Salva o modelo em disco e faz upload para o Supabase Storage.
     """
     if len(req.sessions) < MIN_SESSIONS:
         raise HTTPException(
@@ -102,7 +174,6 @@ def train(req: TrainRequest):
     X = [_to_features(s.size, s.complexity, s.bodyLocation) for s in req.sessions]
     y = [s.finalPrice for s in req.sessions]
 
-    # Índice 2 = bodyLocation é feature categórica, CatBoost cuida do encoding
     pool = Pool(X, y, cat_features=[2])
 
     model = CatBoostRegressor(
@@ -116,7 +187,6 @@ def train(req: TrainRequest):
     )
     model.fit(pool)
 
-    # MAE no conjunto de treino (referência interna)
     preds = model.predict(pool)
     mae = float(np.mean(np.abs(np.array(preds) - np.array(y))))
 
@@ -125,6 +195,10 @@ def train(req: TrainRequest):
 
     with open(_meta_path(req.userId), "w") as f:
         json.dump({"dataPointsUsed": len(req.sessions), "mae": round(mae, 2)}, f)
+
+    # Invalida cache e faz upload para Supabase Storage
+    _invalidate_cache(req.userId)
+    _upload_model(req.userId, mp)
 
     return {
         "success": True,
@@ -137,19 +211,16 @@ def train(req: TrainRequest):
 @app.post("/predict")
 def predict(req: PredictRequest):
     """
-    Retorna a sugestão de preço (em centavos) para os parâmetros fornecidos,
-    usando o modelo treinado do userId.
+    Retorna a sugestão de preço (em centavos) para os parâmetros fornecidos.
+    Usa cache em memória → disco local → Supabase Storage (nessa ordem).
     """
-    mp = _model_path(req.userId)
+    model = _get_model(req.userId)
 
-    if not mp.exists():
+    if model is None:
         raise HTTPException(
             status_code=404,
             detail="Modelo não encontrado para este usuário",
         )
-
-    model = CatBoostRegressor()
-    model.load_model(str(mp))
 
     features = _to_features(req.size, req.complexity, req.bodyLocation)
     pool = Pool([features], cat_features=[2])

@@ -53,8 +53,9 @@ export class EmailService {
     }
   }
 
-  async sendEmployeeWelcomeEmail(to: string, name: string, password: string): Promise<void> {
-    const html = employeeWelcomeTemplate(name, to, password);
+  async sendEmployeeWelcomeEmail(to: string, name: string, inviteToken: string): Promise<void> {
+    const inviteUrl = `${this.appUrl}/auth/first-access?token=${inviteToken}`;
+    const html = employeeWelcomeTemplate(name, inviteUrl);
 
     try {
       await this.resend.emails.send({
@@ -63,9 +64,9 @@ export class EmailService {
         subject: 'Boas-vindas ao Tattoo Hub — Ative sua conta',
         html,
       });
-      this.logger.log(`Email de boas-vindas enviado para ${to}`);
+      this.logger.log(`Email de convite enviado para ${to}`);
     } catch (error) {
-      this.logger.error(`Falha ao enviar email de boas-vindas para ${to}`, error);
+      this.logger.error(`Falha ao enviar email de convite para ${to}`, error);
       throw error;
     }
   }

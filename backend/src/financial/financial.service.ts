@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { UserRole, TransactionType, TransactionCategory } from '@prisma/client';
+import { Prisma, UserRole, TransactionType, TransactionCategory } from '@prisma/client';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { CreateRecurringExpenseDto } from './dto/create-recurring-expense.dto';
@@ -275,28 +275,41 @@ export class FinancialService {
 
     let created = 0;
     for (const expense of recurring) {
-      const alreadyExists = await this.prisma.transaction.findFirst({
-        where: {
-          tenantId,
-          recurringExpenseId: expense.id,
-          date: { gte: monthStart, lte: monthEnd },
-        },
-      });
-      if (alreadyExists) continue;
+      const day = Math.min(
+        expense.dayOfMonth,
+        new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(),
+      );
+      const expenseDate = new Date(now.getFullYear(), now.getMonth(), day);
 
-      const day = Math.min(expense.dayOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate());
-      await this.prisma.transaction.create({
-        data: {
-          tenantId,
-          type: TransactionType.EXPENSE,
-          category: expense.category,
-          amount: expense.amount,
-          description: expense.name,
-          date: new Date(now.getFullYear(), now.getMonth(), day),
-          recurringExpenseId: expense.id,
+      // Transação serializável elimina o race condition: se dois processos chamarem
+      // processMonthlyRecurring ao mesmo tempo, apenas um consegue criar a transação.
+      const result = await this.prisma.$transaction(
+        async (tx) => {
+          const alreadyExists = await tx.transaction.findFirst({
+            where: {
+              tenantId,
+              recurringExpenseId: expense.id,
+              date: { gte: monthStart, lte: monthEnd },
+            },
+          });
+          if (alreadyExists) return null;
+
+          return tx.transaction.create({
+            data: {
+              tenantId,
+              type: TransactionType.EXPENSE,
+              category: expense.category,
+              amount: expense.amount,
+              description: expense.name,
+              date: expenseDate,
+              recurringExpenseId: expense.id,
+            },
+          });
         },
-      });
-      created++;
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+
+      if (result) created++;
     }
 
     return { processed: recurring.length, created };
