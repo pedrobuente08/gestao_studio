@@ -138,46 +138,35 @@ export class EmployeesService {
 
     const hashedPassword = await hashPassword(newPassword);
 
-    // Busca por qualquer conta com senha (credential), independente do providerId exato.
-    // Se não existir ainda (edge case de falha no create), cria agora.
-    const existingAccount = await this.prisma.account.findFirst({
-      where: { userId, password: { not: null } },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      // Deleta o token primeiro para evitar uso duplo
+      await tx.verification.delete({ where: { value: token } });
 
-    if (existingAccount) {
-      await this.prisma.$transaction([
-        this.prisma.account.update({
+      // Busca conta existente pelo userId
+      const existingAccount = await tx.account.findFirst({ where: { userId } });
+
+      if (existingAccount) {
+        await tx.account.update({
           where: { id: existingAccount.id },
           data: { password: hashedPassword },
-        }),
-        this.prisma.user.update({
-          where: { id: userId },
-          data: { mustChangePassword: false },
-        }),
-        this.prisma.verification.delete({
-          where: { value: token },
-        }),
-      ]);
-    } else {
-      // Conta não foi criada durante o cadastro — cria agora com a senha definida pelo colaborador
-      await this.prisma.$transaction([
-        this.prisma.account.create({
+        });
+      } else {
+        // Conta não foi criada no cadastro — cria agora
+        await tx.account.create({
           data: {
             userId,
             accountId: userId,
             providerId: 'credential',
             password: hashedPassword,
           },
-        }),
-        this.prisma.user.update({
-          where: { id: userId },
-          data: { mustChangePassword: false },
-        }),
-        this.prisma.verification.delete({
-          where: { value: token },
-        }),
-      ]);
-    }
+        });
+      }
+
+      await tx.user.update({
+        where: { id: userId },
+        data: { mustChangePassword: false },
+      });
+    });
 
     return { success: true };
   }
