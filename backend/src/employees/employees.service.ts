@@ -136,29 +136,48 @@ export class EmployeesService {
 
     const userId = verification.identifier.replace('invite:', '');
 
-    const account = await this.prisma.account.findFirst({
-      where: { userId, providerId: 'credential' },
-    });
-
-    if (!account) {
-      throw new NotFoundException('Conta não encontrada');
-    }
-
     const hashedPassword = await hashPassword(newPassword);
 
-    await this.prisma.$transaction([
-      this.prisma.account.update({
-        where: { id: account.id },
-        data: { password: hashedPassword },
-      }),
-      this.prisma.user.update({
-        where: { id: userId },
-        data: { mustChangePassword: false },
-      }),
-      this.prisma.verification.delete({
-        where: { value: token },
-      }),
-    ]);
+    // Busca por qualquer conta com senha (credential), independente do providerId exato.
+    // Se não existir ainda (edge case de falha no create), cria agora.
+    const existingAccount = await this.prisma.account.findFirst({
+      where: { userId, password: { not: null } },
+    });
+
+    if (existingAccount) {
+      await this.prisma.$transaction([
+        this.prisma.account.update({
+          where: { id: existingAccount.id },
+          data: { password: hashedPassword },
+        }),
+        this.prisma.user.update({
+          where: { id: userId },
+          data: { mustChangePassword: false },
+        }),
+        this.prisma.verification.delete({
+          where: { value: token },
+        }),
+      ]);
+    } else {
+      // Conta não foi criada durante o cadastro — cria agora com a senha definida pelo colaborador
+      await this.prisma.$transaction([
+        this.prisma.account.create({
+          data: {
+            userId,
+            accountId: userId,
+            providerId: 'credential',
+            password: hashedPassword,
+          },
+        }),
+        this.prisma.user.update({
+          where: { id: userId },
+          data: { mustChangePassword: false },
+        }),
+        this.prisma.verification.delete({
+          where: { value: token },
+        }),
+      ]);
+    }
 
     return { success: true };
   }
