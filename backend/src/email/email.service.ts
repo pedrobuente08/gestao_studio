@@ -54,7 +54,7 @@ export class EmailService {
   }
 
   async sendEmployeeWelcomeEmail(to: string, name: string, inviteToken: string): Promise<void> {
-    const inviteUrl = `${this.appUrl}/auth/first-access?token=${inviteToken}`;
+    const inviteUrl = `${this.appUrl}/first-access?token=${inviteToken}`;
     const html = employeeWelcomeTemplate(name, inviteUrl);
 
     try {
