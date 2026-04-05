@@ -10,7 +10,7 @@ const api = axios.create({
 
 // Interceptor para tratar erros 401 (sessão inválida ou expirada)
 // Não redireciona se já estiver em página de auth para evitar loop infinito
-const authPaths = ['/login', '/register', '/verify-email', '/reset-password', '/oauth-callback', '/complete-registration'];
+const authPaths = ['/login', '/register', '/verify-email', '/reset-password', '/oauth-callback', '/complete-registration', '/first-access'];
 
 api.interceptors.response.use(
   (response) => response,
