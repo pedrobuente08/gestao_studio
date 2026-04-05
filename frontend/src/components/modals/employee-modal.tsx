@@ -14,7 +14,6 @@ import { AxiosError } from 'axios';
 const schema = z.object({
   name: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter ao menos 6 caracteres'),
   role: z.enum(['EMPLOYEE', 'STAFF']),
   serviceTypeId: z.string().min(1, 'Selecione o tipo de serviço'),
 });
@@ -39,7 +38,7 @@ export function EmployeeModal({ isOpen, onClose }: EmployeeModalProps) {
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { role: 'EMPLOYEE', password: 'ink@studio1' },
+    defaultValues: { role: 'EMPLOYEE' },
   });
 
   const onSubmit = (data: FormData) => {
@@ -66,7 +65,6 @@ export function EmployeeModal({ isOpen, onClose }: EmployeeModalProps) {
 
         <Input label="Nome" placeholder="Ex: João Silva" error={errors.name?.message} {...register('name')} />
         <Input label="Email" type="email" placeholder="joao@email.com" error={errors.email?.message} {...register('email')} />
-        <Input label="Senha inicial" type="text" error={errors.password?.message} {...register('password')} />
         <Select
           label="Tipo de Serviço"
           placeholder="Selecione o serviço que realiza"
@@ -77,7 +75,7 @@ export function EmployeeModal({ isOpen, onClose }: EmployeeModalProps) {
         <Select label="Cargo" options={roleOptions} error={errors.role?.message} {...register('role')} />
 
         <p className="text-xs text-zinc-500">
-          O prestador receberá um email de boas-vindas com suas credenciais e um link de ativação. A senha acima é temporária e deverá ser alterada pelo prestador no primeiro acesso.
+          O prestador receberá um email com link para ativar a conta e definir sua própria senha.
         </p>
 
         <div className="flex justify-end gap-3 pt-2">

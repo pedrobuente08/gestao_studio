@@ -40,7 +40,9 @@ export class EmployeesService {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existing) throw new BadRequestException('Email já cadastrado');
 
-    const hashedPassword = await hashPassword(dto.password);
+    // Senha temporária gerada automaticamente — o colaborador define a própria via link de convite
+    const temporaryPassword = dto.password ?? randomBytes(16).toString('hex');
+    const hashedPassword = await hashPassword(temporaryPassword);
 
     const user = await this.prisma.user.create({
       data: {
@@ -117,6 +119,48 @@ export class EmployeesService {
       data: { status: 'INACTIVE' },
       select: { id: true, name: true, email: true, role: true, status: true, serviceTypeId: true, createdAt: true },
     });
+  }
+
+  async firstAccess(token: string, newPassword: string) {
+    const verification = await this.prisma.verification.findUnique({
+      where: { value: token },
+    });
+
+    if (!verification || !verification.identifier.startsWith('invite:')) {
+      throw new BadRequestException('Link de convite inválido ou já utilizado');
+    }
+
+    if (verification.expiresAt < new Date()) {
+      throw new BadRequestException('Link de convite expirado. Peça ao administrador que reenvie o convite');
+    }
+
+    const userId = verification.identifier.replace('invite:', '');
+
+    const account = await this.prisma.account.findFirst({
+      where: { userId, providerId: 'credential' },
+    });
+
+    if (!account) {
+      throw new NotFoundException('Conta não encontrada');
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    await this.prisma.$transaction([
+      this.prisma.account.update({
+        where: { id: account.id },
+        data: { password: hashedPassword },
+      }),
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { mustChangePassword: false },
+      }),
+      this.prisma.verification.delete({
+        where: { value: token },
+      }),
+    ]);
+
+    return { success: true };
   }
 
   async remove(id: string, tenantId: string) {

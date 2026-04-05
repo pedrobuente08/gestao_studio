@@ -14,7 +14,6 @@ export interface Employee {
 export interface CreateEmployeeData {
   name: string;
   email: string;
-  password: string;
   role: 'EMPLOYEE' | 'STAFF';
   serviceTypeId: string;
 }
