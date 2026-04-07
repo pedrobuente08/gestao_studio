@@ -76,8 +76,19 @@ export class SessionsController {
 
   @Get()
   @Roles('OWNER', 'STAFF', 'EMPLOYEE')
-  findAll(@CurrentTenant() tenantId: string, @Req() req: any) {
-    return this.sessionsService.findAll(tenantId, req.user.id, req.user.role);
+  findAll(
+    @CurrentTenant() tenantId: string,
+    @Req() req: any,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.sessionsService.findAll(
+      tenantId,
+      req.user.id,
+      req.user.role,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 20,
+    );
   }
 
   @Get(':id')

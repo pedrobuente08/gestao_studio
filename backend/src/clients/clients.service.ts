@@ -50,7 +50,13 @@ export class ClientsService {
     };
   }
 
-  async findAll(tenantId: string, userId?: string, role?: UserRole) {
+  async findAll(
+    tenantId: string,
+    userId?: string,
+    role?: UserRole,
+    page = 1,
+    limit = 20,
+  ) {
     let where: any = { tenantId };
 
     if (role === UserRole.EMPLOYEE && userId) {
@@ -62,22 +68,29 @@ export class ClientsService {
       };
     }
 
-    const clients = await this.prisma.client.findMany({
-      where,
-      include: {
-        sessions: {
-          select: {
-            id: true,
-            finalPrice: true,
-            date: true,
-          },
-          orderBy: { date: 'desc' },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const skip = (page - 1) * limit;
 
-    return clients.map((client) => ({
+    const [clients, total] = await this.prisma.$transaction([
+      this.prisma.client.findMany({
+        where,
+        include: {
+          sessions: {
+            select: {
+              id: true,
+              finalPrice: true,
+              date: true,
+            },
+            orderBy: { date: 'desc' },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.client.count({ where }),
+    ]);
+
+    const data = clients.map((client) => ({
       id: client.id,
       tenantId: client.tenantId,
       name: client.name,
@@ -92,6 +105,8 @@ export class ClientsService {
       totalSpent: client.sessions.reduce((sum, s) => sum + s.finalPrice, 0),
       lastVisit: client.sessions.length > 0 ? client.sessions[0].date : null,
     }));
+
+    return { data, total, page, limit, pages: Math.ceil(total / limit) };
   }
 
   async findOne(

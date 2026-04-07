@@ -160,6 +160,8 @@ model Client {
   tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   sessions     TattooSession[]
   transactions Transaction[]
+
+  @@index([tenantId, createdAt])
 }
 
 model Procedure {
@@ -219,6 +221,10 @@ model TattooSession {
   tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user             User              @relation(fields: [userId], references: [id])
   transaction      Transaction?
+
+  @@index([tenantId, userId])
+  @@index([tenantId, date])
+  @@index([userId, size, complexity, bodyLocation])
 }
 
 model Transaction {
@@ -239,6 +245,10 @@ model Transaction {
   session             TattooSession?      @relation(fields: [sessionId], references: [id])
   tenant              Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   recurringExpense    RecurringExpense?   @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, date])
+  @@index([tenantId, type])
+  @@index([tenantId, recurringExpenseId])
 }
 
 model RecurringExpense {

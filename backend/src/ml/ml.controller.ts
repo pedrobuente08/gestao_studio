@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { MlService } from './ml.service';
 import { PredictDto } from './dto/predict.dto';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -15,6 +16,7 @@ export class MlController {
    * Retorna a sugestão de preço via CatBoost para os parâmetros fornecidos.
    * Se o modelo ainda não existir, retorna available:false com motivo.
    */
+  @Throttle({ medium: { ttl: 60_000, limit: 20 } })
   @Post('predict')
   @Roles('OWNER', 'STAFF', 'EMPLOYEE')
   predict(@Req() req: any, @Body() dto: PredictDto) {

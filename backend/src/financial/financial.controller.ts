@@ -42,14 +42,17 @@ export class FinancialController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('userId') filterUserId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.financialService.findAll(tenantId, req.user.id, req.user.role, {
-      type,
-      category,
-      startDate,
-      endDate,
-      filterUserId,
-    });
+    return this.financialService.findAll(
+      tenantId,
+      req.user.id,
+      req.user.role,
+      { type, category, startDate, endDate, filterUserId },
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 20,
+    );
   }
 
   @Get('summary')

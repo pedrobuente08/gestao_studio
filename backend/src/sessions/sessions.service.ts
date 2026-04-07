@@ -108,18 +108,33 @@ export class SessionsService {
     return session;
   }
 
-  async findAll(tenantId: string, userId?: string, role?: UserRole) {
+  async findAll(
+    tenantId: string,
+    userId?: string,
+    role?: UserRole,
+    page = 1,
+    limit = 20,
+  ) {
     let where: any = { tenantId };
 
     if (role === UserRole.EMPLOYEE && userId) {
       where.userId = userId;
     }
 
-    return this.prisma.tattooSession.findMany({
-      where,
-      include: SESSION_INCLUDES,
-      orderBy: { date: 'desc' },
-    });
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.tattooSession.findMany({
+        where,
+        include: SESSION_INCLUDES,
+        orderBy: { date: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.tattooSession.count({ where }),
+    ]);
+
+    return { data, total, page, limit, pages: Math.ceil(total / limit) };
   }
 
   async findOne(

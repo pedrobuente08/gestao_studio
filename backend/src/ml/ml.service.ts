@@ -200,22 +200,35 @@ export class MlService {
       select: { id: true, tenantId: true },
     });
 
+    const BATCH_SIZE = 5;
     let trained = 0;
     let skipped = 0;
+    let failed = 0;
 
-    for (const user of users) {
-      if (!user.tenantId) continue;
-      const result = await this.trainUserModel(user.id, user.tenantId);
-      if (result.trained) {
-        trained++;
-        this.logger.log(`Modelo treinado: userId=${user.id} (${result.dataPointsUsed} sessões)`);
-      } else {
-        skipped++;
+    for (let i = 0; i < users.length; i += BATCH_SIZE) {
+      const batch = users.slice(i, i + BATCH_SIZE);
+
+      const results = await Promise.allSettled(
+        batch
+          .filter((u) => u.tenantId)
+          .map((u) => this.trainUserModel(u.id, u.tenantId!)),
+      );
+
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          failed++;
+          this.logger.error(`Erro no treino: ${result.reason}`);
+        } else if (result.value.trained) {
+          trained++;
+          this.logger.log(`Modelo treinado: ${result.value.dataPointsUsed} sessões`);
+        } else {
+          skipped++;
+        }
       }
     }
 
     this.logger.log(
-      `Treino semanal concluído: ${trained} treinados, ${skipped} pulados.`,
+      `Treino semanal concluído: ${trained} treinados, ${skipped} pulados, ${failed} com erro.`,
     );
   }
 }

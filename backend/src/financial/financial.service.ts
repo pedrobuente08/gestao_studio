@@ -47,6 +47,8 @@ export class FinancialService {
       endDate?: string;
       filterUserId?: string;
     },
+    page = 1,
+    limit = 20,
   ) {
     let where: any = { tenantId };
 
@@ -74,17 +76,24 @@ export class FinancialService {
       }
     }
 
-    const transactions = await this.prisma.transaction.findMany({
-      where,
-      include: {
-        client: {
-          select: { id: true, name: true },
-        },
-      },
-      orderBy: { date: 'desc' },
-    });
+    const skip = (page - 1) * limit;
 
-    return transactions;
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.transaction.findMany({
+        where,
+        include: {
+          client: {
+            select: { id: true, name: true },
+          },
+        },
+        orderBy: { date: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.transaction.count({ where }),
+    ]);
+
+    return { data, total, page, limit, pages: Math.ceil(total / limit) };
   }
 
   async getSummary(
