@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -42,6 +43,15 @@ export class AuthGuard implements CanActivate {
 
     if (!user || (!['ACTIVE', 'PENDING_SETUP'].includes(user.status))) {
       throw new UnauthorizedException('Usuário inativo ou não encontrado');
+    }
+
+    // Bloqueia acesso a qualquer rota protegida se o colaborador ainda não
+    // definiu sua própria senha via link de convite. Permite apenas GET /auth/me
+    // para que o frontend possa detectar o estado e redirecionar.
+    const path: string = request.path ?? '';
+    const isGetMe = request.method === 'GET' && path.endsWith('/auth/me');
+    if (user.mustChangePassword && !isGetMe) {
+      throw new ForbiddenException('MUST_CHANGE_PASSWORD');
     }
 
     const studio =

@@ -1,4 +1,8 @@
-export const employeeWelcomeTemplate = (name: string, inviteUrl: string) => `
+import { escapeHtml } from './escape-html';
+
+export const employeeWelcomeTemplate = (name: string, inviteUrl: string) => {
+  const safeName = escapeHtml(name);
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,7 +20,7 @@ export const employeeWelcomeTemplate = (name: string, inviteUrl: string) => `
       <h1 style="color: #f43f5e; margin: 0;">Bem-vindo(a) ao Gestão Studio!</h1>
     </div>
 
-    <p>Olá, <strong>${name}</strong>!</p>
+    <p>Olá, <strong>${safeName}</strong>!</p>
 
     <p>Você foi convidado(a) para fazer parte de uma equipe no Gestão Studio.</p>
 
@@ -37,3 +41,4 @@ export const employeeWelcomeTemplate = (name: string, inviteUrl: string) => `
 </body>
 </html>
 `;
+};

@@ -1,4 +1,7 @@
+import { escapeHtml } from './escape-html';
+
 export function resetPasswordTemplate(name: string, resetUrl: string): string {
+  const safeName = escapeHtml(name);
   return `
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -15,7 +18,7 @@ export function resetPasswordTemplate(name: string, resetUrl: string): string {
 
           <div style="background:#18181b; border:1px solid #27272a; border-radius:12px; padding:32px;">
             <h2 style="margin:0 0 16px; font-size:20px; font-weight:600; color:#f4f4f5;">
-              Olá, ${name}! 🔐
+              Olá, ${safeName}! 🔐
             </h2>
             <p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#a1a1aa;">
               Recebemos uma solicitação para redefinir a senha da sua conta Tattoo Hub.

@@ -3,6 +3,7 @@ import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { createId } from '@paralleldrive/cuid2';
 import { Resend } from 'resend';
 import { prisma } from '../prisma/prisma.client';
+import { escapeHtml } from '../email/templates/escape-html';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -25,6 +26,7 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
+      const safeName = escapeHtml(user.name);
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'noreply@tattoohubink.cloud',
         to: user.email,
@@ -35,7 +37,7 @@ export const auth = betterAuth({
               <div style="margin-bottom:28px;">
                 <span style="font-size:22px;font-weight:900;color:#e11d48;font-style:italic;letter-spacing:-1px;">Tattoo Hub</span>
               </div>
-              <h2 style="color:#ffffff;margin:0 0 12px;font-size:20px;">Olá, ${user.name}!</h2>
+              <h2 style="color:#ffffff;margin:0 0 12px;font-size:20px;">Olá, ${safeName}!</h2>
               <p style="color:#a1a1aa;margin:0 0 28px;font-size:15px;line-height:1.6;">Clique no botão abaixo para redefinir sua senha.</p>
               <a href="${url}" style="display:inline-block;background:#e11d48;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">
                 Redefinir Senha
@@ -53,6 +55,7 @@ export const auth = betterAuth({
   emailVerification: {
     callbackURL: `${process.env.APP_URL || 'http://localhost:3000'}/verify-email-success`,
     sendVerificationEmail: async ({ user, url }) => {
+      const safeName = escapeHtml(user.name);
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'noreply@tattoohubink.cloud',
         to: user.email,
@@ -63,7 +66,7 @@ export const auth = betterAuth({
               <div style="margin-bottom:28px;">
                 <span style="font-size:22px;font-weight:900;color:#e11d48;font-style:italic;letter-spacing:-1px;">Tattoo Hub</span>
               </div>
-              <h2 style="color:#ffffff;margin:0 0 12px;font-size:20px;">Olá, ${user.name}!</h2>
+              <h2 style="color:#ffffff;margin:0 0 12px;font-size:20px;">Olá, ${safeName}!</h2>
               <p style="color:#a1a1aa;margin:0 0 28px;font-size:15px;line-height:1.6;">Clique no botão abaixo para verificar seu email e ativar sua conta.</p>
               <a href="${url}" style="display:inline-block;background:#e11d48;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">
                 Verificar Email
