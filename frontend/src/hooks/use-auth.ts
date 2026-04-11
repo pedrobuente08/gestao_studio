@@ -9,7 +9,7 @@ import { authService } from '@/services/auth.service';
 import { authClient } from '@/lib/auth-client';
 import { RegisterData, StudioProfile } from '@/types/auth.types';
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export function useAuth() {
@@ -122,12 +122,22 @@ export function useAuth() {
     }
   };
 
-  // Login com Google via Better Auth
-  const loginWithGoogle = () => {
-    authClient.signIn.social({
-      provider: 'google',
-      callbackURL: `${appUrl}/oauth-callback`,
-    });
+  // Login com Google via Better Auth (403 = origem não está em trustedOrigins no backend)
+  const loginWithGoogle = async () => {
+    try {
+      const result = await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: `${appUrl}/oauth-callback`,
+      });
+      if (result && typeof result === 'object' && 'error' in result && (result as { error?: { message?: string } }).error) {
+        const msg = (result as { error?: { message?: string } }).error?.message ?? 'Não foi possível iniciar o login com Google';
+        console.error('[Google login]', msg, result);
+        alert(msg);
+      }
+    } catch (e) {
+      console.error('[Google login]', e);
+      alert('Não foi possível iniciar o login com Google. Verifique se o site está na lista de origens confiáveis da API.');
+    }
   };
 
   return {

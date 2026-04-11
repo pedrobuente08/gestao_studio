@@ -4,6 +4,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { Resend } from 'resend';
 import { prisma } from '../prisma/prisma.client';
 import { escapeHtml } from '../email/templates/escape-html';
+import { collectTrustedOriginStrings, getPrimaryAppUrl } from './trusted-origins';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -15,12 +16,7 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3001',
 
-  trustedOrigins: [
-    process.env.APP_URL || 'http://localhost:3000',
-    ...(process.env.EXTRA_TRUSTED_ORIGINS
-      ? process.env.EXTRA_TRUSTED_ORIGINS.split(',')
-      : []),
-  ],
+  trustedOrigins: collectTrustedOriginStrings(),
 
   rateLimit: {
     window: 60,  // segundos
@@ -62,7 +58,7 @@ export const auth = betterAuth({
   },
 
   emailVerification: {
-    callbackURL: `${process.env.APP_URL || 'http://localhost:3000'}/verify-email-success`,
+    callbackURL: `${getPrimaryAppUrl()}/verify-email-success`,
     sendVerificationEmail: async ({ user, url }) => {
       const safeName = escapeHtml(user.name);
       await resend.emails.send({
@@ -128,6 +124,7 @@ export const auth = betterAuth({
   advanced: {
     crossSubDomainCookies: {
       enabled: true,
+      // Produção: use COOKIE_DOMAIN=.tattoohubink.cloud (com ponto) para partilhar cookie entre api.* e app.
       domain: process.env.COOKIE_DOMAIN || 'localhost',
     },
     database: {

@@ -4,12 +4,17 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { toNodeHandler } from 'better-auth/node';
 import { auth } from './config/better-auth.config';
+import { collectTrustedOriginStrings } from './config/trusted-origins';
 import compression from 'compression';
 import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.use(helmet());
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
   app.use(compression());
 
   app.useGlobalPipes(
@@ -20,18 +25,33 @@ async function bootstrap() {
     }),
   );
 
-  const allowedOrigins = [
-    process.env.APP_URL || 'http://localhost:3000',
-    ...(process.env.EXTRA_TRUSTED_ORIGINS
-      ? process.env.EXTRA_TRUSTED_ORIGINS.split(',')
-      : []),
-  ];
+  const allowedOrigins = collectTrustedOriginStrings();
+  const normalize = (o: string) => o.trim().replace(/\/+$/, '');
 
   app.enableCors({
-    origin: allowedOrigins,
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean | string) => void) => {
+      if (!origin) {
+        callback(null, false);
+        return;
+      }
+      const n = normalize(origin);
+      const ok = allowedOrigins.some((a) => normalize(a) === n);
+      if (ok) {
+        callback(null, origin);
+        return;
+      }
+      callback(null, false);
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Cookie',
+      'Origin',
+      'Accept',
+      'X-Requested-With',
+    ],
   });
 
   // Monta Better Auth em /api/auth (Google OAuth, verificação de email, reset de senha)
