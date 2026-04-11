@@ -15,6 +15,7 @@ import {
 } from '@prisma/client';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
+import { MlService } from '../ml/ml.service';
 
 const SESSION_INCLUDES = {
   client: { select: { id: true, name: true, email: true, phone: true } },
@@ -26,7 +27,10 @@ const SESSION_INCLUDES = {
 
 @Injectable()
 export class SessionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mlService: MlService,
+  ) {}
 
   private async validateTattooFields(dto: CreateSessionDto | UpdateSessionDto) {
     if (!dto.serviceTypeId) return;
@@ -244,57 +248,20 @@ export class SessionsService {
     complexity?: TattooComplexity,
     bodyLocation?: BodyLocation,
   ) {
-    const useTattooKnn = size || complexity || bodyLocation;
+    const useTattooKnn = Boolean(size || complexity || bodyLocation);
 
     if (useTattooKnn) {
+      if (size && complexity && bodyLocation) {
+        const [knnResult, mlResult] = await Promise.all([
+          this.getPriceSuggestionKnn(userId, tenantId, size, complexity, bodyLocation),
+          this.mlService.predict(userId, size, complexity, bodyLocation),
+        ]);
+        return { ...knnResult, ml: mlResult };
+      }
       return this.getPriceSuggestionKnn(userId, tenantId, size, complexity, bodyLocation);
     }
 
-    // Modo simples: sem parâmetros de tatuagem — filtra só por serviceType
-    const sessionWhere: any = { tenantId, userId };
-    if (serviceTypeId) sessionWhere.serviceTypeId = serviceTypeId;
-
-    const [realSessions, seedEntries] = await Promise.all([
-      this.prisma.tattooSession.findMany({
-        where: sessionWhere,
-        select: {
-          id: true,
-          finalPrice: true,
-          date: true,
-          description: true,
-          client: { select: { name: true } },
-          serviceType: { select: { name: true } },
-        },
-        orderBy: { date: 'desc' },
-        take: 50,
-      }),
-      this.prisma.seedTrainingData.findMany({
-        where: { userId },
-        select: { id: true, finalPrice: true },
-      }),
-    ]);
-
-    const allPrices: number[] = [
-      ...realSessions.map((s: { finalPrice: number }) => s.finalPrice),
-      ...seedEntries.map((s: { finalPrice: number }) => s.finalPrice),
-    ];
-
-    if (allPrices.length === 0) {
-      return { count: 0, avg: null, min: null, max: null, sessions: [], seedCount: 0 };
-    }
-
-    const avg = Math.round(allPrices.reduce((a: number, b: number) => a + b, 0) / allPrices.length);
-    const min = Math.min(...allPrices);
-    const max = Math.max(...allPrices);
-
-    return {
-      count: allPrices.length,
-      avg,
-      min,
-      max,
-      sessions: realSessions.slice(0, 10),
-      seedCount: seedEntries.length,
-    };
+    return this.getPriceReferenceAggregate(tenantId, userId, serviceTypeId, false);
   }
 
   private async getPriceSuggestionKnn(
@@ -304,7 +271,7 @@ export class SessionsService {
     complexity?: TattooComplexity,
     bodyLocation?: BodyLocation,
   ) {
-    const K = 15; // vizinhos candidatos — IDW faz o peso, mais candidatos = mais cobertura
+    const K = 15;
 
     const [sizeScales, complexityScales, locationScales, allSeed, allSessions] = await Promise.all([
       this.prisma.tattooSizeScale.findMany(),
@@ -341,13 +308,9 @@ export class SessionsService {
     const complexityLevel = Object.fromEntries(complexityScales.map((s) => [s.complexity, s.level]));
     const locationLevel = Object.fromEntries(locationScales.map((s) => [s.bodyLocation, s.level]));
 
-    // Normalização para [0, 1] — ranges: size 1-6, complexity 1-4, location 1-3
     const norm = (v: number, min: number, max: number) =>
       max === min ? 0 : (v - min) / (max - min);
 
-    // Location tem peso reduzido (0.2) porque tamanho e complexidade têm maior
-    // impacto no preço. Sem esse ajuste, um ponto com mesmo local mas tamanho
-    // menor domina o IDW e subestima o preço.
     const LOCATION_WEIGHT = 0.2;
 
     const queryVec = [
@@ -386,14 +349,12 @@ export class SessionsService {
     }
 
     if (candidates.length === 0) {
-      return { count: 0, avg: null, min: null, max: null, sessions: [], seedCount: 0, confidence: 'low' };
+      return { count: 0, avg: null, min: null, max: null, sessions: [], seedCount: 0, confidence: 'low' as const };
     }
 
     candidates.sort((a, b) => a.dist - b.dist);
     const kNearest = candidates.slice(0, K);
 
-    // ── Inverse Distance Weighting (IDW) ─────────────────────────────────────
-    // Se existir match perfeito (dist=0), usa apenas eles — sem distorção
     const EPS = 0.0001;
     const perfectMatches = kNearest.filter((c) => c.dist < EPS);
 
@@ -413,7 +374,6 @@ export class SessionsService {
     const min = Math.min(...prices);
     const max = Math.max(...prices);
 
-    // Confiança: baseada na distância média dos K vizinhos
     const avgDist = kNearest.reduce((s, c) => s + c.dist, 0) / kNearest.length;
     const confidence = avgDist < 0.3 ? 'high' : avgDist < 0.6 ? 'medium' : 'low';
 
@@ -428,6 +388,83 @@ export class SessionsService {
       max,
       sessions: referenceSessions,
       seedCount: seedCount > 0 ? seedCount : 0,
+      confidence,
+    };
+  }
+
+  /**
+   * Estatísticas descritivas (média / min / max) sobre sessões recentes — sem KNN em memória.
+   * Se `tattooCompleteOnly`, considera apenas sessões com tamanho, complexidade e local preenchidos.
+   */
+  private async getPriceReferenceAggregate(
+    tenantId: string,
+    userId: string,
+    serviceTypeId: string | undefined,
+    tattooCompleteOnly: boolean,
+  ) {
+    const sessionWhere: Record<string, unknown> = { tenantId, userId };
+    if (serviceTypeId) sessionWhere.serviceTypeId = serviceTypeId;
+    if (tattooCompleteOnly) {
+      sessionWhere.size = { not: null };
+      sessionWhere.complexity = { not: null };
+      sessionWhere.bodyLocation = { not: null };
+    }
+
+    const [realSessions, seedEntries] = await Promise.all([
+      this.prisma.tattooSession.findMany({
+        where: sessionWhere,
+        select: {
+          id: true,
+          finalPrice: true,
+          date: true,
+          description: true,
+          client: { select: { name: true } },
+          serviceType: { select: { name: true } },
+        },
+        orderBy: { date: 'desc' },
+        take: 50,
+      }),
+      this.prisma.seedTrainingData.findMany({
+        where: { userId },
+        select: { id: true, finalPrice: true },
+      }),
+    ]);
+
+    const allPrices: number[] = [
+      ...realSessions.map((s) => s.finalPrice),
+      ...seedEntries.map((s) => s.finalPrice),
+    ];
+
+    if (allPrices.length === 0) {
+      return {
+        count: 0,
+        avg: null,
+        min: null,
+        max: null,
+        sessions: [] as typeof realSessions,
+        seedCount: 0,
+        confidence: 'low' as const,
+      };
+    }
+
+    const avg = Math.round(allPrices.reduce((a, b) => a + b, 0) / allPrices.length);
+    const min = Math.min(...allPrices);
+    const max = Math.max(...allPrices);
+    const spread = max - min;
+    const confidence =
+      allPrices.length >= 10 && spread <= avg * 0.4
+        ? ('high' as const)
+        : allPrices.length >= 5
+          ? ('medium' as const)
+          : ('low' as const);
+
+    return {
+      count: allPrices.length,
+      avg,
+      min,
+      max,
+      sessions: realSessions.slice(0, 10),
+      seedCount: seedEntries.length,
       confidence,
     };
   }

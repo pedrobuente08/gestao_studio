@@ -176,21 +176,44 @@ def train(req: TrainRequest):
 
     pool = Pool(X, y, cat_features=[2])
 
-    model = CatBoostRegressor(
-        iterations=300,
-        learning_rate=0.05,
-        depth=4,
-        loss_function="RMSE",
-        eval_metric="MAE",
-        random_seed=42,
-        verbose=False,
-    )
-    model.fit(pool)
+    mp = _model_path(req.userId)
+    init_model: CatBoostRegressor | None = None
+    if not mp.exists():
+        _download_model(req.userId, mp)
+    if mp.exists():
+        try:
+            prev = CatBoostRegressor()
+            prev.load_model(str(mp))
+            init_model = prev
+        except Exception as e:
+            print(f"[ML] Não foi possível carregar modelo anterior para incremental: {e}")
+
+    if init_model is not None:
+        model = CatBoostRegressor(
+            iterations=100,
+            learning_rate=0.03,
+            depth=4,
+            loss_function="RMSE",
+            eval_metric="MAE",
+            random_seed=42,
+            verbose=False,
+        )
+        model.fit(pool, init_model=init_model)
+    else:
+        model = CatBoostRegressor(
+            iterations=300,
+            learning_rate=0.05,
+            depth=4,
+            loss_function="RMSE",
+            eval_metric="MAE",
+            random_seed=42,
+            verbose=False,
+        )
+        model.fit(pool)
 
     preds = model.predict(pool)
     mae = float(np.mean(np.abs(np.array(preds) - np.array(y))))
 
-    mp = _model_path(req.userId)
     model.save_model(str(mp))
 
     with open(_meta_path(req.userId), "w") as f:

@@ -5,6 +5,7 @@ export function verifyEmailTemplate(
   verificationUrl: string,
 ): string {
   const safeName = escapeHtml(name);
+  const safeUrlText = escapeHtml(verificationUrl);
   return `
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -40,7 +41,7 @@ export function verifyEmailTemplate(
               Se o botão não funcionar, copie e cole este link no seu navegador:
             </p>
             <p style="margin:8px 0 0; font-size:12px; color:#71717a; word-break:break-all;">
-              ${verificationUrl}
+              ${safeUrlText}
             </p>
 
             <hr style="margin:24px 0; border:none; border-top:1px solid #27272a;" />

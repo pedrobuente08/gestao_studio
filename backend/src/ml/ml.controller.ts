@@ -45,6 +45,8 @@ export class MlController {
   @Post('train/manual')
   @Roles('OWNER')
   trainManual(@CurrentTenant() tenantId: string, @Req() req: any) {
-    return this.mlService.trainUserModel(req.user.id, tenantId);
+    return this.mlService.trainUserModel(req.user.id, tenantId, {
+      skipNewDataThreshold: true,
+    });
   }
 }

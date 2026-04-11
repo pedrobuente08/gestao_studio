@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useServiceTypes } from '@/hooks/use-service-types';
 import { priceSuggestionService, PriceSuggestionResult } from '@/services/price-suggestion.service';
-import { mlService, MlPredictResult } from '@/services/ml.service';
+import type { MlPredictResult } from '@/services/ml.service';
 import { formatCurrency } from '@/utils/format-currency';
 import { formatDate } from '@/utils/format-date';
 import { Button } from '@/components/ui/button';
@@ -63,25 +63,23 @@ export default function BudgetSuggestionPage() {
     }
 
     try {
-      const [knnSettled, mlSettled] = await Promise.allSettled([
-        priceSuggestionService.getSuggestion({
-          serviceTypeId,
-          size: isTattoo && size ? size : undefined,
-          complexity: isTattoo && complexity ? complexity : undefined,
-          bodyLocation: isTattoo && bodyLocation ? bodyLocation : undefined,
-        }),
-        canUseMl ? mlService.predict({ size, complexity, bodyLocation }) : Promise.resolve(null),
-      ]);
+      const suggestion = await priceSuggestionService.getSuggestion({
+        serviceTypeId,
+        size: isTattoo && size ? size : undefined,
+        complexity: isTattoo && complexity ? complexity : undefined,
+        bodyLocation: isTattoo && bodyLocation ? bodyLocation : undefined,
+      });
 
-      if (knnSettled.status === 'fulfilled') {
-        setResult(knnSettled.value);
-      }
+      setResult(suggestion);
 
       if (canUseMl) {
-        if (mlSettled.status === 'fulfilled' && mlSettled.value) {
-          setMlPanel({ type: 'result', data: mlSettled.value });
+        if (suggestion.ml) {
+          setMlPanel({ type: 'result', data: suggestion.ml });
         } else {
-          setMlPanel({ type: 'result', data: { available: false, reason: 'Serviço ML indisponível no momento.' } });
+          setMlPanel({
+            type: 'result',
+            data: { available: false, reason: 'Serviço ML indisponível no momento.' },
+          });
         }
       }
     } finally {

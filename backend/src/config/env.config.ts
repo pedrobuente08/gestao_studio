@@ -19,6 +19,23 @@ export const envConfig: ConfigModuleOptions = {
       );
     }
 
+    const authSecret = String(config['BETTER_AUTH_SECRET'] ?? '');
+    if (authSecret.length < 32) {
+      throw new Error(
+        'BETTER_AUTH_SECRET deve ter pelo menos 32 caracteres (ex.: openssl rand -hex 32).',
+      );
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+      const prodRequired = ['RESEND_API_KEY', 'BETTER_AUTH_URL'];
+      const prodMissing = prodRequired.filter((key) => !config[key]);
+      if (prodMissing.length > 0) {
+        throw new Error(
+          `Em NODE_ENV=production, defina também: ${prodMissing.join(', ')}`,
+        );
+      }
+    }
+
     return config;
   },
 };

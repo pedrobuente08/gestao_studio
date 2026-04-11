@@ -2,6 +2,7 @@ import { escapeHtml } from './escape-html';
 
 export const employeeWelcomeTemplate = (name: string, inviteUrl: string) => {
   const safeName = escapeHtml(name);
+  const safeUrlText = escapeHtml(inviteUrl);
   return `
 <!DOCTYPE html>
 <html>
@@ -31,7 +32,7 @@ export const employeeWelcomeTemplate = (name: string, inviteUrl: string) => {
     </div>
 
     <p style="font-size: 13px; color: #888;">Este link é válido por 72 horas. Caso não consiga clicar no botão, copie e cole o endereço abaixo no seu navegador:</p>
-    <p style="font-size: 12px; word-break: break-all; color: #aaa;">${inviteUrl}</p>
+    <p style="font-size: 12px; word-break: break-all; color: #aaa;">${safeUrlText}</p>
 
     <div class="footer">
       <p>Equipe Gestão Studio</p>

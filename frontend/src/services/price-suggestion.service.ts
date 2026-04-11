@@ -1,4 +1,5 @@
 import api from './api';
+import type { MlPredictResult } from './ml.service';
 
 export interface PriceSuggestionParams {
   serviceTypeId?: string;
@@ -24,6 +25,8 @@ export interface PriceSuggestionResult {
   sessions: PriceSuggestionSession[];
   seedCount?: number;
   confidence?: 'high' | 'medium' | 'low';
+  /** Presente quando tamanho, complexidade e local foram enviados — resultado do modelo CatBoost. */
+  ml?: MlPredictResult;
 }
 
 export const priceSuggestionService = {

@@ -121,7 +121,39 @@ export class MlService {
   async trainUserModel(
     userId: string,
     tenantId: string,
+    options?: { skipNewDataThreshold?: boolean },
   ): Promise<{ trained: boolean; reason?: string; dataPointsUsed?: number }> {
+    const currentModel = await this.prisma.mLModel.findFirst({
+      where: { userId, isActive: true },
+      orderBy: { trainedAt: 'desc' },
+    });
+
+    if (currentModel && !options?.skipNewDataThreshold) {
+      const trainedAt = currentModel.trainedAt;
+      const [newSessions, newSeeds] = await Promise.all([
+        this.prisma.tattooSession.count({
+          where: {
+            tenantId,
+            userId,
+            size: { not: null },
+            complexity: { not: null },
+            bodyLocation: { not: null },
+            createdAt: { gt: trainedAt },
+          },
+        }),
+        this.prisma.seedTrainingData.count({
+          where: { tenantId, userId, createdAt: { gt: trainedAt } },
+        }),
+      ]);
+      const newTotal = newSessions + newSeeds;
+      if (newTotal < 5) {
+        return {
+          trained: false,
+          reason: `Menos de 5 registros novos desde o último treino (encontrados: ${newTotal}).`,
+        };
+      }
+    }
+
     // Combina sessões reais + dados históricos (SeedTrainingData) para o treino
     const [sessions, seedData] = await Promise.all([
       this.prisma.tattooSession.findMany({
