@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -16,6 +17,11 @@ export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
 
   async register(dto: RegisterDto): Promise<{ message: string }> {
+    const allowed = await this.prisma.whitelist.findUnique({ where: { email: dto.email } });
+    if (!allowed) {
+      throw new ForbiddenException('Acesso restrito. Entre em contato para solicitar um convite.');
+    }
+
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -168,6 +174,11 @@ export class AuthService {
 
     if (!user) {
       throw new BadRequestException('Usuário não encontrado');
+    }
+
+    const allowed = await this.prisma.whitelist.findUnique({ where: { email: user.email } });
+    if (!allowed) {
+      throw new ForbiddenException('Acesso restrito. Entre em contato para solicitar um convite.');
     }
 
     // Bloqueia apenas se já tiver um tenant vinculado

@@ -9,19 +9,29 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model Whitelist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  note      String?
+  createdAt DateTime @default(now())
+}
+
 model Tenant {
-  id               String             @id @default(cuid())
-  type             TenantType
-  name             String
-  city             String?
-  state            String?
-  cnpj             String?
-  address          String?
-  zipCode          String?
-  instagram        String?
-  phone            String?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  id                   String             @id @default(cuid())
+  type                 TenantType
+  name                 String
+  city                 String?
+  state                String?
+  cnpj                 String?
+  address              String?
+  zipCode              String?
+  instagram            String?
+  phone                String?
+  subscriptionStatus   String             @default("beta")
+  currentPeriodEnd     DateTime?
+  stripeCustomerId     String?            @unique
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
   clients             Client[]
   fixedCosts          FixedCost[]
   linkedAsGuest       GuestLocation[]    @relation("LinkedGuest")

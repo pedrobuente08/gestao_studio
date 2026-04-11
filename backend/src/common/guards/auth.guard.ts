@@ -36,6 +36,8 @@ export class AuthGuard implements CanActivate {
             zipCode: true,
             instagram: true,
             phone: true,
+            subscriptionStatus: true,
+            currentPeriodEnd: true,
           },
         },
       },
@@ -43,6 +45,12 @@ export class AuthGuard implements CanActivate {
 
     if (!user || (!['ACTIVE', 'PENDING_SETUP'].includes(user.status))) {
       throw new UnauthorizedException('Usuário inativo ou não encontrado');
+    }
+
+    const subscriptionStatus = user.tenant?.subscriptionStatus;
+    const allowedStatuses = ['beta', 'trialing', 'active'];
+    if (subscriptionStatus && !allowedStatuses.includes(subscriptionStatus)) {
+      throw new ForbiddenException('SUBSCRIPTION_REQUIRED');
     }
 
     // Bloqueia acesso a qualquer rota protegida se o colaborador ainda não
@@ -74,6 +82,8 @@ export class AuthGuard implements CanActivate {
       tenantId: user.tenantId,
       tenantType: user.tenant?.type,
       status: user.status,
+      subscriptionStatus: user.tenant?.subscriptionStatus,
+      currentPeriodEnd: user.tenant?.currentPeriodEnd?.toISOString(),
       mustChangePassword: user.mustChangePassword,
       profilePhotoUrl: user.profilePhotoUrl,
       birthDate: user.birthDate?.toISOString(),
