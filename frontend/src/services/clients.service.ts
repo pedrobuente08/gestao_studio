@@ -3,8 +3,8 @@ import { Client, CreateClientData, UpdateClientData } from '@/types/client.types
 
 export const clientsService = {
   async getAll(): Promise<Client[]> {
-    const res = await api.get<Client[]>('/clients');
-    return res.data;
+    const res = await api.get<{ data: Client[] } | Client[]>('/clients');
+    return Array.isArray(res.data) ? res.data : (res.data as { data: Client[] }).data;
   },
   async getById(id: string): Promise<Client> {
     const res = await api.get<Client>(`/clients/${id}`);

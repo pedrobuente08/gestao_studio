@@ -3,8 +3,8 @@ import { Transaction, CreateTransactionData, UpdateTransactionData, FinancialSum
 
 export const financialService = {
   async getAll(params?: { type?: string; category?: string; startDate?: string; endDate?: string; userId?: string }): Promise<Transaction[]> {
-    const res = await api.get<Transaction[]>('/financial', { params });
-    return res.data;
+    const res = await api.get<{ data: Transaction[] } | Transaction[]>('/financial', { params });
+    return Array.isArray(res.data) ? res.data : (res.data as { data: Transaction[] }).data;
   },
   async getSummary(params?: { startDate?: string; endDate?: string; userId?: string }): Promise<FinancialSummary> {
     const res = await api.get<FinancialSummary>('/financial/summary', { params });
