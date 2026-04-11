@@ -1,5 +1,6 @@
 import api from './api';
 import axios from 'axios';
+import { getPublicAppOrigin } from '@/lib/public-app-url';
 import { RegisterData, StudioProfile, User } from '@/types/auth.types';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -35,10 +36,9 @@ export const authService = {
   },
 
   async resendVerificationEmail(email: string): Promise<{ message: string }> {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const response = await axios.post<{ message: string }>(
       `${apiUrl}/api/auth/send-verification-email`,
-      { email, callbackURL: `${appUrl}/verify-email-success` },
+      { email, callbackURL: `${getPublicAppOrigin()}/verify-email-success` },
     );
     return response.data;
   },

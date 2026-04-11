@@ -7,9 +7,9 @@ import axios from 'axios';
 import { useAuthStore } from '@/stores/auth.store';
 import { authService } from '@/services/auth.service';
 import { authClient } from '@/lib/auth-client';
+import { getPublicAppOrigin } from '@/lib/public-app-url';
 import { RegisterData, StudioProfile } from '@/types/auth.types';
 
-const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export function useAuth() {
@@ -52,7 +52,7 @@ export function useAuth() {
     mutationFn: async (email: string) => {
       await axios.post(`${apiUrl}/api/auth/forget-password`, {
         email,
-        redirectTo: `${appUrl}/reset-password`,
+        redirectTo: `${getPublicAppOrigin()}/reset-password`,
       });
     },
   });
@@ -127,7 +127,7 @@ export function useAuth() {
     try {
       const result = await authClient.signIn.social({
         provider: 'google',
-        callbackURL: `${appUrl}/oauth-callback`,
+        callbackURL: `${getPublicAppOrigin()}/oauth-callback`,
       });
       if (result && typeof result === 'object' && 'error' in result && (result as { error?: { message?: string } }).error) {
         const msg = (result as { error?: { message?: string } }).error?.message ?? 'Não foi possível iniciar o login com Google';
