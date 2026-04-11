@@ -4,6 +4,9 @@ import { PrismaClient, TransactionType, TransactionCategory } from '@prisma/clie
 import { BadRequestException } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { MlService } from '../ml/ml.service';
+
+const mlServiceMock = { predict: jest.fn() };
 
 describe('SessionsService', () => {
   let service: SessionsService;
@@ -22,6 +25,7 @@ describe('SessionsService', () => {
       providers: [
         SessionsService,
         { provide: PrismaService, useValue: prisma },
+        { provide: MlService, useValue: mlServiceMock },
       ],
     }).compile();
 
