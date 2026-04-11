@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Post,
   Get,
@@ -55,7 +56,15 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('me/photo')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', {
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (_, file, cb) => {
+      if (!file.mimetype.match(/^image\/(jpeg|png|webp)$/)) {
+        return cb(new BadRequestException('Apenas imagens JPEG, PNG ou WebP são permitidas'), false);
+      }
+      cb(null, true);
+    },
+  }))
   async uploadPhoto(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
     const fileName = `avatars/${req.user.id}-${Date.now()}`;
     const url = await this.storageService.uploadFile(file, fileName);

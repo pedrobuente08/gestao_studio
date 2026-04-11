@@ -51,6 +51,7 @@
     "@nestjs/core": "^11.1.12",
     "@nestjs/platform-express": "^11.1.12",
     "@nestjs/schedule": "^6.1.1",
+    "@nestjs/swagger": "^11.2.7",
     "@nestjs/throttler": "^6.5.0",
     "@paralleldrive/cuid2": "^3.3.0",
     "@supabase/supabase-js": "^2.97.0",
@@ -61,6 +62,7 @@
     "class-validator": "^0.14.3",
     "compression": "^1.8.0",
     "dotenv": "^17.2.3",
+    "helmet": "^8.1.0",
     "reflect-metadata": "^0.2.2",
     "resend": "^6.9.2",
     "rxjs": "^7.8.2"

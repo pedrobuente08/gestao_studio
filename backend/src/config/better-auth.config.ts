@@ -22,6 +22,15 @@ export const auth = betterAuth({
       : []),
   ],
 
+  rateLimit: {
+    window: 60,  // segundos
+    max: 10,     // requisições por janela (cobre login, reset, verify)
+    customRules: {
+      '/sign-in/email': { window: 60, max: 5 },       // 5 tentativas de login por minuto
+      '/forget-password': { window: 300, max: 3 },    // 3 resets por 5 minutos
+    },
+  },
+
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
