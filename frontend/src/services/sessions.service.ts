@@ -3,8 +3,9 @@ import { TattooSession, CreateSessionData, UpdateSessionData } from '@/types/ses
 
 export const sessionsService = {
   async getAll(): Promise<TattooSession[]> {
-    const res = await api.get<TattooSession[]>('/sessions');
-    return res.data;
+    const res = await api.get<{ data: TattooSession[] } | TattooSession[]>('/sessions');
+    // Backend retorna paginado { data: [...] } — extrai o array se necessário
+    return Array.isArray(res.data) ? res.data : (res.data as { data: TattooSession[] }).data;
   },
   async getById(id: string): Promise<TattooSession> {
     const res = await api.get<TattooSession>(`/sessions/${id}`);
