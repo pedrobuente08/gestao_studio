@@ -14,7 +14,8 @@ export class RegisterDto {
   @MinLength(6)
   password!: string;
 
-  @IsEnum(TenantType)
+  // TODO: reabilitar STUDIO — @IsEnum(TenantType)
+  @IsEnum(['AUTONOMO'])
   @IsNotEmpty()
   tenantType!: TenantType;
 

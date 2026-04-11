@@ -2,7 +2,8 @@ import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { TenantType } from '@prisma/client';
 
 export class CompleteSocialRegistrationDto {
-  @IsEnum(TenantType)
+  // TODO: reabilitar STUDIO — @IsEnum(TenantType)
+  @IsEnum(['AUTONOMO'])
   @IsNotEmpty()
   tenantType!: TenantType;
 

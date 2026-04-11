@@ -17,7 +17,8 @@ const ESTADOS_BR = [
 
 const registerSchema = z
   .object({
-    tenantType: z.enum(['AUTONOMO', 'STUDIO'], { message: 'Selecione o tipo de conta' }),
+    // tenantType: z.enum(['AUTONOMO', 'STUDIO'], { message: 'Selecione o tipo de conta' }), // TODO: reabilitar STUDIO
+    tenantType: z.enum(['AUTONOMO']),
     tenantName: z.string().optional(),
     city: z.string().optional(),
     state: z.string().optional(),
@@ -34,10 +35,8 @@ const registerSchema = z
     (data) => data.tenantType === 'AUTONOMO' || (data.tenantName && data.tenantName.length >= 1),
     { message: 'Campo obrigatório', path: ['tenantName'] },
   )
-  .refine(
-    (data) => data.tenantType === 'STUDIO' || (data.name && data.name.length >= 3),
-    { message: 'Nome deve ter no mínimo 3 caracteres', path: ['name'] },
-  );
+  // TODO: reabilitar STUDIO — .refine((data) => data.tenantType === 'STUDIO' || (data.name && data.name.length >= 3), { message: 'Nome deve ter no mínimo 3 caracteres', path: ['name'] })
+  .refine((data) => data.name && data.name.length >= 3, { message: 'Nome deve ter no mínimo 3 caracteres', path: ['name'] });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -47,7 +46,7 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    watch,
+    // watch, // TODO: reabilitar quando STUDIO for liberado
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -57,17 +56,12 @@ export default function RegisterPage() {
     },
   });
 
-  const tenantType = watch('tenantType');
+  // TODO: reabilitar quando STUDIO for liberado — const tenantType = watch('tenantType');
 
   const onSubmit = (data: RegisterFormData) => {
     const { confirmPassword, ...registerData } = data;
-    if (data.tenantType === 'STUDIO') {
-      // Para STUDIO: usa o nome do estúdio como nome do usuário
-      registerData.name = data.tenantName;
-    } else {
-      // Para AUTONOMO: usa o nome completo como nome profissional
-      registerData.tenantName = data.name;
-    }
+    // TODO: reabilitar STUDIO — if (data.tenantType === 'STUDIO') { registerData.name = data.tenantName; } else { ... }
+    registerData.tenantName = data.name;
     registerUser(registerData as RegisterData);
   };
 
@@ -93,45 +87,24 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* Tipo de conta — PRIMEIRO */}
+        {/* TODO: reabilitar seleção de tipo de conta quando STUDIO for liberado
         <div>
-          <label className="mb-2 block text-sm font-medium text-zinc-300">
-            Tipo de conta
-          </label>
+          <label className="mb-2 block text-sm font-medium text-zinc-300">Tipo de conta</label>
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors flex-1">
-              <input
-                type="radio"
-                value="AUTONOMO"
-                className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900"
-                {...register('tenantType')}
-              />
+              <input type="radio" value="AUTONOMO" className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900" {...register('tenantType')} />
               <span className="text-zinc-300">Autônomo</span>
             </label>
             <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors flex-1">
-              <input
-                type="radio"
-                value="STUDIO"
-                className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900"
-                {...register('tenantType')}
-              />
+              <input type="radio" value="STUDIO" className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900" {...register('tenantType')} />
               <span className="text-zinc-300">Estúdio</span>
             </label>
           </div>
-          {errors.tenantType && (
-            <p className="mt-1 text-sm text-red-500">{errors.tenantType.message}</p>
-          )}
         </div>
-
         {tenantType === 'STUDIO' && (
-          <Input
-            label="Nome do estúdio"
-            type="text"
-            placeholder="Nome do seu estúdio"
-            error={errors.tenantName?.message}
-            {...register('tenantName')}
-          />
+          <Input label="Nome do estúdio" type="text" placeholder="Nome do seu estúdio" error={errors.tenantName?.message} {...register('tenantName')} />
         )}
+        */}
 
         <div className="flex gap-3">
           <div className="flex-1">
@@ -157,15 +130,14 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {tenantType !== 'STUDIO' && (
-          <Input
-            label="Nome completo"
-            type="text"
-            placeholder="Seu nome"
-            error={errors.name?.message}
-            {...register('name')}
-          />
-        )}
+        {/* TODO: reabilitar quando STUDIO for liberado — {tenantType !== 'STUDIO' && ( ... )} */}
+        <Input
+          label="Nome completo"
+          type="text"
+          placeholder="Seu nome"
+          error={errors.name?.message}
+          {...register('name')}
+        />
 
         <Input
           label="Email"

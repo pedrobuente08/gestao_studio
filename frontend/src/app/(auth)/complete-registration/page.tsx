@@ -44,7 +44,8 @@ const ESTADOS_BR = [
 
 const schema = z.object({
   tenantName: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
-  tenantType: z.enum(['AUTONOMO', 'STUDIO'] as const),
+  // tenantType: z.enum(['AUTONOMO', 'STUDIO'] as const), // TODO: reabilitar STUDIO
+  tenantType: z.enum(['AUTONOMO'] as const),
   city: z.string().min(2, 'Informe a cidade').optional().or(z.literal('')),
   state: z.string().min(2, 'Selecione o estado').optional().or(z.literal('')),
 });
@@ -57,7 +58,7 @@ export default function CompleteRegistrationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, /* watch, // TODO: reabilitar quando STUDIO for liberado */ formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       tenantType: 'AUTONOMO',
@@ -66,7 +67,7 @@ export default function CompleteRegistrationPage() {
     },
   });
 
-  const tenantType = watch('tenantType');
+  // TODO: reabilitar quando STUDIO for liberado — const tenantType = watch('tenantType');
 
   useEffect(() => {
     // Só redireciona se o usuário está completamente configurado (tem tenant)
@@ -121,40 +122,27 @@ export default function CompleteRegistrationPage() {
               </div>
             )}
 
-            {/* Tipo de Conta — PRIMEIRO */}
+            {/* TODO: reabilitar quando STUDIO for liberado
             <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-300">
-                Tipo de Conta
-              </label>
+              <label className="mb-2 block text-sm font-medium text-zinc-300">Tipo de Conta</label>
               <div className="flex gap-3">
                 <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors flex-1">
-                  <input
-                    type="radio"
-                    value="AUTONOMO"
-                    className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900"
-                    {...register('tenantType')}
-                  />
+                  <input type="radio" value="AUTONOMO" className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900" {...register('tenantType')} />
                   <span className="text-zinc-300">Autônomo</span>
                 </label>
                 <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors flex-1">
-                  <input
-                    type="radio"
-                    value="STUDIO"
-                    className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900"
-                    {...register('tenantType')}
-                  />
+                  <input type="radio" value="STUDIO" className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900" {...register('tenantType')} />
                   <span className="text-zinc-300">Estúdio</span>
                 </label>
               </div>
-              {errors.tenantType && (
-                <p className="mt-1 text-sm text-red-500">{errors.tenantType.message}</p>
-              )}
             </div>
+            */}
 
+            {/* TODO: reabilitar quando STUDIO for liberado — label e placeholder condicionais por tenantType */}
             <Input
-              label={tenantType === 'STUDIO' ? 'Nome do Estúdio / Empresa' : 'Seu nome profissional'}
+              label="Seu nome profissional"
               id="tenantName"
-              placeholder={tenantType === 'STUDIO' ? 'Ex: My Ink Studio' : 'Ex: João Tattoo'}
+              placeholder="Ex: João Tattoo"
               error={errors.tenantName?.message}
               {...register('tenantName')}
             />
