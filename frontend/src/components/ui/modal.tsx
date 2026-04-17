@@ -43,11 +43,11 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }:
       <div className="absolute inset-0" onClick={onClose} />
       
       <div 
-        className={`relative w-full rounded-t-2xl bg-zinc-900 border-x border-t border-zinc-800 sm:rounded-2xl sm:border shadow-2xl transition-all animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 ${sizes[size]}`}
+        className={`relative w-full rounded-t-2xl bg-surface-card border-x border-t border-edge sm:rounded-2xl sm:border shadow-2xl transition-all animate-in slide-in-from-bottom sm:zoom-in-95 duration-300 ${sizes[size]}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
-          <h2 className="text-xl font-semibold text-zinc-100">{title}</h2>
+        <div className="flex items-center justify-between border-b border-edge px-6 py-4">
+          <h2 className="text-xl font-semibold text-content-primary">{title}</h2>
           <Button variant="ghost" size="sm" onClick={onClose} className="!p-1 h-auto rounded-full">
             <X className="h-5 w-5" />
           </Button>
@@ -60,7 +60,7 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }:
 
         {/* Footer */}
         {footer && (
-          <div className="flex flex-col sm:flex-row justify-end gap-3 border-t border-zinc-800 px-6 py-4 bg-zinc-900/50">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 border-t border-edge px-6 py-4 bg-surface-card/50">
             {footer}
           </div>
         )}

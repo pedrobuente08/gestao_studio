@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "postinstall": "node scripts/fix-node24-nested-pjson.cjs",
+    "fix:node24-pjson": "node scripts/fix-node24-nested-pjson.cjs",
     "build": "nest build",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
@@ -24,6 +26,9 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@faker-js/faker": "^10.4.0",
     "@nestjs/cli": "^11.0.16",

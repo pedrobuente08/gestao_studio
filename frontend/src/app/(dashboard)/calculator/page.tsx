@@ -170,7 +170,7 @@ export default function CalculatorPage() {
             className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium border transition-all ${
               !isStudioMode
                 ? 'bg-rose-500/10 border-rose-500 text-rose-500'
-                : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                : 'border-edge-muted text-content-secondary hover:border-edge hover:text-content-primary'
             }`}
           >
             <Home className="h-4 w-4" />
@@ -181,7 +181,7 @@ export default function CalculatorPage() {
             className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium border transition-all ${
               isStudioMode
                 ? 'bg-rose-500/10 border-rose-500 text-rose-500'
-                : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                : 'border-edge-muted text-content-secondary hover:border-edge hover:text-content-primary'
             }`}
           >
             <Building2 className="h-4 w-4" />
@@ -199,14 +199,14 @@ export default function CalculatorPage() {
               title="Custos Fixos Mensais"
               description="Tudo que você paga todo mês, independente de trabalhar ou não"
             >
-              <div className="mb-5 rounded-lg bg-zinc-800/60 border border-zinc-700/50 p-4 text-xs text-zinc-400 space-y-2 leading-relaxed">
+              <div className="mb-5 rounded-lg bg-surface-elevated/60 border border-edge-muted/50 p-4 text-xs text-content-secondary space-y-2 leading-relaxed">
                 <p>
-                  Custos fixos são os gastos que existem <span className="text-zinc-200 font-medium">independente da sua produção</span> — mesmo num mês sem atendimentos, eles continuam. Exemplos: aluguel, internet, assinaturas, contador.
+                  Custos fixos são os gastos que existem <span className="text-content-primary font-medium">independente da sua produção</span> — mesmo num mês sem atendimentos, eles continuam. Exemplos: aluguel, internet, assinaturas, contador.
                 </p>
                 <p>
-                  Custos como energia elétrica variam, mas são essenciais e previsíveis — <span className="text-zinc-200 font-medium">cadastre o valor médio mensal</span>. Dessa forma sua precificação absorve essas variações sem surpresas.
+                  Custos como energia elétrica variam, mas são essenciais e previsíveis — <span className="text-content-primary font-medium">cadastre o valor médio mensal</span>. Dessa forma sua precificação absorve essas variações sem surpresas.
                 </p>
-                <p className="text-zinc-500">
+                <p className="text-content-muted">
                   💡 Dica: some tudo que sai da sua conta todo mês antes de você fazer um único atendimento.
                 </p>
               </div>
@@ -251,22 +251,22 @@ export default function CalculatorPage() {
                         <TableCell className="text-right font-medium">{formatCurrency(cost.amount)}</TableCell>
                         <TableCell>
                           <Button variant="ghost" size="sm" onClick={() => removeCost({ id: cost.id, type: 'fixed' })}>
-                            <Trash2 className="h-4 w-4 text-zinc-500 hover:text-rose-500" />
+                            <Trash2 className="h-4 w-4 text-content-muted hover:text-rose-500" />
                           </Button>
                         </TableCell>
                       </TableRow>
                     ))}
                     {data?.fixedCosts.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center py-4 text-zinc-500 text-xs italic">
+                        <TableCell colSpan={3} className="text-center py-4 text-content-muted text-xs italic">
                           Nenhum custo fixo cadastrado
                         </TableCell>
                       </TableRow>
                     )}
                     {(data?.fixedCosts.length ?? 0) > 0 && (
-                      <TableRow className="border-t border-zinc-700">
-                        <TableCell className="font-bold text-zinc-300">Total</TableCell>
-                        <TableCell className="text-right font-bold text-zinc-100">{formatCurrency(data?.totalFixed || 0)}</TableCell>
+                      <TableRow className="border-t border-edge-muted">
+                        <TableCell className="font-bold text-content-primary">Total</TableCell>
+                        <TableCell className="text-right font-bold text-content-primary">{formatCurrency(data?.totalFixed || 0)}</TableCell>
                         <TableCell />
                       </TableRow>
                     )}
@@ -281,14 +281,14 @@ export default function CalculatorPage() {
             title="Custos Variáveis por Atendimento"
             description="O que você gasta a cada sessão realizada"
           >
-            <div className="mb-5 rounded-lg bg-zinc-800/60 border border-zinc-700/50 p-4 text-xs text-zinc-400 space-y-2 leading-relaxed">
+            <div className="mb-5 rounded-lg bg-surface-elevated/60 border border-edge-muted/50 p-4 text-xs text-content-secondary space-y-2 leading-relaxed">
               <p>
-                Custos variáveis são os gastos que só ocorrem <span className="text-zinc-200 font-medium">quando você realiza um atendimento</span>. Eles aumentam proporcionalmente com sua produção. Exemplos: agulhas, tintas, películas, luvas, transporte.
+                Custos variáveis são os gastos que só ocorrem <span className="text-content-primary font-medium">quando você realiza um atendimento</span>. Eles aumentam proporcionalmente com sua produção. Exemplos: agulhas, tintas, películas, luvas, transporte.
               </p>
               <p>
-                Cadastre aqui o <span className="text-zinc-200 font-medium">custo médio por sessão</span> de cada item. Esses valores serão somados automaticamente ao preço mínimo sugerido para cada atendimento.
+                Cadastre aqui o <span className="text-content-primary font-medium">custo médio por sessão</span> de cada item. Esses valores serão somados automaticamente ao preço mínimo sugerido para cada atendimento.
               </p>
-              <p className="text-zinc-500">
+              <p className="text-content-muted">
                 💡 Dica: se você gasta R$ 60 em materiais por mês e faz em média 10 sessões, o custo por sessão é R$ 6.
               </p>
             </div>
@@ -333,22 +333,22 @@ export default function CalculatorPage() {
                       <TableCell className="text-right font-medium">{formatCurrency(cost.amount)}</TableCell>
                       <TableCell>
                         <Button variant="ghost" size="sm" onClick={() => removeCost({ id: cost.id, type: 'variable' })}>
-                          <Trash2 className="h-4 w-4 text-zinc-500 hover:text-rose-500" />
+                          <Trash2 className="h-4 w-4 text-content-muted hover:text-rose-500" />
                         </Button>
                       </TableCell>
                     </TableRow>
                   ))}
                   {data?.variableCosts.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-4 text-zinc-500 text-xs italic">
+                      <TableCell colSpan={3} className="text-center py-4 text-content-muted text-xs italic">
                         Nenhum custo variável cadastrado
                       </TableCell>
                     </TableRow>
                   )}
                   {(data?.variableCosts.length ?? 0) > 0 && (
-                    <TableRow className="border-t border-zinc-700">
-                      <TableCell className="font-bold text-zinc-300">Total</TableCell>
-                      <TableCell className="text-right font-bold text-zinc-100">{formatCurrency(data?.totalVariable || 0)}</TableCell>
+                    <TableRow className="border-t border-edge-muted">
+                      <TableCell className="font-bold text-content-primary">Total</TableCell>
+                      <TableCell className="text-right font-bold text-content-primary">{formatCurrency(data?.totalVariable || 0)}</TableCell>
                       <TableCell />
                     </TableRow>
                   )}
@@ -361,19 +361,19 @@ export default function CalculatorPage() {
         {/* Coluna da Direita: Configurações e Simulador */}
         <div className="space-y-8">
           <Card title="Configurações">
-            <div className="mb-4 rounded-lg bg-zinc-800/60 border border-zinc-700/50 p-4 text-xs text-zinc-400 space-y-2 leading-relaxed">
+            <div className="mb-4 rounded-lg bg-surface-elevated/60 border border-edge-muted/50 p-4 text-xs text-content-secondary space-y-2 leading-relaxed">
               {!isStudioMode ? (
                 <>
                   <p>
-                    <span className="text-zinc-200 font-medium">Horas mensais:</span> considere apenas as horas efetivamente produtivas (em atendimento). Uma semana de trabalho com 5h/dia resulta em ~80h/mês. Inclua uma margem para dias sem agendamento.
+                    <span className="text-content-primary font-medium">Horas mensais:</span> considere apenas as horas efetivamente produtivas (em atendimento). Uma semana de trabalho com 5h/dia resulta em ~80h/mês. Inclua uma margem para dias sem agendamento.
                   </p>
                   <p>
-                    <span className="text-zinc-200 font-medium">Margem de lucro:</span> é o percentual que você quer ganhar além de cobrir seus custos. No mercado criativo, margens entre <span className="text-zinc-200">20% e 40%</span> são comuns. Abaixo de 20% você mal cobre imprevistos; acima de 50% pode afastar clientes.
+                    <span className="text-content-primary font-medium">Margem de lucro:</span> é o percentual que você quer ganhar além de cobrir seus custos. No mercado criativo, margens entre <span className="text-content-primary">20% e 40%</span> são comuns. Abaixo de 20% você mal cobre imprevistos; acima de 50% pode afastar clientes.
                   </p>
                 </>
               ) : (
                 <p>
-                  <span className="text-zinc-200 font-medium">Percentual ao studio:</span> é a parte do valor cobrado que fica com o studio. Se você cobra R$ 400 e o percentual é 40%, você fica com R$ 240. Use esse campo para entender quanto precisa cobrar para atingir o lucro desejado.
+                  <span className="text-content-primary font-medium">Percentual ao studio:</span> é a parte do valor cobrado que fica com o studio. Se você cobra R$ 400 e o percentual é 40%, você fica com R$ 240. Use esse campo para entender quanto precisa cobrar para atingir o lucro desejado.
                 </p>
               )}
             </div>
@@ -412,49 +412,49 @@ export default function CalculatorPage() {
 
           {/* Resumo */}
           {!isStudioMode ? (
-            <div className="rounded-xl border border-zinc-700 bg-zinc-800/50 p-5 space-y-3">
-              <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider">Resumo</h3>
+            <div className="rounded-xl border border-edge-muted bg-surface-elevated/50 p-5 space-y-3">
+              <h3 className="text-sm font-bold text-content-primary uppercase tracking-wider">Resumo</h3>
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-400">Total Custos Fixos:</span>
-                <span className="text-zinc-100">{formatCurrency(data?.totalFixed || 0)}</span>
+                <span className="text-content-secondary">Total Custos Fixos:</span>
+                <span className="text-content-primary">{formatCurrency(data?.totalFixed || 0)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-400">Custo por Hora:</span>
-                <span className="text-zinc-100">{formatCurrency(data?.costPerHour || 0)}</span>
+                <span className="text-content-secondary">Custo por Hora:</span>
+                <span className="text-content-primary">{formatCurrency(data?.costPerHour || 0)}</span>
               </div>
-              <div className="pt-2 text-center border-t border-zinc-700">
-                <span className="text-zinc-500 text-xs uppercase tracking-wider">Valor Hora Mínimo</span>
+              <div className="pt-2 text-center border-t border-edge-muted">
+                <span className="text-content-muted text-xs uppercase tracking-wider">Valor Hora Mínimo</span>
                 <p className="text-3xl font-extrabold text-rose-500 mt-1">
                   {formatCurrency(data?.minimumPricePerHour || 0)}
                 </p>
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-zinc-700 bg-zinc-800/50 p-5 space-y-3">
-              <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider">
+            <div className="rounded-xl border border-edge-muted bg-surface-elevated/50 p-5 space-y-3">
+              <h3 className="text-sm font-bold text-content-primary uppercase tracking-wider">
                 Modo Studio — {data?.studioPercentage || 0}% ao studio
               </h3>
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-content-muted">
                 Para cada R$ 100 cobrados, você fica com{' '}
-                <span className="text-zinc-300 font-medium">
+                <span className="text-content-primary font-medium">
                   R$ {(100 - (data?.studioPercentage || 0)).toFixed(0)}
                 </span>{' '}
                 após descontar o studio.
               </p>
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-400">Custo variável por atend.:</span>
-                <span className="text-zinc-100">{formatCurrency(data?.totalVariable || 0)}</span>
+                <span className="text-content-secondary">Custo variável por atend.:</span>
+                <span className="text-content-primary">{formatCurrency(data?.totalVariable || 0)}</span>
               </div>
             </div>
           )}
 
           {/* Simulador */}
-          <div className="rounded-xl border border-zinc-700 bg-zinc-800 p-6 shadow-xl relative overflow-hidden group">
+          <div className="rounded-xl border border-edge-muted bg-surface-elevated p-6 shadow-xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
               <Calculator className="h-20 w-20 text-rose-500" />
             </div>
 
-            <h3 className="text-lg font-bold text-zinc-100 mb-6 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-content-primary mb-6 flex items-center gap-2">
               <Settings2 className="h-5 w-5 text-rose-500" />
               Simulador de Preço
             </h3>
@@ -462,7 +462,7 @@ export default function CalculatorPage() {
             {!isStudioMode ? (
               <div className="space-y-6 relative">
                 <div>
-                  <label className="text-xs font-bold text-zinc-400 uppercase mb-2 block">
+                  <label className="text-xs font-bold text-content-secondary uppercase mb-2 block">
                     Tempo Estimado (Horas)
                   </label>
                   <div className="flex items-center gap-4">
@@ -475,12 +475,12 @@ export default function CalculatorPage() {
                       value={simHours}
                       onChange={(e) => setSimHours(Number(e.target.value))}
                     />
-                    <span className="text-xl font-bold text-zinc-100 w-12">{simHours}h</span>
+                    <span className="text-xl font-bold text-content-primary w-12">{simHours}h</span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-zinc-400 uppercase mb-2 block">Complexidade</label>
+                  <label className="text-xs font-bold text-content-secondary uppercase mb-2 block">Complexidade</label>
                   <div className="flex gap-2">
                     {[
                       { label: 'Baixa', val: 1.0 },
@@ -493,7 +493,7 @@ export default function CalculatorPage() {
                         className={`flex-1 py-2 text-xs rounded-lg border transition-all ${
                           simComplexity === lvl.val
                             ? 'bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/20'
-                            : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                            : 'border-edge-muted text-content-secondary hover:border-edge'
                         }`}
                       >
                         {lvl.label}
@@ -502,10 +502,10 @@ export default function CalculatorPage() {
                   </div>
                 </div>
 
-                <div className="bg-zinc-950/50 rounded-lg p-4 border border-zinc-700/50">
-                  <span className="text-zinc-500 text-[10px] uppercase font-bold">Sugestão de Preço</span>
-                  <p className="text-2xl font-black text-amber-400">{formatCurrency(simResultAutonomo)}</p>
-                  <span className="text-[10px] text-zinc-500">
+                <div className="bg-surface-primary/50 rounded-lg p-4 border border-edge-muted/50">
+                  <span className="text-content-muted text-[10px] uppercase font-bold">Sugestão de Preço</span>
+                  <p className="text-2xl font-black text-amber-800 dark:text-amber-400">{formatCurrency(simResultAutonomo)}</p>
+                  <span className="text-[10px] text-content-muted">
                     Inclui materiais ({formatCurrency(totalVariableCents)})
                   </span>
                 </div>
@@ -513,41 +513,41 @@ export default function CalculatorPage() {
             ) : (
               <div className="space-y-4 relative">
                 <div>
-                  <label className="text-xs font-bold text-zinc-400 uppercase mb-2 block">
+                  <label className="text-xs font-bold text-content-secondary uppercase mb-2 block">
                     Quanto quer receber líquido (R$)
                   </label>
                   <input
                     type="number"
                     step="10"
                     min="0"
-                    className="w-full rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-zinc-100 text-sm outline-none focus:border-rose-500"
+                    className="w-full rounded-lg bg-surface-card border border-edge-muted px-3 py-2 text-content-primary text-sm outline-none focus:border-rose-500"
                     value={desiredNet}
                     onChange={(e) => setDesiredNet(Number(e.target.value))}
                     placeholder="Ex: 150"
                   />
                 </div>
 
-                <div className="bg-zinc-950/50 rounded-lg p-4 border border-zinc-700/50 space-y-2">
-                  <span className="text-zinc-500 text-[10px] uppercase font-bold">
+                <div className="bg-surface-primary/50 rounded-lg p-4 border border-edge-muted/50 space-y-2">
+                  <span className="text-content-muted text-[10px] uppercase font-bold">
                     Você precisa cobrar
                   </span>
-                  <p className="text-2xl font-black text-amber-400">
+                  <p className="text-2xl font-black text-amber-800 dark:text-amber-400">
                     {formatCurrency(neededPriceForDesiredNet)}
                   </p>
-                  <div className="text-[10px] text-zinc-500 space-y-1 pt-1 border-t border-zinc-700">
+                  <div className="text-[10px] text-content-muted space-y-1 pt-1 border-t border-edge-muted">
                     <div className="flex justify-between">
                       <span>Studio recebe ({data?.studioPercentage || 0}%):</span>
-                      <span className="text-zinc-400">
+                      <span className="text-content-secondary">
                         {formatCurrency(Math.round(neededPriceForDesiredNet * studioPct))}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Seus custos variáveis:</span>
-                      <span className="text-zinc-400">{formatCurrency(totalVariableCents)}</span>
+                      <span className="text-content-secondary">{formatCurrency(totalVariableCents)}</span>
                     </div>
-                    <div className="flex justify-between font-bold text-zinc-300 pt-1">
+                    <div className="flex justify-between font-bold text-content-primary pt-1">
                       <span>Você fica com:</span>
-                      <span className="text-emerald-400">{formatCurrency(desiredNet * 100)}</span>
+                      <span className="text-emerald-700 dark:text-emerald-400">{formatCurrency(desiredNet * 100)}</span>
                     </div>
                   </div>
                 </div>

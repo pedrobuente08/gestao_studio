@@ -73,19 +73,19 @@ export function Sidebar({ onClose }: SidebarProps) {
   const { logout, user } = useAuth();
 
   return (
-    <div className="flex h-full flex-col bg-zinc-950 border-r border-zinc-800/50">
+    <div className="flex h-full flex-col bg-surface-primary border-r border-edge/50">
       {/* Logo + botão fechar (mobile) */}
-      <div className="flex h-20 items-center justify-between px-6 border-b border-zinc-800/40">
+      <div className="flex h-20 items-center justify-between px-6 border-b border-edge/40">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-lg shadow-rose-500/20">
             <span className="text-white font-black text-xl italic">I</span>
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">Tattoo Hub</span>
+          <span className="text-xl font-bold tracking-tight text-content-primary">Tattoo Hub</span>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="lg:hidden p-2 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-all"
+            className="lg:hidden p-2 rounded-xl text-content-secondary hover:text-content-primary hover:bg-surface-elevated transition-all"
             aria-label="Fechar menu"
           >
             <X className="h-5 w-5" />
@@ -116,7 +116,7 @@ export function Sidebar({ onClose }: SidebarProps) {
                     className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all group ${
                       isActive
                         ? 'bg-rose-500/10 text-rose-500 shadow-[inset_0_0_0_1px_rgba(244,63,94,0.15)]'
-                        : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'
+                        : 'text-content-muted hover:bg-surface-card hover:text-content-primary'
                     }`}
                   >
                     <Icon className={`h-5 w-5 shrink-0 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
@@ -129,7 +129,7 @@ export function Sidebar({ onClose }: SidebarProps) {
       </nav>
 
       {/* User Menu / Logout */}
-      <div className="p-4 border-t border-zinc-800/40 bg-zinc-950/50 backdrop-blur-sm">
+      <div className="p-4 border-t border-edge/40 bg-surface-primary/50 backdrop-blur-sm">
         <UserMenu />
       </div>
     </div>

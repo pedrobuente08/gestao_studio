@@ -261,11 +261,11 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
             </div>
 
             {showNewType && (
-              <div className="flex gap-2 items-center rounded-lg border border-zinc-700 bg-zinc-900 p-3">
+              <div className="flex gap-2 items-center rounded-lg border border-edge-muted bg-surface-card p-3">
                 <input
                   type="text"
                   placeholder="Nome do novo tipo (ex: Micropigmentação)"
-                  className="flex-1 bg-transparent text-sm text-zinc-100 outline-none placeholder-zinc-500"
+                  className="flex-1 bg-transparent text-sm text-content-primary outline-none placeholder-content-muted"
                   value={newTypeName}
                   onChange={(e) => setNewTypeName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddNewType())}
@@ -342,7 +342,7 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
             />
           </div>
 
-          <div className="flex justify-between gap-3 pt-6 border-t border-zinc-800">
+          <div className="flex justify-between gap-3 pt-6 border-t border-edge">
             {session ? (
               <Button
                 type="button"

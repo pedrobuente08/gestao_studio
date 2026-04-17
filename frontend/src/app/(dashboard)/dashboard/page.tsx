@@ -158,20 +158,20 @@ export default function DashboardPage() {
 
       <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
         {/* Gráfico de Faturamento */}
-        <div className="lg:col-span-2 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="lg:col-span-2 rounded-xl border border-edge bg-surface-card p-6">
           <div className="mb-6 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-zinc-100">Faturamento Mensal</h3>
-            <span className="text-xs text-zinc-500">Últimos 6 meses</span>
+            <h3 className="text-lg font-semibold text-content-primary">Faturamento Mensal</h3>
+            <span className="text-xs text-content-muted">Últimos 6 meses</span>
           </div>
           <LineChart data={chartData} />
         </div>
 
         {/* Últimas Sessões */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="rounded-xl border border-edge bg-surface-card p-6">
           <div className="mb-6 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-zinc-100">Últimas Sessões</h3>
+            <h3 className="text-lg font-semibold text-content-primary">Últimas Sessões</h3>
             <Link href="/sessions">
-              <Button variant="ghost" size="sm" className="text-rose-500 hover:text-rose-400">
+              <Button variant="ghost" size="sm" className="text-rose-600 hover:text-rose-800 dark:text-rose-500 dark:hover:text-rose-400">
                 Ver todas
               </Button>
             </Link>
@@ -179,7 +179,7 @@ export default function DashboardPage() {
 
           <Table className="bg-transparent border-none">
             <TableHeader>
-              <TableRow className="hover:bg-transparent border-zinc-800">
+              <TableRow className="hover:bg-transparent border-edge">
                 <TableHead className="px-0">Cliente</TableHead>
                 <TableHead className="text-right px-0">Valor</TableHead>
               </TableRow>
@@ -187,14 +187,14 @@ export default function DashboardPage() {
             <TableBody>
               {latestSessions.length > 0 ? (
                 latestSessions.map((session) => (
-                  <TableRow key={session.id} className="hover:bg-zinc-800/30 border-zinc-800/50">
+                  <TableRow key={session.id} className="hover:bg-surface-elevated/30 border-edge/50">
                     <TableCell className="px-0">
                       <div className="flex flex-col">
-                        <span className="font-medium text-zinc-200">{session.client?.name || 'Cliente'}</span>
-                        <span className="text-xs text-zinc-500">{formatDate(session.date)}</span>
+                        <span className="font-medium text-content-primary">{session.client?.name || 'Cliente'}</span>
+                        <span className="text-xs text-content-muted">{formatDate(session.date)}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right px-0 font-medium text-amber-400">
+                    <TableCell className="text-right px-0 font-medium text-amber-800 dark:text-amber-400">
                       {formatCurrency(session.finalPrice)}
                     </TableCell>
                   </TableRow>

@@ -77,7 +77,7 @@ export default function RegisterPage() {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
-        <p className="mt-2 text-zinc-400">Crie sua conta</p>
+        <p className="mt-2 text-content-secondary">Crie sua conta</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -89,15 +89,15 @@ export default function RegisterPage() {
 
         {/* TODO: reabilitar seleção de tipo de conta quando STUDIO for liberado
         <div>
-          <label className="mb-2 block text-sm font-medium text-zinc-300">Tipo de conta</label>
+          <label className="mb-2 block text-sm font-medium text-content-primary">Tipo de conta</label>
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-            <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors flex-1">
-              <input type="radio" value="AUTONOMO" className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900" {...register('tenantType')} />
-              <span className="text-zinc-300">Autônomo</span>
+            <label className="flex items-center gap-3 p-3 rounded-lg border border-edge-muted cursor-pointer hover:border-edge transition-colors flex-1">
+              <input type="radio" value="AUTONOMO" className="h-4 w-4 text-rose-500 border-edge-muted bg-surface-elevated focus:ring-rose-500 focus:ring-offset-surface-card" {...register('tenantType')} />
+              <span className="text-content-primary">Autônomo</span>
             </label>
-            <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors flex-1">
-              <input type="radio" value="STUDIO" className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900" {...register('tenantType')} />
-              <span className="text-zinc-300">Estúdio</span>
+            <label className="flex items-center gap-3 p-3 rounded-lg border border-edge-muted cursor-pointer hover:border-edge transition-colors flex-1">
+              <input type="radio" value="STUDIO" className="h-4 w-4 text-rose-500 border-edge-muted bg-surface-elevated focus:ring-rose-500 focus:ring-offset-surface-card" {...register('tenantType')} />
+              <span className="text-content-primary">Estúdio</span>
             </label>
           </div>
         </div>
@@ -117,9 +117,9 @@ export default function RegisterPage() {
             />
           </div>
           <div className="w-28">
-            <label className="mb-1 block text-sm font-medium text-zinc-300">Estado</label>
+            <label className="mb-1 block text-sm font-medium text-content-primary">Estado</label>
             <select
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500 h-[42px]"
+              className="w-full rounded-lg border border-edge-muted bg-surface-elevated px-3 py-2 text-sm text-content-primary focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500 h-[42px]"
               {...register('state')}
             >
               <option value="">UF</option>
@@ -168,7 +168,7 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-zinc-400">
+      <p className="text-center text-sm text-content-secondary">
         Já tem conta?{' '}
         <Link
           href="/login"

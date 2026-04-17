@@ -9,14 +9,14 @@ interface CardProps {
 }
 
 export function Card({ title, description, children, className = '', variant = 'default' }: CardProps) {
-  const borderClass = variant === 'highlight' ? 'border-rose-500/50' : 'border-zinc-800';
+  const borderClass = variant === 'highlight' ? 'border-rose-500/50' : 'border-edge';
 
   return (
-    <div className={`rounded-xl border ${borderClass} bg-zinc-900 overflow-hidden ${className}`}>
+    <div className={`rounded-xl border ${borderClass} bg-surface-card overflow-hidden ${className}`}>
       {(title || description) && (
-        <div className="p-4 sm:p-6 border-b border-zinc-800">
-          {title && <h3 className="text-lg font-semibold text-zinc-100">{title}</h3>}
-          {description && <p className="mt-1 text-sm text-zinc-400">{description}</p>}
+        <div className="p-4 sm:p-6 border-b border-edge">
+          {title && <h3 className="text-lg font-semibold text-content-primary">{title}</h3>}
+          {description && <p className="mt-1 text-sm text-content-secondary">{description}</p>}
         </div>
       )}
       <div className="p-4 sm:p-6 italic:not-italic">{children}</div>
@@ -26,14 +26,14 @@ export function Card({ title, description, children, className = '', variant = '
 
 export function TableHead({ children, className = '' }: { children?: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-4 py-3 font-medium text-zinc-400 ${className}`}>
+    <th className={`px-4 py-3 font-medium text-content-secondary ${className}`}>
       {children}
     </th>
   );
 }
 
 export function TableCell({ children, className = '', colSpan }: { children?: React.ReactNode; className?: string; colSpan?: number }) {
-  return <td className={`px-4 py-3 text-zinc-300 ${className}`} colSpan={colSpan}>{children}</td>;
+  return <td className={`px-4 py-3 text-content-primary ${className}`} colSpan={colSpan}>{children}</td>;
 }
 
 interface StatCardProps {
@@ -50,17 +50,17 @@ interface StatCardProps {
 }
 
 export function StatCard({ title, value, description, icon, trend, className = '', variant = 'default' }: StatCardProps) {
-  const borderClass = variant === 'highlight' ? 'border-rose-500/50 shadow-lg shadow-rose-500/5' : 'border-zinc-800';
+  const borderClass = variant === 'highlight' ? 'border-rose-500/50 shadow-lg shadow-rose-500/5' : 'border-edge';
   
   return (
-    <div className={`rounded-xl border ${borderClass} bg-zinc-900 p-4 sm:p-6 ${className}`}>
+    <div className={`rounded-xl border ${borderClass} bg-surface-card p-4 sm:p-6 ${className}`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-zinc-400">{title}</p>
-          <p className="mt-1 text-2xl font-bold text-zinc-100">{value}</p>
+          <p className="text-sm font-medium text-content-secondary">{title}</p>
+          <p className="mt-1 text-2xl font-bold text-content-primary">{value}</p>
         </div>
         {icon && (
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-800 text-rose-500">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-surface-elevated text-rose-500">
             {icon}
           </div>
         )}
@@ -72,7 +72,7 @@ export function StatCard({ title, value, description, icon, trend, className = '
               {trend.isUp ? '↑' : '↓'} {trend.value}%
             </span>
           )}
-          {description && <span className="text-sm text-zinc-500">{description}</span>}
+          {description && <span className="text-sm text-content-muted">{description}</span>}
         </div>
       )}
     </div>

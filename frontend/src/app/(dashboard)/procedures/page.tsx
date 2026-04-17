@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { ProcedureModal } from '@/components/modals/procedure-modal';
 import { formatCurrency } from '@/utils/format-currency';
-import { Plus, Search, Scissors, MoreVertical } from 'lucide-react';
+import { Plus, Search, MoreVertical } from 'lucide-react';
 import { Procedure } from '@/types/procedure.types';
 
 export default function ProceduresPage() {
@@ -43,8 +43,8 @@ export default function ProceduresPage() {
     <div className="space-y-8 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100 italic:not-italic">Procedimentos</h1>
-          <p className="text-zinc-400">
+          <h1 className="text-2xl font-bold text-content-primary italic:not-italic">Procedimentos</h1>
+          <p className="text-content-secondary">
             Catálogo de serviços e base de preços
           </p>
         </div>
@@ -55,12 +55,12 @@ export default function ProceduresPage() {
       </div>
 
       <Card>
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 focus-within:border-rose-500 transition-colors">
-          <Search className="h-4 w-4 text-zinc-500" />
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-edge bg-surface-primary px-3 py-2 focus-within:border-rose-500 transition-colors">
+          <Search className="h-4 w-4 text-content-muted" />
           <input
             type="text"
             placeholder="Buscar procedimento..."
-            className="flex-1 bg-transparent text-sm text-zinc-100 outline-none"
+            className="flex-1 bg-transparent text-sm text-content-primary outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -82,20 +82,15 @@ export default function ProceduresPage() {
               filteredProcedures.map((procedure) => (
                 <TableRow key={procedure.id}>
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
-                        <Scissors className="h-5 w-5" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium text-zinc-200">{procedure.name}</span>
-                        <span className="text-xs text-zinc-500">{procedure.size} • {procedure.complexity}</span>
-                      </div>
+                    <div className="flex flex-col">
+                      <span className="font-medium text-content-primary">{procedure.name}</span>
+                      <span className="text-xs text-content-muted">{procedure.size} • {procedure.complexity}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center font-medium text-amber-400">
+                  <TableCell className="text-center font-medium text-amber-800 dark:text-amber-400">
                     {formatCurrency(procedure.finalPrice)}
                   </TableCell>
-                  <TableCell className="text-center text-zinc-400">
+                  <TableCell className="text-center text-content-secondary">
                     {procedure.duration} min
                   </TableCell>
                   <TableCell>
@@ -105,7 +100,7 @@ export default function ProceduresPage() {
                       className="h-8 w-8 p-0"
                       onClick={() => handleEdit(procedure)}
                     >
-                      <MoreVertical className="h-4 w-4 text-zinc-500" />
+                      <MoreVertical className="h-4 w-4 text-content-muted" />
                     </Button>
                   </TableCell>
                 </TableRow>

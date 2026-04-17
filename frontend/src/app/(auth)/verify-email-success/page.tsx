@@ -24,7 +24,7 @@ function VerifyEmailSuccessContent() {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
-        <p className="mt-2 text-zinc-400">Verificação de email</p>
+        <p className="mt-2 text-content-secondary">Verificação de email</p>
       </div>
 
       {loading ? (
@@ -49,14 +49,14 @@ function VerifyEmailSuccessContent() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <p className="text-zinc-400 text-sm">Validando seu email...</p>
+          <p className="text-content-secondary text-sm">Validando seu email...</p>
         </div>
       ) : error ? (
         /* Estado 3: Erro */
         <div
           className={`transition-opacity duration-500 ${visible ? 'opacity-100' : 'opacity-0'} space-y-6`}
         >
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center space-y-5">
+          <div className="rounded-lg border border-edge bg-surface-card p-8 text-center space-y-5">
             <div className="flex justify-center">
               <div className="rounded-full bg-red-500/15 p-4">
                 <svg
@@ -75,8 +75,8 @@ function VerifyEmailSuccessContent() {
               </div>
             </div>
             <div className="space-y-1">
-              <p className="text-zinc-100 font-semibold text-lg">Link inválido ou expirado</p>
-              <p className="text-sm text-zinc-400">
+              <p className="text-content-primary font-semibold text-lg">Link inválido ou expirado</p>
+              <p className="text-sm text-content-secondary">
                 O link de verificação é inválido ou já expirou. Tente fazer login novamente para receber um novo link.
               </p>
             </div>
@@ -90,7 +90,7 @@ function VerifyEmailSuccessContent() {
         <div
           className={`transition-opacity duration-500 ${visible ? 'opacity-100' : 'opacity-0'} space-y-6`}
         >
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center space-y-5">
+          <div className="rounded-lg border border-edge bg-surface-card p-8 text-center space-y-5">
             {/* Ícone de check */}
             <div className="flex justify-center">
               <div className="relative">
@@ -114,17 +114,17 @@ function VerifyEmailSuccessContent() {
 
             {/* Texto */}
             <div className="space-y-1">
-              <p className="text-zinc-100 font-semibold text-xl">Email validado!</p>
-              <p className="text-sm text-zinc-400">
+              <p className="text-content-primary font-semibold text-xl">Email validado!</p>
+              <p className="text-sm text-content-secondary">
                 Sua conta está ativa e pronta para uso.
               </p>
             </div>
 
             {/* Divisória */}
-            <div className="border-t border-zinc-800" />
+            <div className="border-t border-edge" />
 
             {/* Info extra */}
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-content-muted">
               Faça login para acessar o sistema.
             </p>
           </div>
@@ -143,7 +143,7 @@ function LoadingFallback() {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
-        <p className="mt-2 text-zinc-400">Carregando...</p>
+        <p className="mt-2 text-content-secondary">Carregando...</p>
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import {
   Legend,
 } from 'recharts';
 import { formatCurrency } from '@/utils/format-currency';
+import { useChartPalette } from '@/components/charts/use-chart-palette';
 
 const PALETTE = [
   '#f43f5e', // rose-500
@@ -28,16 +29,18 @@ interface DonutChartProps {
 }
 
 export function DonutChart({ data, height = 300 }: DonutChartProps) {
+  const p = useChartPalette();
+
   return (
     <div style={{ width: '100%', height }}>
       <ResponsiveContainer>
         <PieChart>
           <Tooltip
             contentStyle={{
-              backgroundColor: '#18181b',
-              borderColor: '#27272a',
+              backgroundColor: p.tooltipBg,
+              borderColor: p.tooltipBorder,
               borderRadius: '8px',
-              color: '#f4f4f5',
+              color: p.tooltipText,
             }}
             formatter={(value: any) => [formatCurrency(Number(value) || 0), 'Valor']}
           />
@@ -45,7 +48,7 @@ export function DonutChart({ data, height = 300 }: DonutChartProps) {
             verticalAlign="bottom" 
             height={36}
             iconType="circle"
-            formatter={(value) => <span className="text-zinc-400 text-sm">{value}</span>}
+            formatter={(value) => <span className="text-content-secondary text-sm">{value}</span>}
           />
           <Pie
             data={data}

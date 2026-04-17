@@ -74,7 +74,7 @@ export function EmployeeModal({ isOpen, onClose }: EmployeeModalProps) {
         />
         <Select label="Cargo" options={roleOptions} error={errors.role?.message} {...register('role')} />
 
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-content-muted">
           O prestador receberá um email com link para ativar a conta e definir sua própria senha.
         </p>
 

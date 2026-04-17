@@ -49,14 +49,14 @@ export default function PerformancePage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="text-2xl font-bold text-zinc-100">Desempenho</h1>
+        <h1 className="text-2xl font-bold text-content-primary">Desempenho</h1>
 
         <div className="flex flex-wrap items-center gap-2">
           <DateFilterBar value={dateFilter} onChange={setDateFilter} />
           <select
             value={selectedUserId}
             onChange={(e) => setSelectedUserId(e.target.value)}
-            className="h-8 rounded-lg border border-zinc-800 bg-zinc-900 px-2 text-xs text-zinc-100 outline-none focus:border-rose-500"
+            className="h-8 rounded-lg border border-edge bg-surface-card px-2 text-xs text-content-primary outline-none focus:border-rose-500"
           >
             <option value="">Todos Profissionais</option>
             {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
@@ -66,7 +66,7 @@ export default function PerformancePage() {
 
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {[1, 2, 3].map(i => <div key={i} className="h-32 animate-pulse rounded-xl bg-zinc-900/50" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-32 animate-pulse rounded-xl bg-surface-card/50" />)}
         </div>
       ) : (
         <>
@@ -77,24 +77,24 @@ export default function PerformancePage() {
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6">
-              <h3 className="mb-6 text-sm font-medium text-zinc-400">Faturamento por Serviço</h3>
+            <div className="rounded-xl border border-edge bg-surface-card/30 p-6">
+              <h3 className="mb-6 text-sm font-medium text-content-secondary">Faturamento por Serviço</h3>
               <div className="h-[300px]">
                 {serviceTypeData.length > 0 ? (
                   <DonutChart data={serviceTypeData} />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-zinc-600 italic">Sem dados para o período</div>
+                  <div className="flex h-full items-center justify-center text-sm text-content-muted italic">Sem dados para o período</div>
                 )}
               </div>
             </div>
 
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6">
-              <h3 className="mb-6 text-sm font-medium text-zinc-400">Desempenho por Profissional (R$)</h3>
+            <div className="rounded-xl border border-edge bg-surface-card/30 p-6">
+              <h3 className="mb-6 text-sm font-medium text-content-secondary">Desempenho por Profissional (R$)</h3>
               <div className="h-[300px]">
                 {employeeData.length > 0 ? (
                   <BarChart data={employeeData} />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-zinc-600 italic">Sem dados para o período</div>
+                  <div className="flex h-full items-center justify-center text-sm text-content-muted italic">Sem dados para o período</div>
                 )}
               </div>
             </div>

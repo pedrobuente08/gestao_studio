@@ -50,8 +50,11 @@ export function useClients() {
     onError: (err, variables, context) => {
       queryClient.setQueryData(['clients'], context?.previousClients);
     },
-    onSettled: () => {
+    onSettled: (_data, _err, variables) => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
+      if (variables?.id) {
+        queryClient.invalidateQueries({ queryKey: ['clients', variables.id] });
+      }
     },
   });
 

@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsEmail, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsEmail, IsDateString, IsEnum } from 'class-validator';
+import { ClientHearingSource } from '@prisma/client';
 
 export class UpdateClientDto {
   @IsOptional()
@@ -24,4 +25,8 @@ export class UpdateClientDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsEnum(ClientHearingSource)
+  hearingSource?: ClientHearingSource | null;
 }

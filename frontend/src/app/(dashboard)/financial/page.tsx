@@ -114,7 +114,7 @@ export default function FinancialPage() {
   if (isError) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 p-8">
-        <p className="text-zinc-400 text-sm">Não foi possível carregar os dados financeiros.</p>
+        <p className="text-content-secondary text-sm">Não foi possível carregar os dados financeiros.</p>
         <Button variant="outline" onClick={() => window.location.reload()}>
           Tentar novamente
         </Button>
@@ -128,7 +128,7 @@ export default function FinancialPage() {
         title="Financeiro"
         description="Fluxo de caixa e gestão de despesas"
       >
-        <Button variant="ghost" onClick={handleExport} className="hidden sm:flex text-zinc-400 hover:text-zinc-100">
+        <Button variant="ghost" onClick={handleExport} className="hidden sm:flex text-content-secondary hover:text-content-primary">
           Exportar CSV
         </Button>
         <Button onClick={handleAdd} className="w-full sm:w-auto">
@@ -138,24 +138,24 @@ export default function FinancialPage() {
       </PageHeader>
 
       {/* Gastos Recorrentes */}
-      <div className="mb-6 rounded-lg border border-zinc-800 bg-zinc-900/50">
+      <div className="mb-6 rounded-lg border border-edge bg-surface-card/50">
         <button
           onClick={() => setShowRecurring((v) => !v)}
-          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-zinc-300 hover:text-zinc-100 transition-colors"
+          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-content-primary hover:text-content-primary transition-colors"
         >
           <span className="flex items-center gap-2">
-            <Repeat2 className="h-4 w-4 text-rose-400" />
+            <Repeat2 className="h-4 w-4 text-rose-600 dark:text-rose-400" />
             Gastos Recorrentes
-            <span className="text-xs text-zinc-500 font-normal">
+            <span className="text-xs text-content-muted font-normal">
               ({recurring.filter(r => r.isActive).length} ativo{recurring.filter(r => r.isActive).length !== 1 ? 's' : ''})
             </span>
           </span>
-          <span className="text-zinc-600 text-xs">{showRecurring ? '▲' : '▼'}</span>
+          <span className="text-content-muted text-xs">{showRecurring ? '▲' : '▼'}</span>
         </button>
 
         {showRecurring && (
-          <div className="border-t border-zinc-800 p-4 space-y-4">
-            <p className="text-xs text-zinc-500 leading-relaxed">
+          <div className="border-t border-edge p-4 space-y-4">
+            <p className="text-xs text-content-muted leading-relaxed">
               Cadastre aqui os gastos que se repetem todo mês (aluguel, internet, IPTU, etc.). No dia 1º de cada mês eles são lançados automaticamente como despesas no financeiro. Você pode editar o valor quando ele mudar.
             </p>
 
@@ -165,7 +165,7 @@ export default function FinancialPage() {
                 placeholder="Nome (ex: Aluguel)"
                 value={recurringForm.name}
                 onChange={(e) => setRecurringForm(f => ({ ...f, name: e.target.value }))}
-                className="col-span-2 sm:col-span-1 rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-rose-500"
+                className="col-span-2 sm:col-span-1 rounded-md bg-surface-elevated border border-edge-muted px-3 py-2 text-sm text-content-primary outline-none focus:border-rose-500"
               />
               <input
                 placeholder="Valor R$"
@@ -173,12 +173,12 @@ export default function FinancialPage() {
                 step="0.01"
                 value={recurringForm.amount}
                 onChange={(e) => setRecurringForm(f => ({ ...f, amount: e.target.value }))}
-                className="rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-rose-500"
+                className="rounded-md bg-surface-elevated border border-edge-muted px-3 py-2 text-sm text-content-primary outline-none focus:border-rose-500"
               />
               <select
                 value={recurringForm.category}
                 onChange={(e) => setRecurringForm(f => ({ ...f, category: e.target.value }))}
-                className="rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-rose-500"
+                className="rounded-md bg-surface-elevated border border-edge-muted px-3 py-2 text-sm text-content-primary outline-none focus:border-rose-500"
               >
                 {Object.entries(TRANSACTION_CATEGORY_LABELS).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
@@ -207,49 +207,49 @@ export default function FinancialPage() {
             {recurring.length > 0 && (
               <div className="space-y-2">
                 {recurring.map((r) => (
-                  <div key={r.id} className={`flex items-center justify-between gap-3 rounded-md px-3 py-2 border transition-colors ${r.isActive ? 'bg-zinc-800/50 border-zinc-700' : 'bg-zinc-900/30 border-zinc-800 opacity-50'}`}>
+                  <div key={r.id} className={`flex items-center justify-between gap-3 rounded-md px-3 py-2 border transition-colors ${r.isActive ? 'bg-surface-elevated/50 border-edge-muted' : 'bg-surface-card/30 border-edge opacity-50'}`}>
                     {editingRecurring?.id === r.id ? (
                       <div className="flex flex-1 items-center gap-2 flex-wrap">
                         <input
                           value={editingRecurring.name}
                           onChange={(e) => setEditingRecurring(prev => prev ? { ...prev, name: e.target.value } : null)}
-                          className="flex-1 min-w-24 rounded bg-zinc-700 border border-zinc-600 px-2 py-1 text-xs text-zinc-100 outline-none focus:border-rose-500"
+                          className="flex-1 min-w-24 rounded bg-surface-elevated border border-edge-muted px-2 py-1 text-xs text-content-primary outline-none focus:border-rose-500"
                         />
                         <input
                           type="number"
                           step="0.01"
                           value={(editingRecurring.amount / 100).toFixed(2)}
                           onChange={(e) => setEditingRecurring(prev => prev ? { ...prev, amount: Math.round(parseFloat(e.target.value) * 100) } : null)}
-                          className="w-24 rounded bg-zinc-700 border border-zinc-600 px-2 py-1 text-xs text-zinc-100 outline-none focus:border-rose-500"
+                          className="w-24 rounded bg-surface-elevated border border-edge-muted px-2 py-1 text-xs text-content-primary outline-none focus:border-rose-500"
                         />
                         <button onClick={() => {
                           updateRecurring({ id: r.id, data: { name: editingRecurring.name, amount: editingRecurring.amount } });
                           setEditingRecurring(null);
-                        }} className="text-emerald-400 hover:text-emerald-300">
+                        }} className="text-emerald-700 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300">
                           <Check className="h-4 w-4" />
                         </button>
-                        <button onClick={() => setEditingRecurring(null)} className="text-zinc-500 hover:text-zinc-300">
+                        <button onClick={() => setEditingRecurring(null)} className="text-content-muted hover:text-content-primary">
                           <X className="h-4 w-4" />
                         </button>
                       </div>
                     ) : (
                       <>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-zinc-200 truncate">{r.name}</p>
-                          <p className="text-xs text-zinc-500">{TRANSACTION_CATEGORY_LABELS[r.category as keyof typeof TRANSACTION_CATEGORY_LABELS]} · dia {r.dayOfMonth}</p>
+                          <p className="text-sm text-content-primary truncate">{r.name}</p>
+                          <p className="text-xs text-content-muted">{TRANSACTION_CATEGORY_LABELS[r.category as keyof typeof TRANSACTION_CATEGORY_LABELS]} · dia {r.dayOfMonth}</p>
                         </div>
-                        <span className="text-sm font-semibold text-rose-400 shrink-0">{formatCurrency(r.amount)}</span>
+                        <span className="text-sm font-semibold text-rose-600 dark:text-rose-400 shrink-0">{formatCurrency(r.amount)}</span>
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => updateRecurring({ id: r.id, data: { isActive: !r.isActive } })}
-                            className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${r.isActive ? 'border-zinc-600 text-zinc-400 hover:border-rose-500 hover:text-rose-400' : 'border-zinc-700 text-zinc-600 hover:border-emerald-500 hover:text-emerald-400'}`}
+                            className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${r.isActive ? 'border-edge-muted text-content-secondary hover:border-rose-500 hover:text-rose-600 dark:hover:text-rose-400' : 'border-edge-muted text-content-muted hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400'}`}
                           >
                             {r.isActive ? 'Pausar' : 'Ativar'}
                           </button>
-                          <button onClick={() => setEditingRecurring(r)} className="text-zinc-500 hover:text-zinc-300 p-1">
+                          <button onClick={() => setEditingRecurring(r)} className="text-content-muted hover:text-content-primary p-1">
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => deleteRecurring(r.id)} className="text-zinc-500 hover:text-rose-400 p-1">
+                          <button onClick={() => deleteRecurring(r.id)} className="text-content-muted hover:text-rose-600 dark:hover:text-rose-400 p-1">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -261,8 +261,8 @@ export default function FinancialPage() {
             )}
 
             {/* Botão lançar manualmente */}
-            <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
-              <p className="text-xs text-zinc-600">O lançamento automático ocorre todo dia 1º às 6h.</p>
+            <div className="flex items-center justify-between pt-2 border-t border-edge">
+              <p className="text-xs text-content-muted">O lançamento automático ocorre todo dia 1º às 6h.</p>
               <Button
                 variant="outline"
                 size="sm"
@@ -274,7 +274,7 @@ export default function FinancialPage() {
               </Button>
             </div>
             {processResult && (
-              <p className="text-xs text-emerald-400">
+              <p className="text-xs text-emerald-700 dark:text-emerald-400">
                 ✓ {processResult.created} transaç{processResult.created !== 1 ? 'ões' : 'ão'} lançada{processResult.created !== 1 ? 's' : ''} ({processResult.processed} recorrente{processResult.processed !== 1 ? 's' : ''} verificado{processResult.processed !== 1 ? 's' : ''}).
               </p>
             )}
@@ -288,7 +288,7 @@ export default function FinancialPage() {
         <select
           value={selectedUserId}
           onChange={(e) => setSelectedUserId(e.target.value)}
-          className="h-9 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
+          className="h-9 rounded-lg bg-surface-elevated border border-edge-muted px-2 text-sm text-content-primary focus:outline-none focus:border-rose-500"
         >
           <option value="">Todos Profissionais</option>
           {employees.map((e) => (
@@ -323,12 +323,12 @@ export default function FinancialPage() {
       </div>
 
       <Card>
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 focus-within:border-rose-500 transition-colors">
-          <Search className="h-4 w-4 text-zinc-500" />
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-edge bg-surface-primary px-3 py-2 focus-within:border-rose-500 transition-colors">
+          <Search className="h-4 w-4 text-content-muted" />
           <input
             type="text"
             placeholder="Buscar por descrição ou categoria..."
-            className="flex-1 bg-transparent text-sm text-zinc-100 outline-none"
+            className="flex-1 bg-transparent text-sm text-content-primary outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -353,15 +353,15 @@ export default function FinancialPage() {
                     {formatDate(transaction.date)}
                   </TableCell>
                   <TableCell className="max-w-[140px] sm:max-w-none">
-                    <span className="text-zinc-200 line-clamp-1">{transaction.description}</span>
+                    <span className="text-content-primary line-clamp-1">{transaction.description}</span>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <span className="inline-flex items-center rounded-full bg-zinc-800 px-2 py-0.5 text-xs font-medium text-zinc-400">
+                    <span className="inline-flex items-center rounded-full bg-surface-elevated px-2 py-0.5 text-xs font-medium text-content-secondary">
                       {TRANSACTION_CATEGORY_LABELS[transaction.category] || transaction.category}
                     </span>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <span className="text-zinc-400 text-sm">
+                    <span className="text-content-secondary text-sm">
                       {transaction.paymentMethod ? PAYMENT_METHOD_LABELS[transaction.paymentMethod] : '—'}
                     </span>
                   </TableCell>
@@ -377,7 +377,7 @@ export default function FinancialPage() {
                       className="h-8 w-8 p-0"
                       onClick={() => handleEdit(transaction)}
                     >
-                      <MoreVertical className="h-4 w-4 text-zinc-500" />
+                      <MoreVertical className="h-4 w-4 text-content-muted" />
                     </Button>
                   </TableCell>
                 </TableRow>

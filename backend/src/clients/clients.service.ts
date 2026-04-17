@@ -39,6 +39,7 @@ export class ClientsService {
         instagram: dto.instagram,
         birthDate: dto.birthDate ? new Date(dto.birthDate) : null,
         notes: dto.notes,
+        hearingSource: dto.hearingSource ?? undefined,
       },
     });
 
@@ -98,6 +99,7 @@ export class ClientsService {
       phone: client.phone,
       instagram: client.instagram,
       birthDate: client.birthDate,
+      hearingSource: client.hearingSource,
       notes: client.notes,
       createdAt: client.createdAt,
       updatedAt: client.updatedAt,
@@ -149,6 +151,7 @@ export class ClientsService {
       phone: client.phone,
       instagram: client.instagram,
       birthDate: client.birthDate,
+      hearingSource: client.hearingSource,
       notes: client.notes,
       createdAt: client.createdAt,
       updatedAt: client.updatedAt,
@@ -159,13 +162,30 @@ export class ClientsService {
     };
   }
 
-  async update(id: string, tenantId: string, dto: UpdateClientDto) {
+  async update(
+    id: string,
+    tenantId: string,
+    dto: UpdateClientDto,
+    userId?: string,
+    role?: UserRole,
+  ) {
     const client = await this.prisma.client.findFirst({
       where: { id, tenantId },
     });
 
     if (!client) {
       throw new NotFoundException('Cliente não encontrado');
+    }
+
+    if (role === UserRole.EMPLOYEE && userId) {
+      const hasSession = await this.prisma.tattooSession.findFirst({
+        where: { clientId: id, userId },
+      });
+      if (!hasSession) {
+        throw new ForbiddenException(
+          'Sem permissão para editar este cliente',
+        );
+      }
     }
 
     // Se estiver alterando nome ou telefone, verifica duplicidade
@@ -187,11 +207,16 @@ export class ClientsService {
       }
     }
 
+    const { birthDate, hearingSource, ...rest } = dto;
+
     return this.prisma.client.update({
       where: { id },
       data: {
-        ...dto,
-        birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
+        ...rest,
+        ...(birthDate !== undefined && {
+          birthDate: birthDate ? new Date(birthDate) : null,
+        }),
+        ...(hearingSource !== undefined && { hearingSource }),
       },
     });
   }

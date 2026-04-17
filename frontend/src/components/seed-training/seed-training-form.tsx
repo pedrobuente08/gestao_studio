@@ -97,16 +97,16 @@ export function SeedTrainingForm() {
 
   const progressPercent = Math.min((totalCount / SEED_MAX) * 100, 100);
   const progressColor =
-    totalCount >= SEED_MAX ? 'bg-rose-500' : totalCount >= 20 ? 'bg-emerald-500' : 'bg-zinc-500';
+    totalCount >= SEED_MAX ? 'bg-rose-500' : totalCount >= 20 ? 'bg-emerald-500' : 'bg-content-muted';
 
   return (
     <div className="space-y-6">
       {/* Cabeçalho com progresso */}
-      <div className="rounded-xl border border-zinc-700 bg-zinc-900 p-5 space-y-3">
+      <div className="rounded-xl border border-edge-muted bg-surface-card p-5 space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-zinc-100">Progresso</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <h3 className="text-sm font-semibold text-content-primary">Progresso</h3>
+            <p className="text-xs text-content-muted mt-0.5">
               {totalCount >= 20
                 ? 'Você já tem dados suficientes para boas sugestões!'
                 : `Adicione pelo menos ${20 - totalCount} entrada${20 - totalCount !== 1 ? 's' : ''} para ativar sugestões precisas.`}
@@ -114,14 +114,14 @@ export function SeedTrainingForm() {
           </div>
           <span
             className={`text-2xl font-extrabold tabular-nums ${
-              isAtLimit ? 'text-rose-400' : totalCount >= 20 ? 'text-emerald-400' : 'text-zinc-300'
+              isAtLimit ? 'text-rose-600 dark:text-rose-400' : totalCount >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-content-primary'
             }`}
           >
             {totalCount}
-            <span className="text-sm font-normal text-zinc-500">/{SEED_MAX}</span>
+            <span className="text-sm font-normal text-content-muted">/{SEED_MAX}</span>
           </span>
         </div>
-        <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+        <div className="h-1.5 w-full rounded-full bg-surface-elevated overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-300 ${progressColor}`}
             style={{ width: `${progressPercent}%` }}
@@ -131,8 +131,8 @@ export function SeedTrainingForm() {
 
       {/* Formulário de adição */}
       {!isAtLimit && (
-        <div className="rounded-xl border border-zinc-700 bg-zinc-900 p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-zinc-200">Adicionar tatuagem</h3>
+        <div className="rounded-xl border border-edge-muted bg-surface-card p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-content-primary">Adicionar tatuagem</h3>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Select
@@ -186,7 +186,7 @@ export function SeedTrainingForm() {
       {pending.length > 0 && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-amber-300">
+            <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-300">
               {pending.length} entrada{pending.length !== 1 ? 's' : ''} não salva{pending.length !== 1 ? 's' : ''}
             </h3>
             <Button
@@ -204,23 +204,23 @@ export function SeedTrainingForm() {
             {pending.map((e) => (
               <div
                 key={e.localId}
-                className="flex items-center justify-between rounded-lg bg-zinc-800/60 px-3 py-2 text-xs"
+                className="flex items-center justify-between rounded-lg bg-surface-elevated/60 px-3 py-2 text-xs"
               >
-                <div className="flex gap-3 text-zinc-300">
+                <div className="flex gap-3 text-content-primary">
                   <span>{TATTOO_SIZE_LABELS[e.size]}</span>
-                  <span className="text-zinc-600">·</span>
+                  <span className="text-content-muted">·</span>
                   <span>{BODY_LOCATION_LABELS[e.bodyLocation]}</span>
-                  <span className="text-zinc-600">·</span>
+                  <span className="text-content-muted">·</span>
                   <span>{TATTOO_COMPLEXITY_LABELS[e.complexity]}</span>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 ml-3">
-                  <span className="text-amber-400 font-medium">
+                  <span className="text-amber-800 dark:text-amber-400 font-medium">
                     {formatCurrency(Math.round(e.finalPrice * 100))}
                   </span>
                   <button
                     type="button"
                     onClick={() => handleRemovePending(e.localId)}
-                    className="text-zinc-500 hover:text-red-400 transition-colors"
+                    className="text-content-muted hover:text-red-400 transition-colors"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -233,7 +233,7 @@ export function SeedTrainingForm() {
 
       {/* Feedback de sucesso */}
       {saveSuccess && (
-        <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-4 py-3 text-sm text-emerald-400">
+        <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-400">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           Dados salvos com sucesso! Agora eles já fazem parte das suas sugestões de preço.
         </div>
@@ -241,32 +241,32 @@ export function SeedTrainingForm() {
 
       {/* Entradas salvas */}
       {isLoading ? (
-        <p className="text-zinc-500 text-sm text-center py-4">Carregando dados históricos...</p>
+        <p className="text-content-muted text-sm text-center py-4">Carregando dados históricos...</p>
       ) : entries.length > 0 ? (
-        <div className="rounded-xl border border-zinc-700 bg-zinc-900 p-5 space-y-3">
-          <h3 className="text-sm font-semibold text-zinc-200">
+        <div className="rounded-xl border border-edge-muted bg-surface-card p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-content-primary">
             Dados salvos ({savedCount}/{SEED_MAX})
           </h3>
           <div className="space-y-1 max-h-72 overflow-y-auto">
             {entries.map((e) => (
               <div
                 key={e.id}
-                className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-3 py-2 text-xs"
+                className="flex items-center justify-between rounded-lg bg-surface-elevated/50 px-3 py-2 text-xs"
               >
-                <div className="flex gap-3 text-zinc-300">
+                <div className="flex gap-3 text-content-primary">
                   <span>{TATTOO_SIZE_LABELS[e.size]}</span>
-                  <span className="text-zinc-600">·</span>
+                  <span className="text-content-muted">·</span>
                   <span>{BODY_LOCATION_LABELS[e.bodyLocation]}</span>
-                  <span className="text-zinc-600">·</span>
+                  <span className="text-content-muted">·</span>
                   <span>{TATTOO_COMPLEXITY_LABELS[e.complexity]}</span>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 ml-3">
-                  <span className="text-zinc-300 font-medium">{formatCurrency(e.finalPrice)}</span>
+                  <span className="text-content-primary font-medium">{formatCurrency(e.finalPrice)}</span>
                   <button
                     type="button"
                     onClick={() => removeEntry(e.id)}
                     disabled={isRemoving}
-                    className="text-zinc-600 hover:text-red-400 transition-colors disabled:opacity-40"
+                    className="text-content-muted hover:text-red-400 transition-colors disabled:opacity-40"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -279,7 +279,7 @@ export function SeedTrainingForm() {
 
       {/* Estado vazio */}
       {!isLoading && entries.length === 0 && pending.length === 0 && (
-        <p className="text-center text-zinc-500 text-sm py-4">
+        <p className="text-center text-content-muted text-sm py-4">
           Nenhum dado histórico cadastrado ainda. Adicione tatuagens que você já realizou para melhorar as sugestões de preço.
         </p>
       )}

@@ -83,7 +83,7 @@ export function DateFilterBar({ value, onChange }: DateFilterBarProps) {
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[36px] ${
               active
                 ? 'bg-rose-500 text-white'
-                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-100'
+                : 'bg-surface-elevated text-content-secondary hover:bg-surface-elevated hover:text-content-primary'
             }`}
           >
             {preset.label}
@@ -96,14 +96,14 @@ export function DateFilterBar({ value, onChange }: DateFilterBarProps) {
           type="date"
           value={customStart}
           onChange={(e) => setCustomStart(e.target.value)}
-          className="h-9 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
+          className="h-9 rounded-lg bg-surface-elevated border border-edge-muted px-2 text-sm text-content-primary focus:outline-none focus:border-rose-500"
         />
-        <span className="text-zinc-600 text-sm">até</span>
+        <span className="text-content-muted text-sm">até</span>
         <input
           type="date"
           value={customEnd}
           onChange={(e) => setCustomEnd(e.target.value)}
-          className="h-9 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
+          className="h-9 rounded-lg bg-surface-elevated border border-edge-muted px-2 text-sm text-content-primary focus:outline-none focus:border-rose-500"
         />
         {(customStart || customEnd) && (
           <button
@@ -118,7 +118,7 @@ export function DateFilterBar({ value, onChange }: DateFilterBarProps) {
       {value && (
         <button
           onClick={handleClear}
-          className="px-3 py-2 rounded-lg text-sm text-zinc-500 hover:text-zinc-300 transition-colors underline min-h-[36px]"
+          className="px-3 py-2 rounded-lg text-sm text-content-muted hover:text-content-primary transition-colors underline min-h-[36px]"
         >
           Limpar
         </button>

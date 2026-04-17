@@ -6,19 +6,29 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useClients } from '@/hooks/use-clients';
-import { CreateClientData, Client } from '@/types/client.types';
+import {
+  CreateClientData,
+  Client,
+  type ClientHearingSource,
+  type UpdateClientData,
+} from '@/types/client.types';
 import { useEffect, useState } from 'react';
 import { AxiosError } from 'axios';
 import { Trash2 } from 'lucide-react';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { cn } from '@/lib/utils';
+import { HEARING_SOURCE_OPTIONS } from '@/utils/client-hearing';
+
+const hearingEnum = z.enum(['INSTAGRAM', 'GOOGLE', 'REFERRAL', 'YOUTUBE', 'OTHER']);
 
 const clientSchema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   instagram: z.string().optional().or(z.literal('')),
-  birthDate: z.string().min(1, 'Data de nascimento é obrigatória'),
+  birthDate: z.string().optional().or(z.literal('')),
   notes: z.string().optional().or(z.literal('')),
+  hearingSource: z.union([z.literal(''), hearingEnum]).optional(),
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;
@@ -38,10 +48,15 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
+    defaultValues: { hearingSource: '' },
   });
+
+  const hearingSource = watch('hearingSource') as ClientHearingSource | '' | undefined;
 
   useEffect(() => {
     setServerError(null);
@@ -53,6 +68,7 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
         instagram: client.instagram || '',
         birthDate: client.birthDate ? new Date(client.birthDate).toISOString().split('T')[0] : '',
         notes: client.notes || '',
+        hearingSource: (client.hearingSource ?? '') as ClientHearingSource | '',
       });
     } else {
       reset({
@@ -62,6 +78,7 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
         instagram: '',
         birthDate: '',
         notes: '',
+        hearingSource: '',
       });
     }
   }, [client, reset, isOpen]);
@@ -77,11 +94,34 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
     }
   };
 
+  const toCreatePayload = (data: ClientFormData): CreateClientData => ({
+    name: data.name,
+    email: data.email || undefined,
+    phone: data.phone || undefined,
+    instagram: data.instagram || undefined,
+    birthDate: data.birthDate || undefined,
+    notes: data.notes || undefined,
+    hearingSource: (() => {
+      const v = data.hearingSource as ClientHearingSource | '' | undefined;
+      if (v === undefined || v === '') return undefined;
+      return v;
+    })(),
+  });
+
+  const toUpdatePayload = (data: ClientFormData): UpdateClientData => ({
+    ...toCreatePayload(data),
+    hearingSource: (() => {
+      const v = data.hearingSource as ClientHearingSource | '' | undefined;
+      if (v === undefined || v === '') return null;
+      return v;
+    })(),
+  });
+
   const onSubmit = (data: ClientFormData) => {
     setServerError(null);
     if (client) {
       updateClient(
-        { id: client.id, data },
+        { id: client.id, data: toUpdatePayload(data) },
         {
           onSuccess: () => {
             onClose();
@@ -95,7 +135,7 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
         }
       );
     } else {
-      createClient(data as CreateClientData, {
+      createClient(toCreatePayload(data), {
         onSuccess: () => {
           onClose();
           reset();
@@ -154,11 +194,56 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
               {...register('instagram')}
             />
             <Input
-              label="Data de Nascimento (opcional)"
+              label="Data de nascimento (opcional)"
               type="date"
               error={errors.birthDate?.message}
               {...register('birthDate')}
             />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-content-primary">Onde conheceu o estúdio?</p>
+            <p className="text-xs text-content-muted">Opcional — ajuda a medir canais de divulgação.</p>
+            <div
+              className="flex flex-wrap gap-2 rounded-xl border border-edge bg-surface-primary p-2"
+              role="tablist"
+              aria-label="Onde conheceu o estúdio"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={!hearingSource}
+                className={cn(
+                  'rounded-lg px-3 py-2 text-xs font-medium transition-colors',
+                  !hearingSource
+                    ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/30'
+                    : 'text-content-secondary hover:bg-surface-elevated hover:text-content-primary',
+                )}
+                onClick={() => setValue('hearingSource', '', { shouldDirty: true })}
+              >
+                Não informado
+              </button>
+              {HEARING_SOURCE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={hearingSource === opt.value}
+                  className={cn(
+                    'rounded-lg px-3 py-2 text-xs font-medium transition-colors',
+                    hearingSource === opt.value
+                      ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/30'
+                      : 'text-content-secondary hover:bg-surface-elevated hover:text-content-primary',
+                  )}
+                  onClick={() =>
+                    setValue('hearingSource', opt.value, { shouldDirty: true })
+                  }
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <input type="hidden" {...register('hearingSource')} />
           </div>
 
           <Textarea
@@ -168,7 +253,7 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
             {...register('notes')}
           />
 
-          <div className="flex justify-between gap-3 pt-6 border-t border-zinc-800">
+          <div className="flex justify-between gap-3 pt-6 border-t border-edge">
             {client ? (
               <Button
                 type="button"
@@ -192,7 +277,7 @@ export function ClientModal({ isOpen, onClose, client }: ClientModalProps) {
                 Cancelar
               </Button>
               <Button type="submit" isLoading={isCreating || isUpdating}>
-                {client ? 'Salvar Alterações' : 'Criar Cliente'}
+                {client ? 'Salvar alterações' : 'Criar cliente'}
               </Button>
             </div>
           </div>

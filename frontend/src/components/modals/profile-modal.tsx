@@ -78,7 +78,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
         {/* Foto de Perfil */}
         <div className="flex flex-col items-center gap-3">
           <div className="relative group cursor-pointer" onClick={handlePhotoClick}>
-            <Avatar.Root className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-rose-500/10 border-2 border-zinc-800 group-hover:border-rose-500/50 transition-colors">
+            <Avatar.Root className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-rose-500/10 border-2 border-edge group-hover:border-rose-500/50 transition-colors">
               <Avatar.Image
                 src={user?.profilePhotoUrl}
                 alt={user?.name}

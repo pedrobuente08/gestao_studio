@@ -1,26 +1,43 @@
 @import "tailwindcss";
 
+/* ─── Tema: variáveis semânticas (claro = :root, escuro = html.dark) ─── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --surface-primary: #f9fafb;
+  --surface-secondary: #f4f4f5;
+  --surface-card: #ffffff;
+  --surface-input: #f4f4f5;
+  --surface-elevated: #e4e4e7;
+  --content-primary: #111827;
+  --content-secondary: #6b7280;
+  --content-muted: #9ca3af;
+  --edge: #e5e7eb;
+  --edge-muted: #d1d5db;
+}
+
+html.dark {
+  --surface-primary: #09090b;
+  --surface-secondary: #18181b;
+  --surface-card: #18181b;
+  --surface-input: #27272a;
+  --surface-elevated: #27272a;
+  --content-primary: #f4f4f5;
+  --content-secondary: #a1a1aa;
+  --content-muted: #71717a;
+  --edge: #27272a;
+  --edge-muted: #3f3f46;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-surface-primary: var(--surface-primary);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-card: var(--surface-card);
+  --color-surface-input: var(--surface-input);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-content-primary: var(--content-primary);
+  --color-content-secondary: var(--content-secondary);
+  --color-content-muted: var(--content-muted);
+  --color-edge: var(--edge);
+  --color-edge-muted: var(--edge-muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

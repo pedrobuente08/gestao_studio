@@ -17,7 +17,7 @@ export default function DashboardLayout({
 
   return (
     <RouteGuard>
-      <div className="flex min-h-screen bg-zinc-950">
+      <div className="flex min-h-screen bg-surface-primary">
         {/* Sidebar — fixo no desktop, oculto no mobile */}
         <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-30">
           <Sidebar />

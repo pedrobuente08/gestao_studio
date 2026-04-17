@@ -73,8 +73,8 @@ export function ChangePasswordModal({ open, onOpenChange }: ChangePasswordModalP
             <CheckCircle2 className="h-10 w-10 text-green-500" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">Senha alterada!</h3>
-            <p className="text-sm text-zinc-400 mt-1">Sua senha foi atualizada com sucesso.</p>
+            <h3 className="text-lg font-semibold text-content-primary">Senha alterada!</h3>
+            <p className="text-sm text-content-secondary mt-1">Sua senha foi atualizada com sucesso.</p>
           </div>
         </div>
       ) : (
@@ -88,7 +88,7 @@ export function ChangePasswordModal({ open, onOpenChange }: ChangePasswordModalP
               error={errors.currentPassword?.message}
             />
 
-            <hr className="border-zinc-800 my-2" />
+            <hr className="border-edge my-2" />
 
             <Input
               label="Nova Senha"

@@ -46,10 +46,10 @@ function VerifyEmailContent() {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
-        <p className="mt-2 text-zinc-400">Verifique seu email</p>
+        <p className="mt-2 text-content-secondary">Verifique seu email</p>
       </div>
 
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6 text-center space-y-4">
+      <div className="rounded-lg border border-edge bg-surface-card p-6 text-center space-y-4">
         <div className="flex justify-center">
           <svg className="h-14 w-14 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -58,19 +58,19 @@ function VerifyEmailContent() {
           </svg>
         </div>
         <div>
-          <p className="text-zinc-100 font-medium">Email de verificação enviado!</p>
+          <p className="text-content-primary font-medium">Email de verificação enviado!</p>
           {email && (
-            <p className="text-sm text-zinc-400 mt-1">
-              Enviamos um link para <span className="text-zinc-200">{email}</span>
+            <p className="text-sm text-content-secondary mt-1">
+              Enviamos um link para <span className="text-content-primary">{email}</span>
             </p>
           )}
           {!email && (
-            <p className="text-sm text-zinc-400 mt-1">
+            <p className="text-sm text-content-secondary mt-1">
               Verifique sua caixa de entrada e clique no link enviado.
             </p>
           )}
         </div>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-content-muted">
           Não esqueça de verificar a pasta de spam.
         </p>
       </div>
@@ -98,7 +98,7 @@ function VerifyEmailContent() {
         </Button>
       )}
 
-      <p className="text-center text-sm text-zinc-400">
+      <p className="text-center text-sm text-content-secondary">
         <Link href="/login" className="text-rose-500 hover:text-rose-400 transition-colors">
           Voltar para o login
         </Link>
@@ -112,7 +112,7 @@ function LoadingFallback() {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
-        <p className="mt-2 text-zinc-400">Carregando...</p>
+        <p className="mt-2 text-content-secondary">Carregando...</p>
       </div>
     </div>
   );

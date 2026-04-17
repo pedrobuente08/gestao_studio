@@ -62,13 +62,20 @@ export class ClientsController {
   }
 
   @Patch(':id')
-  @Roles('OWNER', 'STAFF')
+  @Roles('OWNER', 'STAFF', 'EMPLOYEE')
   update(
     @Param('id') id: string,
     @CurrentTenant() tenantId: string,
     @Body() dto: UpdateClientDto,
+    @Req() req: any,
   ) {
-    return this.clientsService.update(id, tenantId, dto);
+    return this.clientsService.update(
+      id,
+      tenantId,
+      dto,
+      req.user.id,
+      req.user.role,
+    );
   }
 
   @Delete(':id')

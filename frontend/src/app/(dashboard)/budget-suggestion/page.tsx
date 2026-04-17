@@ -94,10 +94,10 @@ export default function BudgetSuggestionPage() {
     if (mlPanel.type === 'not-tattoo') {
       return (
         <div className="flex flex-col items-center justify-center py-8 text-center gap-3">
-          <AlertCircle className="h-8 w-8 text-zinc-600" />
+          <AlertCircle className="h-8 w-8 text-content-muted" />
           <div>
-            <p className="text-zinc-400 font-medium">Disponível apenas para tatuagens</p>
-            <p className="text-zinc-500 text-sm mt-1">
+            <p className="text-content-secondary font-medium">Disponível apenas para tatuagens</p>
+            <p className="text-content-muted text-sm mt-1">
               O modelo de IA é treinado com parâmetros específicos de tatuagem.
             </p>
           </div>
@@ -108,10 +108,10 @@ export default function BudgetSuggestionPage() {
     if (mlPanel.type === 'missing-params') {
       return (
         <div className="flex flex-col items-center justify-center py-8 text-center gap-3">
-          <AlertCircle className="h-8 w-8 text-zinc-600" />
+          <AlertCircle className="h-8 w-8 text-content-muted" />
           <div>
-            <p className="text-zinc-400 font-medium">Parâmetros incompletos</p>
-            <p className="text-zinc-500 text-sm mt-1">
+            <p className="text-content-secondary font-medium">Parâmetros incompletos</p>
+            <p className="text-content-muted text-sm mt-1">
               Selecione tamanho, complexidade e local do corpo para receber a sugestão de IA.
             </p>
           </div>
@@ -123,7 +123,7 @@ export default function BudgetSuggestionPage() {
       return (
         <div className="flex flex-col items-center justify-center py-8 gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
-          <p className="text-zinc-500 text-sm">Consultando modelo...</p>
+          <p className="text-content-muted text-sm">Consultando modelo...</p>
         </div>
       );
     }
@@ -134,20 +134,20 @@ export default function BudgetSuggestionPage() {
       if (!data.available) {
         return (
           <div className="flex flex-col items-center justify-center py-6 text-center gap-4">
-            <Lightbulb className="h-8 w-8 text-zinc-600" />
+            <Lightbulb className="h-8 w-8 text-content-muted" />
             <div>
-              <p className="text-zinc-400 font-medium">Modelo em desenvolvimento</p>
-              <p className="text-zinc-500 text-sm mt-1">{data.reason}</p>
+              <p className="text-content-secondary font-medium">Modelo em desenvolvimento</p>
+              <p className="text-content-muted text-sm mt-1">{data.reason}</p>
             </div>
             {data.sessionCount !== undefined && data.minSessionsRequired !== undefined && (
               <div className="w-full max-w-xs">
-                <div className="flex justify-between text-xs text-zinc-500 mb-1.5">
+                <div className="flex justify-between text-xs text-content-muted mb-1.5">
                   <span>Progresso</span>
-                  <span className="font-medium text-zinc-400">
+                  <span className="font-medium text-content-secondary">
                     {data.sessionCount} / {data.minSessionsRequired} sessões
                   </span>
                 </div>
-                <div className="w-full bg-zinc-800 rounded-full h-2">
+                <div className="w-full bg-surface-elevated rounded-full h-2">
                   <div
                     className="bg-amber-500 h-2 rounded-full transition-all"
                     style={{
@@ -163,20 +163,20 @@ export default function BudgetSuggestionPage() {
 
       return (
         <div className="space-y-4">
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-content-muted">
             Treinado com{' '}
-            <span className="text-zinc-300 font-medium">{data.modelDataPoints} sessões</span>
+            <span className="text-content-primary font-medium">{data.modelDataPoints} sessões</span>
             {data.trainedAt && <span> · atualizado em {formatDate(data.trainedAt)}</span>}
           </p>
           <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-6 text-center">
-            <span className="text-[10px] text-amber-400 uppercase font-bold block mb-2">
+            <span className="text-[10px] text-amber-800 dark:text-amber-400 uppercase font-bold block mb-2">
               Sugestão do Modelo
             </span>
-            <span className="text-3xl font-extrabold text-amber-400">
+            <span className="text-3xl font-extrabold text-amber-800 dark:text-amber-400">
               {formatCurrency(data.predictedPrice!)}
             </span>
           </div>
-          <p className="text-xs text-zinc-500 text-center">
+          <p className="text-xs text-content-muted text-center">
             Estimativa gerada pelo modelo CatBoost treinado com seus dados históricos.
           </p>
         </div>
@@ -189,20 +189,20 @@ export default function BudgetSuggestionPage() {
   return (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       <div>
-        <h1 className="text-2xl font-bold text-zinc-100">Sugestão de Orçamento</h1>
-        <p className="text-zinc-400">
+        <h1 className="text-2xl font-bold text-content-primary">Sugestão de Orçamento</h1>
+        <p className="text-content-secondary">
           Encontre referências de preço baseadas nos seus procedimentos registrados
         </p>
       </div>
 
       {/* Abas */}
-      <div className="flex gap-1 rounded-lg border border-zinc-700 bg-zinc-900 p-1 w-fit">
+      <div className="flex gap-1 rounded-lg border border-edge-muted bg-surface-card p-1 w-fit">
         <button
           onClick={() => setActiveTab('suggestion')}
           className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === 'suggestion'
               ? 'bg-rose-500 text-white'
-              : 'text-zinc-400 hover:text-zinc-200'
+              : 'text-content-secondary hover:text-content-primary'
           }`}
         >
           <Search className="h-4 w-4" />
@@ -213,7 +213,7 @@ export default function BudgetSuggestionPage() {
           className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === 'history'
               ? 'bg-rose-500 text-white'
-              : 'text-zinc-400 hover:text-zinc-200'
+              : 'text-content-secondary hover:text-content-primary'
           }`}
         >
           <History className="h-4 w-4" />
@@ -279,75 +279,75 @@ export default function BudgetSuggestionPage() {
           {result !== null && (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {/* Painel 1: Baseado nos seus dados */}
-              <div className="rounded-xl border border-zinc-700 bg-zinc-900 p-6 space-y-4">
+              <div className="rounded-xl border border-edge-muted bg-surface-card p-6 space-y-4">
                 <div className="flex items-center gap-2">
                   <Database className="h-5 w-5 text-rose-500" />
-                  <h2 className="text-lg font-bold text-zinc-100">Baseado nos Seus Dados</h2>
+                  <h2 className="text-lg font-bold text-content-primary">Baseado nos Seus Dados</h2>
                 </div>
 
                 {hasEnoughData ? (
                   <>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-xs text-zinc-500">
+                      <p className="text-xs text-content-muted">
                         Baseado em{' '}
-                        <span className="text-zinc-300 font-medium">
+                        <span className="text-content-primary font-medium">
                           {result.count} procedimento{result.count !== 1 ? 's' : ''}
                         </span>{' '}
                         similares
                         {result.seedCount != null && result.seedCount > 0 && (
-                          <span className="text-zinc-500">
+                          <span className="text-content-muted">
                             {' '}({result.seedCount} histórico{result.seedCount !== 1 ? 's' : ''})
                           </span>
                         )}
                       </p>
 
                       {result.confidence === 'high' && (
-                        <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 ring-1 ring-emerald-500/30">
+                        <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:text-emerald-400 ring-1 ring-emerald-500/30">
                           Alta confiança
                         </span>
                       )}
                       {result.confidence === 'medium' && (
-                        <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-400 ring-1 ring-amber-500/30">
+                        <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:text-amber-400 ring-1 ring-amber-500/30">
                           Confiança moderada
                         </span>
                       )}
                       {result.confidence === 'low' && (
-                        <span className="inline-flex items-center rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-semibold text-rose-400 ring-1 ring-rose-500/30">
+                        <span className="inline-flex items-center rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-semibold text-rose-700 dark:text-rose-400 ring-1 ring-rose-500/30">
                           Poucos dados similares
                         </span>
                       )}
                     </div>
 
                     <div className="grid grid-cols-3 gap-3">
-                      <div className="rounded-lg bg-zinc-800 p-3 text-center">
-                        <span className="text-[10px] text-zinc-500 uppercase font-bold block mb-1">Mínimo</span>
-                        <span className="text-lg font-bold text-zinc-200">{formatCurrency(result.min!)}</span>
+                      <div className="rounded-lg bg-surface-elevated p-3 text-center">
+                        <span className="text-[10px] text-content-muted uppercase font-bold block mb-1">Mínimo</span>
+                        <span className="text-lg font-bold text-content-primary">{formatCurrency(result.min!)}</span>
                       </div>
                       <div className="rounded-lg bg-rose-500/10 border border-rose-500/30 p-3 text-center">
-                        <span className="text-[10px] text-rose-400 uppercase font-bold block mb-1">Média</span>
-                        <span className="text-xl font-extrabold text-rose-400">{formatCurrency(result.avg!)}</span>
+                        <span className="text-[10px] text-rose-700 dark:text-rose-400 uppercase font-bold block mb-1">Média</span>
+                        <span className="text-xl font-extrabold text-rose-700 dark:text-rose-400">{formatCurrency(result.avg!)}</span>
                       </div>
-                      <div className="rounded-lg bg-zinc-800 p-3 text-center">
-                        <span className="text-[10px] text-zinc-500 uppercase font-bold block mb-1">Máximo</span>
-                        <span className="text-lg font-bold text-zinc-200">{formatCurrency(result.max!)}</span>
+                      <div className="rounded-lg bg-surface-elevated p-3 text-center">
+                        <span className="text-[10px] text-content-muted uppercase font-bold block mb-1">Máximo</span>
+                        <span className="text-lg font-bold text-content-primary">{formatCurrency(result.max!)}</span>
                       </div>
                     </div>
 
                     {result.sessions.length > 0 && (
-                      <div className="space-y-2 pt-2 border-t border-zinc-800">
-                        <span className="text-[10px] text-zinc-500 uppercase font-bold">Sessões reais usadas como referência</span>
+                      <div className="space-y-2 pt-2 border-t border-edge">
+                        <span className="text-[10px] text-content-muted uppercase font-bold">Sessões reais usadas como referência</span>
                         <div className="space-y-1 max-h-48 overflow-y-auto">
                           {result.sessions.map((s) => (
-                            <div key={s.id} className="flex justify-between items-center text-xs py-1.5 px-2 rounded bg-zinc-800/50">
+                            <div key={s.id} className="flex justify-between items-center text-xs py-1.5 px-2 rounded bg-surface-elevated/50">
                               <div>
-                                <span className="text-zinc-300">{s.client?.name || 'Cliente'}</span>
+                                <span className="text-content-primary">{s.client?.name || 'Cliente'}</span>
                                 {s.description && (
-                                  <span className="text-zinc-500 ml-2">— {s.description}</span>
+                                  <span className="text-content-muted ml-2">— {s.description}</span>
                                 )}
                               </div>
                               <div className="text-right shrink-0 ml-3">
-                                <span className="text-amber-400 font-medium">{formatCurrency(s.finalPrice)}</span>
-                                <span className="text-zinc-600 block">{formatDate(s.date)}</span>
+                                <span className="text-amber-800 dark:text-amber-400 font-medium">{formatCurrency(s.finalPrice)}</span>
+                                <span className="text-content-muted block">{formatDate(s.date)}</span>
                               </div>
                             </div>
                           ))}
@@ -357,17 +357,17 @@ export default function BudgetSuggestionPage() {
                   </>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center gap-3">
-                    <AlertCircle className="h-8 w-8 text-zinc-600" />
+                    <AlertCircle className="h-8 w-8 text-content-muted" />
                     <div>
-                      <p className="text-zinc-400 font-medium">Dados insuficientes</p>
-                      <p className="text-zinc-500 text-sm mt-1">
+                      <p className="text-content-secondary font-medium">Dados insuficientes</p>
+                      <p className="text-content-muted text-sm mt-1">
                         {result.count === 0
                           ? 'Nenhum procedimento similar encontrado.'
                           : `Apenas ${result.count} procedimento${result.count !== 1 ? 's' : ''} encontrado${result.count !== 1 ? 's' : ''}.`}
                         {' '}
                         <button
                           onClick={() => setActiveTab('history')}
-                          className="text-rose-400 hover:underline"
+                          className="text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300 hover:underline"
                         >
                           Adicione dados históricos
                         </button>
@@ -379,11 +379,11 @@ export default function BudgetSuggestionPage() {
               </div>
 
               {/* Painel 2: Modelo de IA */}
-              <div className="rounded-xl border border-zinc-700 bg-zinc-900 p-6 space-y-4">
+              <div className="rounded-xl border border-edge-muted bg-surface-card p-6 space-y-4">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-amber-400" />
-                  <h2 className="text-lg font-bold text-zinc-100">Modelo de IA</h2>
-                  <span className="text-[10px] bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30 rounded-full px-2 py-0.5 font-semibold">
+                  <TrendingUp className="h-5 w-5 text-amber-800 dark:text-amber-400" />
+                  <h2 className="text-lg font-bold text-content-primary">Modelo de IA</h2>
+                  <span className="text-[10px] bg-amber-500/15 text-amber-800 dark:text-amber-400 ring-1 ring-amber-500/30 rounded-full px-2 py-0.5 font-semibold">
                     BETA
                   </span>
                 </div>
@@ -393,22 +393,22 @@ export default function BudgetSuggestionPage() {
               {hasEnoughData && (
                 <div className="lg:col-span-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-6">
                   <div className="flex items-start gap-3">
-                    <Lightbulb className="h-6 w-6 text-amber-400 shrink-0 mt-0.5" />
+                    <Lightbulb className="h-6 w-6 text-amber-800 dark:text-amber-400 shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <h3 className="text-lg font-bold text-zinc-100">Sugestão de Preço</h3>
-                      <p className="text-zinc-400 text-sm">
+                      <h3 className="text-lg font-bold text-content-primary">Sugestão de Preço</h3>
+                      <p className="text-content-secondary text-sm">
                         Com base nos seus {result.count} procedimentos similares, cobrar entre{' '}
-                        <span className="text-amber-400 font-bold">{formatCurrency(result.min!)}</span>
+                        <span className="text-amber-800 dark:text-amber-400 font-bold">{formatCurrency(result.min!)}</span>
                         {' '}e{' '}
-                        <span className="text-amber-400 font-bold">{formatCurrency(result.max!)}</span>
+                        <span className="text-amber-800 dark:text-amber-400 font-bold">{formatCurrency(result.max!)}</span>
                         {' '}está dentro da sua faixa habitual. A média praticada foi{' '}
-                        <span className="text-amber-400 font-bold">{formatCurrency(result.avg!)}</span>.
+                        <span className="text-amber-800 dark:text-amber-400 font-bold">{formatCurrency(result.avg!)}</span>.
                       </p>
                       {mlPanel.type === 'result' && mlPanel.data.available && (
-                        <p className="text-zinc-400 text-sm flex items-center gap-1.5 pt-1">
-                          <Zap className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                        <p className="text-content-secondary text-sm flex items-center gap-1.5 pt-1">
+                          <Zap className="h-3.5 w-3.5 text-amber-800 dark:text-amber-400 shrink-0" />
                           O modelo de IA sugere{' '}
-                          <span className="text-amber-400 font-bold">{formatCurrency(mlPanel.data.predictedPrice!)}</span>
+                          <span className="text-amber-800 dark:text-amber-400 font-bold">{formatCurrency(mlPanel.data.predictedPrice!)}</span>
                           {' '}com base nos seus {mlPanel.data.modelDataPoints} procedimentos registrados.
                         </p>
                       )}
@@ -421,12 +421,12 @@ export default function BudgetSuggestionPage() {
 
           {result === null && !isLoading && (
             <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
-              <div className="rounded-full bg-zinc-800 p-6">
-                <Lightbulb className="h-10 w-10 text-zinc-600" />
+              <div className="rounded-full bg-surface-elevated p-6">
+                <Lightbulb className="h-10 w-10 text-content-muted" />
               </div>
               <div>
-                <p className="text-zinc-300 font-medium text-lg">Encontre o preço certo</p>
-                <p className="text-zinc-500 mt-1">
+                <p className="text-content-primary font-medium text-lg">Encontre o preço certo</p>
+                <p className="text-content-muted mt-1">
                   Selecione o tipo de serviço acima e clique em "Buscar Referências"
                 </p>
               </div>
@@ -438,7 +438,7 @@ export default function BudgetSuggestionPage() {
       {/* ── Aba: Dados Históricos ────────────────────────────────── */}
       {activeTab === 'history' && (
         <div className="space-y-4">
-          <p className="text-zinc-400 text-sm">
+          <p className="text-content-secondary text-sm">
             Insira tatuagens que você já realizou antes de usar este sistema.
             Esses dados se somam às suas sessões registradas para melhorar as sugestões de preço.
             Máximo de 30 entradas.

@@ -83,7 +83,7 @@ export default function LoginPage() {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
-        <p className="mt-2 text-zinc-400">Faça login na sua conta</p>
+        <p className="mt-2 text-content-secondary">Faça login na sua conta</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -98,7 +98,7 @@ export default function LoginPage() {
             <p>
               Seu email ainda não foi verificado. Verifique sua caixa de entrada e clique no link que enviamos.{' '}
               {resendVerificationSuccess ? (
-                <span className="text-green-400 font-medium">Email reenviado!</span>
+                <span className="text-green-700 dark:text-green-400 font-medium">Email reenviado!</span>
               ) : (
                 <button
                   type="button"
@@ -141,10 +141,10 @@ export default function LoginPage() {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-zinc-700" />
+          <div className="w-full border-t border-edge-muted" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-zinc-950 px-2 text-zinc-500">ou continue com</span>
+          <span className="bg-surface-primary px-2 text-content-muted">ou continue com</span>
         </div>
       </div>
 
@@ -170,7 +170,7 @@ export default function LoginPage() {
         >
           Esqueci minha senha
         </Link>
-        <p className="text-zinc-400">
+        <p className="text-content-secondary">
           Não tem conta?{' '}
           <Link href="/register" className="text-rose-500 hover:text-rose-400 transition-colors">
             Cadastre-se

@@ -20,17 +20,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-900 disabled:cursor-not-allowed disabled:opacity-50';
+      'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-card disabled:cursor-not-allowed disabled:opacity-50';
 
     const variants = {
       primary:
         'bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500',
       secondary:
-        'bg-zinc-700 text-zinc-100 hover:bg-zinc-600 focus:ring-zinc-500',
+        'bg-surface-elevated text-content-primary hover:bg-edge-muted dark:hover:bg-surface-secondary focus:ring-edge-muted',
       outline:
-        'border border-zinc-600 text-zinc-100 hover:bg-zinc-800 focus:ring-zinc-500',
+        'border border-edge-muted text-content-primary hover:bg-surface-elevated focus:ring-edge-muted',
       ghost:
-        'text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 focus:ring-zinc-500',
+        'text-content-primary hover:bg-surface-elevated hover:text-content-primary focus:ring-edge-muted',
     };
 
     const sizes = {

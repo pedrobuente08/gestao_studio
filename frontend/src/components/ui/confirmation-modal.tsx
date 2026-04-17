@@ -51,7 +51,7 @@ export function ConfirmationModal({
         <div className={`mt-0.5 ${colorClass}`}>
           <AlertTriangle className="h-5 w-5" />
         </div>
-        <p className="text-zinc-400 text-sm leading-relaxed">
+        <p className="text-content-secondary text-sm leading-relaxed">
           {description}
         </p>
       </div>

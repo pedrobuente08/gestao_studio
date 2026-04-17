@@ -20,7 +20,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { DateFilterBar, DateFilter } from '@/components/ui/date-filter-bar';
 import { formatCurrency } from '@/utils/format-currency';
 import { formatDate } from '@/utils/format-date';
-import { Plus, Search, MoreVertical, User, Scissors } from 'lucide-react';
+import { Plus, Search, MoreVertical, User } from 'lucide-react';
 import { TattooSession } from '@/types/session.types';
 
 export default function ProcedimentosPage() {
@@ -95,7 +95,7 @@ export default function ProcedimentosPage() {
         title="Procedimentos"
         description="Histórico de trabalhos realizados"
       >
-        <Button variant="ghost" onClick={handleExport} className="hidden sm:flex text-zinc-400 hover:text-zinc-100">
+        <Button variant="ghost" onClick={handleExport} className="hidden sm:flex text-content-secondary hover:text-content-primary">
           Exportar CSV
         </Button>
         <Button onClick={handleAdd} className="w-full sm:w-auto">
@@ -110,7 +110,7 @@ export default function ProcedimentosPage() {
         <select
           value={selectedServiceTypeId}
           onChange={(e) => setSelectedServiceTypeId(e.target.value)}
-          className="h-9 rounded-lg bg-zinc-800 border border-zinc-700 px-2 text-sm text-zinc-300 focus:outline-none focus:border-rose-500"
+          className="h-9 rounded-lg bg-surface-elevated border border-edge-muted px-2 text-sm text-content-primary focus:outline-none focus:border-rose-500"
         >
           <option value="">Todos os tipos</option>
           {serviceTypes.map((st) => (
@@ -120,12 +120,12 @@ export default function ProcedimentosPage() {
       </div>
 
       <Card>
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 focus-within:border-rose-500 transition-colors">
-          <Search className="h-4 w-4 text-zinc-500" />
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-edge bg-surface-primary px-3 py-2 focus-within:border-rose-500 transition-colors">
+          <Search className="h-4 w-4 text-content-muted" />
           <input
             type="text"
             placeholder="Buscar por cliente ou tipo de serviço..."
-            className="flex-1 bg-transparent text-sm text-zinc-100 outline-none"
+            className="flex-1 bg-transparent text-sm text-content-primary outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -152,17 +152,16 @@ export default function ProcedimentosPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-zinc-500" />
-                      <span className="text-zinc-200">{session.client?.name || 'Comum'}</span>
+                      <User className="h-4 w-4 text-content-muted" />
+                      <span className="text-content-primary">{session.client?.name || 'Comum'}</span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Scissors className="h-4 w-4 text-zinc-500" />
-                      <span className="text-zinc-400">{session.serviceType?.name || 'Outro'}</span>
-                    </div>
+                    <span className="text-content-secondary">
+                      {session.serviceType?.name || 'Outro'}
+                    </span>
                   </TableCell>
-                  <TableCell className="text-right font-medium text-zinc-100">
+                  <TableCell className="text-right font-medium text-content-primary">
                     {formatCurrency(session.finalPrice)}
                   </TableCell>
                   <TableCell>
@@ -172,7 +171,7 @@ export default function ProcedimentosPage() {
                       className="h-8 w-8 p-0"
                       onClick={() => handleEdit(session)}
                     >
-                      <MoreVertical className="h-4 w-4 text-zinc-500" />
+                      <MoreVertical className="h-4 w-4 text-content-muted" />
                     </Button>
                   </TableCell>
                 </TableRow>

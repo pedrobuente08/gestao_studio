@@ -16,7 +16,7 @@ export default function ServiceTypesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-zinc-100">Tipos de Serviço</h1>
+      <h1 className="text-2xl font-bold text-content-primary">Tipos de Serviço</h1>
 
       {/* Form de adição */}
       <div className="flex gap-3">
@@ -26,7 +26,7 @@ export default function ServiceTypesPage() {
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
           placeholder="Ex: Micropigmentação, Dermopigmentação..."
-          className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-rose-500"
+          className="flex-1 rounded-lg border border-edge-muted bg-surface-elevated px-4 py-2.5 text-sm text-content-primary outline-none focus:border-rose-500"
         />
         <Button onClick={handleAdd} isLoading={isCreating} disabled={!newName.trim()}>
           Adicionar
@@ -34,19 +34,19 @@ export default function ServiceTypesPage() {
       </div>
 
       {/* Lista */}
-      <div className="rounded-lg border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
+      <div className="rounded-lg border border-edge divide-y divide-edge overflow-hidden">
         {isLoading && (
-          <p className="p-4 text-sm text-zinc-500">Carregando...</p>
+          <p className="p-4 text-sm text-content-muted">Carregando...</p>
         )}
         {!isLoading && serviceTypes.length === 0 && (
-          <p className="p-4 text-sm text-zinc-500 text-center">Nenhum tipo de serviço cadastrado.</p>
+          <p className="p-4 text-sm text-content-muted text-center">Nenhum tipo de serviço cadastrado.</p>
         )}
         {serviceTypes.map((type) => (
-          <div key={type.id} className="flex items-center justify-between px-4 py-3 bg-zinc-950">
+          <div key={type.id} className="flex items-center justify-between px-4 py-3 bg-surface-primary">
             <div className="flex items-center gap-3">
-              <span className="text-sm text-zinc-100">{type.name}</span>
+              <span className="text-sm text-content-primary">{type.name}</span>
               {type.isSystem && (
-                <span className="rounded-full bg-zinc-700 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                <span className="rounded-full bg-surface-elevated px-2 py-0.5 text-[10px] font-medium text-content-secondary">
                   Sistema
                 </span>
               )}
@@ -58,7 +58,7 @@ export default function ServiceTypesPage() {
                     removeServiceType(type.id);
                   }
                 }}
-                className="p-2 text-zinc-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
+                className="p-2 text-content-muted hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

@@ -43,12 +43,12 @@ function FirstAccessContent() {
       <div className="space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
-          <p className="mt-2 text-zinc-400">Link inválido</p>
+          <p className="mt-2 text-content-secondary">Link inválido</p>
         </div>
         <div className="rounded-lg bg-red-500/10 p-4 text-center text-sm text-red-500">
           Este link de convite é inválido ou já foi utilizado.
         </div>
-        <p className="text-center text-sm text-zinc-400">
+        <p className="text-center text-sm text-content-secondary">
           <Link href="/login" className="text-rose-500 hover:text-rose-400 transition-colors">
             Ir para o login
           </Link>
@@ -62,7 +62,7 @@ function FirstAccessContent() {
       <div className="space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
-          <p className="mt-2 text-zinc-400">Conta ativada!</p>
+          <p className="mt-2 text-content-secondary">Conta ativada!</p>
         </div>
         <div className="rounded-lg bg-green-500/10 p-4 text-center text-sm text-green-500">
           Sua senha foi definida com sucesso. Agora você já pode fazer login.
@@ -98,7 +98,7 @@ function FirstAccessContent() {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
-        <p className="mt-2 text-zinc-400">Defina sua senha de acesso</p>
+        <p className="mt-2 text-content-secondary">Defina sua senha de acesso</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -129,7 +129,7 @@ function FirstAccessContent() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-zinc-400">
+      <p className="text-center text-sm text-content-secondary">
         <Link href="/login" className="text-rose-500 hover:text-rose-400 transition-colors">
           Já tenho acesso — fazer login
         </Link>
@@ -143,7 +143,7 @@ function LoadingFallback() {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-rose-500">Tattoo Hub</h1>
-        <p className="mt-2 text-zinc-400">Carregando...</p>
+        <p className="mt-2 text-content-secondary">Carregando...</p>
       </div>
       <div className="flex justify-center">
         <svg

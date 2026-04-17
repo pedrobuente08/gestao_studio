@@ -81,9 +81,9 @@ export default function SettingsPage() {
         <Card title="Perfil do Estúdio" description="Informações públicas do seu estabelecimento">
           <form onSubmit={tenantForm.handleSubmit(handleTenantSubmit)} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-300">Nome do Estúdio</label>
+              <label className="text-sm font-medium text-content-primary">Nome do Estúdio</label>
               <div className="relative">
-                <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-content-muted" />
                 <Input
                   {...tenantForm.register('name')}
                   className="pl-10"
@@ -109,9 +109,9 @@ export default function SettingsPage() {
           <Card title="Regras de Negócio" description="Configure as porcentagens padrão para cálculos">
             <form onSubmit={configForm.handleSubmit(handleConfigSubmit)} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-300">Porcentagem Padrão do Estúdio (%)</label>
+                <label className="text-sm font-medium text-content-primary">Porcentagem Padrão do Estúdio (%)</label>
                 <div className="relative">
-                  <Percent className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                  <Percent className="absolute left-3 top-2.5 h-4 w-4 text-content-muted" />
                   <Input
                     type="number"
                     {...configForm.register('defaultPercentage')}
@@ -119,7 +119,7 @@ export default function SettingsPage() {
                     placeholder="Ex: 50"
                   />
                 </div>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-content-muted">
                   Esta porcentagem será usada como padrão ao criar novos procedimentos.
                 </p>
                 {configForm.formState.errors.defaultPercentage && (

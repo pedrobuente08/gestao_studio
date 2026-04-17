@@ -156,20 +156,29 @@ model GuestLocation {
   sessions       TattooSession[]
 }
 
+enum ClientHearingSource {
+  INSTAGRAM
+  GOOGLE
+  REFERRAL
+  YOUTUBE
+  OTHER
+}
+
 model Client {
-  id           String          @id @default(cuid())
-  tenantId     String
-  name         String
-  email        String?
-  phone        String?
-  notes        String?
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  instagram    String?
-  birthDate    DateTime?
-  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  sessions     TattooSession[]
-  transactions Transaction[]
+  id             String               @id @default(cuid())
+  tenantId       String
+  name           String
+  email          String?
+  phone          String?
+  notes          String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  instagram      String?
+  birthDate      DateTime?
+  hearingSource  ClientHearingSource?
+  tenant         Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions       TattooSession[]
+  transactions   Transaction[]
 
   @@index([tenantId, createdAt])
 }

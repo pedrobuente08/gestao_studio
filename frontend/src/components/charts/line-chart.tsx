@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { formatCurrency } from '@/utils/format-currency';
+import { useChartPalette } from '@/components/charts/use-chart-palette';
 
 interface LineChartProps {
   data: { label: string; value: number }[];
@@ -18,21 +19,23 @@ interface LineChartProps {
 }
 
 export function LineChart({ data, height = 300 }: LineChartProps) {
+  const p = useChartPalette();
+
   return (
     <div style={{ width: '100%', height }}>
       <ResponsiveContainer>
         <ReChartsLine data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={p.grid} vertical={false} />
           <XAxis 
             dataKey="label" 
-            stroke="#71717a" 
+            stroke={p.axis} 
             fontSize={12} 
             tickLine={false}
             axisLine={false}
             dy={10}
           />
           <YAxis
-            stroke="#71717a"
+            stroke={p.axis}
             fontSize={12}
             tickLine={false}
             axisLine={false}
@@ -44,13 +47,13 @@ export function LineChart({ data, height = 300 }: LineChartProps) {
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#18181b',
-              borderColor: '#27272a',
+              backgroundColor: p.tooltipBg,
+              borderColor: p.tooltipBorder,
               borderRadius: '8px',
-              color: '#f4f4f5',
+              color: p.tooltipText,
             }}
             formatter={(value: any) => [formatCurrency(Number(value) || 0), 'Valor']}
-            labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
+            labelStyle={{ color: p.tooltipLabel, marginBottom: '4px' }}
           />
           <Line
             type="monotone"

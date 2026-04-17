@@ -162,9 +162,9 @@ function PersonalProfileForm({ onClose }: { onClose: () => void }) {
       />
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-300">Gênero</label>
+        <label className="mb-1 block text-sm font-medium text-content-primary">Gênero</label>
         <select
-          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
+          className="w-full rounded-lg border border-edge-muted bg-surface-elevated px-3 py-2 text-sm text-content-primary focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
           {...register('gender')}
         >
           <option value="">Prefiro não informar</option>
@@ -298,14 +298,14 @@ export function ProfileModal({ isOpen, onClose, initialTab = 'profile' }: Profil
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="md">
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 rounded-lg bg-zinc-800/50 p-1">
+      <div className="flex gap-1 mb-6 rounded-lg bg-surface-elevated/50 p-1">
         <button
           type="button"
           onClick={() => setTab('profile')}
           className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
             tab === 'profile'
-              ? 'bg-zinc-700 text-zinc-100'
-              : 'text-zinc-400 hover:text-zinc-200'
+              ? 'bg-surface-elevated text-content-primary'
+              : 'text-content-secondary hover:text-content-primary'
           }`}
         >
           {isStudioOwner ? 'Estúdio' : 'Dados pessoais'}
@@ -315,8 +315,8 @@ export function ProfileModal({ isOpen, onClose, initialTab = 'profile' }: Profil
           onClick={() => setTab('password')}
           className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
             tab === 'password'
-              ? 'bg-zinc-700 text-zinc-100'
-              : 'text-zinc-400 hover:text-zinc-200'
+              ? 'bg-surface-elevated text-content-primary'
+              : 'text-content-secondary hover:text-content-primary'
           }`}
         >
           Alterar senha

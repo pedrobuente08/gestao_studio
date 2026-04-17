@@ -102,14 +102,14 @@ export default function CompleteRegistrationPage() {
 
   if (isLoading || (user && user.tenantId)) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen bg-surface-primary flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-surface-primary flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card
           title="Finalizar Cadastro"
@@ -124,15 +124,15 @@ export default function CompleteRegistrationPage() {
 
             {/* TODO: reabilitar quando STUDIO for liberado
             <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-300">Tipo de Conta</label>
+              <label className="mb-2 block text-sm font-medium text-content-primary">Tipo de Conta</label>
               <div className="flex gap-3">
-                <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors flex-1">
-                  <input type="radio" value="AUTONOMO" className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900" {...register('tenantType')} />
-                  <span className="text-zinc-300">Autônomo</span>
+                <label className="flex items-center gap-3 p-3 rounded-lg border border-edge-muted cursor-pointer hover:border-edge transition-colors flex-1">
+                  <input type="radio" value="AUTONOMO" className="h-4 w-4 text-rose-500 border-edge-muted bg-surface-elevated focus:ring-rose-500 focus:ring-offset-surface-card" {...register('tenantType')} />
+                  <span className="text-content-primary">Autônomo</span>
                 </label>
-                <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 cursor-pointer hover:border-zinc-500 transition-colors flex-1">
-                  <input type="radio" value="STUDIO" className="h-4 w-4 text-rose-500 border-zinc-700 bg-zinc-800 focus:ring-rose-500 focus:ring-offset-zinc-900" {...register('tenantType')} />
-                  <span className="text-zinc-300">Estúdio</span>
+                <label className="flex items-center gap-3 p-3 rounded-lg border border-edge-muted cursor-pointer hover:border-edge transition-colors flex-1">
+                  <input type="radio" value="STUDIO" className="h-4 w-4 text-rose-500 border-edge-muted bg-surface-elevated focus:ring-rose-500 focus:ring-offset-surface-card" {...register('tenantType')} />
+                  <span className="text-content-primary">Estúdio</span>
                 </label>
               </div>
             </div>
@@ -158,9 +158,9 @@ export default function CompleteRegistrationPage() {
                 />
               </div>
               <div className="w-28">
-                <label className="mb-1 block text-sm font-medium text-zinc-300">Estado</label>
+                <label className="mb-1 block text-sm font-medium text-content-primary">Estado</label>
                 <select
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500 h-[42px]"
+                  className="w-full rounded-lg border border-edge-muted bg-surface-elevated px-3 py-2 text-sm text-content-primary focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500 h-[42px]"
                   {...register('state')}
                 >
                   <option value="">UF</option>
